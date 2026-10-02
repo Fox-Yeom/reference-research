@@ -1,0 +1,14 @@
+{
+  "name": "reference-research",
+  "version": "0.1.0-beta.1",
+  "description": "레퍼런스 조사 도구 — 비슷한 서비스·경쟁 화면·강의를 찾아 캡처하고, 출처 있는 발견(주장)과 카테고리별 비교 보드를 만듭니다. 라이브러리는 내 컴퓨터(~/references)에 git으로 쌓입니다.",
+  "author": { "name": "Y-jae-heon" },
+  "repository": "https://github.com/Y-jae-heon/reference-research",
+  "keywords": ["reference", "benchmark", "competitor", "design", "curriculum", "research"],
+  "mcpServers": {
+    "reference-library": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/run-mcp.sh",
+      "args": []
+    }
+  }
+}

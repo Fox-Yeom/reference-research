@@ -1,0 +1,887 @@
+{
+  "axes": [
+    {
+      "id": "market-global",
+      "label": "글로벌 시장",
+      "facet": "market",
+      "description": null,
+      "tags": [
+        "global"
+      ]
+    },
+    {
+      "id": "market-kr",
+      "label": "한국 시장",
+      "facet": "market",
+      "description": null,
+      "tags": [
+        "kr",
+        "kr-market"
+      ]
+    },
+    {
+      "id": "agent-integration",
+      "label": "AI 에이전트 연동",
+      "facet": "pattern",
+      "description": "MCP 등으로 에이전트가 레퍼런스를 직접 검색",
+      "tags": [
+        "mcp-for-agents"
+      ],
+      "question": "AI가 이 라이브러리를 어떻게 쓰게 하나?"
+    },
+    {
+      "id": "app-shell",
+      "label": "앱 형태",
+      "facet": "pattern",
+      "description": "메뉴바 팝오버, 에디터 플러그인, Electron 데스크톱 등 제품의 껍데기",
+      "tags": [
+        "menubar-popover",
+        "neovim-plugin",
+        "electron-shell"
+      ],
+      "question": "어떤 형태의 앱인가?"
+    },
+    {
+      "id": "attention-alerts",
+      "label": "주의·알림 신호",
+      "facet": "pattern",
+      "description": "사용자 개입이 필요할 때 배지·데스크톱 알림·효과음으로 알림",
+      "tags": [
+        "notification-ring",
+        "desktop-notify",
+        "sound-cues"
+      ],
+      "question": "사용자가 봐야 할 순간을 어떻게 알리나?"
+    },
+    {
+      "id": "automation-service",
+      "label": "자동화·대행",
+      "facet": "pattern",
+      "description": "AI 자동 분류, 해지·협상 대행 같은 서비스형 기능",
+      "tags": [
+        "ai-categorization",
+        "concierge-service",
+        "auto-archive-daily"
+      ],
+      "question": "무엇을 대신 해주나?"
+    },
+    {
+      "id": "budget-method",
+      "label": "예산 방법론",
+      "facet": "pattern",
+      "description": "제로베이스, 초과지출 충당, 복식부기 등 예산 모델 자체",
+      "tags": [
+        "zero-based-budget",
+        "cover-overspending",
+        "double-entry"
+      ],
+      "question": "어떤 예산 방식을 쓰나?"
+    },
+    {
+      "id": "card-composition",
+      "label": "카드 구성(이미지 우선)",
+      "facet": "pattern",
+      "description": "큰 스크린샷이 주인공, 글자는 최소. 제품 단위 한 줄에 화면 여러 장",
+      "tags": [
+        "image-first-cards",
+        "product-row-screens",
+        "section-header-viewall",
+        "matted-thumbnails",
+        "caption-outside-card",
+        "hover-arrow-visit",
+        "masonry-grid"
+      ],
+      "question": "레퍼런스 한 장을 어떻게 보여주나?"
+    },
+    {
+      "id": "classify-filter",
+      "label": "분류·필터·정렬",
+      "facet": "pattern",
+      "description": "헤더 아래 한 줄의 칩·탭·드롭다운 분류와 정렬",
+      "tags": [
+        "chip-filter-row",
+        "platform-tabs",
+        "dropdown-classifier",
+        "sort-control",
+        "pill-chips-active-black"
+      ],
+      "question": "많은 레퍼런스를 어떻게 좁혀 보게 하나?"
+    },
+    {
+      "id": "collect-save",
+      "label": "수집·컬렉션",
+      "facet": "pattern",
+      "description": "컬렉션·보드 저장, 탐색 → 분석 → 자산화 단계",
+      "tags": [
+        "save-to-collection",
+        "three-step-workflow"
+      ],
+      "question": "찾은 것을 어떻게 모아 두나?"
+    },
+    {
+      "id": "collection-rewards",
+      "label": "수집·게임화 보상",
+      "facet": "pattern",
+      "description": "수집 기록·희귀도·포인트·미션으로 재방문과 습관 유도",
+      "tags": [
+        "catch-log",
+        "rarity-filter",
+        "usage-as-currency",
+        "gamified-missions"
+      ],
+      "question": "수집·보상으로 어떻게 다시 오게 하나?"
+    },
+    {
+      "id": "copy-tone",
+      "label": "카피 톤",
+      "facet": "pattern",
+      "description": "문제 제기형, 유머·자기비하, 결과 중심 짧은 카피",
+      "tags": [
+        "problem-first-copy",
+        "humor-copy",
+        "outcome-copy",
+        "editorial-statement-copy"
+      ],
+      "question": "어떤 말투로 쓰나?"
+    },
+    {
+      "id": "cta-style",
+      "label": "CTA·행동 버튼",
+      "facet": "pattern",
+      "description": "단일 CTA, 동사형/1인칭 CTA, 행 단위 즉시 실행 버튼",
+      "tags": [
+        "single-cta",
+        "verb-cta",
+        "first-person-cta",
+        "row-action-button"
+      ],
+      "question": "행동 버튼을 어떻게 쓰나?"
+    },
+    {
+      "id": "curriculum-structure",
+      "label": "커리큘럼 구조",
+      "facet": "pattern",
+      "description": null,
+      "tags": [
+        "course-hours",
+        "course-order"
+      ]
+    },
+    {
+      "id": "data-views",
+      "label": "데이터 보기 방식",
+      "facet": "pattern",
+      "description": "달력 뷰, 고밀도 표, 하단 탭 구조, 빠른 입력(영수증)",
+      "tags": [
+        "calendar-view",
+        "dense-table",
+        "bottom-tab-4",
+        "receipt-photo",
+        "sidebar-nav",
+        "floating-pill-nav"
+      ],
+      "question": "데이터를 어떤 화면 형식으로 보나?"
+    },
+    {
+      "id": "docs-structure",
+      "label": "문서·도움말 구조",
+      "facet": "pattern",
+      "description": "개념별 문서 분류, 에이전트/연동별 문서, FAQ",
+      "tags": [
+        "per-agent-integration-docs",
+        "docs-ia",
+        "faq"
+      ],
+      "question": "도움말·문서를 어떻게 구성하나?"
+    },
+    {
+      "id": "evidence-trace",
+      "label": "근거 추적",
+      "facet": "pattern",
+      "description": "모든 인사이트가 원문 근거로 연결, 근거와 분석을 나란히, 이미지마다 출처",
+      "tags": [
+        "evidence-traceability",
+        "split-view-evidence",
+        "insight-repository",
+        "source-attribution"
+      ],
+      "question": "인사이트가 무엇에 근거하는지 어떻게 보여주나?"
+    },
+    {
+      "id": "flow-insight",
+      "label": "흐름·비교 인사이트",
+      "facet": "pattern",
+      "description": "자금 흐름 시각화, 전기 대비/또래 비교, 대화형 AI 인사이트",
+      "tags": [
+        "sankey-cashflow",
+        "period-comparison-insight",
+        "peer-ranking",
+        "ai-chat-insight",
+        "brand-level-analysis"
+      ],
+      "question": "돈의 흐름과 비교를 어떻게 보여주나?"
+    },
+    {
+      "id": "flow-view",
+      "label": "흐름(연속 화면) 보기",
+      "facet": "pattern",
+      "description": "화면을 흐름 단위로 묶어 순서대로, 영상·주석으로 전환까지",
+      "tags": [
+        "flow-sequence-view",
+        "annotated-recordings"
+      ],
+      "question": "여러 화면의 순서를 어떻게 보여주나?"
+    },
+    {
+      "id": "goal-tracking",
+      "label": "목표 진행",
+      "facet": "pattern",
+      "description": "저축·목표를 카드(사진/감성 이름)로 진행 표시",
+      "tags": [
+        "goal-cards",
+        "goal-photo-card"
+      ],
+      "question": "목표 진행을 어떻게 보여주나?"
+    },
+    {
+      "id": "hero-visual",
+      "label": "히어로 비주얼 방식",
+      "facet": "pattern",
+      "description": "첫 화면을 앱 목업/실사/초대형 타이포/일러스트/캐러셀 중 무엇으로 채우는가",
+      "tags": [
+        "hero-mockup",
+        "lifestyle-photo-hero",
+        "big-type-hero",
+        "illustration-hero",
+        "glass-card-overlay",
+        "playful-illustration",
+        "carousel"
+      ],
+      "question": "첫 화면을 무엇으로 채우나?"
+    },
+    {
+      "id": "install-distribution",
+      "label": "설치·다운로드 경로",
+      "facet": "pattern",
+      "description": "DMG·brew cask·스토어 배지·QR 등 설치 진입 방식",
+      "tags": [
+        "install-dmg-brew",
+        "brew-tap-cask",
+        "qr-download",
+        "store-badges"
+      ],
+      "question": "어떤 경로로 설치하게 하나?"
+    },
+    {
+      "id": "interruptions",
+      "label": "방해 요소(광고·팝업)",
+      "facet": "pattern",
+      "description": "격자 속 광고, 고정 배너, 프로모션 팝업 — 피해야 할 패턴",
+      "tags": [
+        "ads-in-grid",
+        "promo-popup"
+      ],
+      "question": "무엇이 내용을 가리나?"
+    },
+    {
+      "id": "outcome-feedback",
+      "label": "결과 피드백 연출",
+      "facet": "pattern",
+      "description": "완료·성공·실패 직후 짧은 반응/성공 화면으로 즉시 보상",
+      "tags": [
+        "outcome-reaction",
+        "success-screen"
+      ],
+      "question": "완료·성공 순간을 어떻게 연출하나?"
+    },
+    {
+      "id": "page-structure",
+      "label": "랜딩 페이지 구조",
+      "facet": "pattern",
+      "description": "원페이지 앵커, 긴 스크롤 스토리텔링, 프로모션 바",
+      "tags": [
+        "one-page-anchor",
+        "scroll-storytelling",
+        "promo-bar"
+      ],
+      "question": "랜딩 페이지를 어떤 구조로 짜나?"
+    },
+    {
+      "id": "parallel-workspaces",
+      "label": "병렬 작업 공간·연결",
+      "facet": "pattern",
+      "description": "작업마다 격리된 공간(worktree)과 작업 간 출력 넘기기",
+      "tags": [
+        "worktree-workspaces",
+        "agent-pipe"
+      ],
+      "question": "여러 작업을 어떻게 나누고 잇나?"
+    },
+    {
+      "id": "pricing-justification",
+      "label": "가격 설계·정당화",
+      "facet": "pattern",
+      "description": "무료 체험, 티어 수, 월 환산가, 절약액 앵커링, 유료 이유 설명, 기존 구독 활용",
+      "tags": [
+        "free-trial",
+        "two-tier",
+        "annual-monthly-equivalent",
+        "roi-anchoring",
+        "why-pay-section",
+        "freemium-compare",
+        "byo-subscription"
+      ],
+      "question": "가격을 어떻게 설계하고 설득하나?"
+    },
+    {
+      "id": "recurring-tracking",
+      "label": "고정지출·구독 추적",
+      "facet": "pattern",
+      "description": "다가오는 청구 캘린더, 구독 그리드, 구독 관리 훅",
+      "tags": [
+        "upcoming-bills-calendar",
+        "recurring-grid",
+        "subscription-hook"
+      ],
+      "question": "고정지출·구독을 어떻게 추적하나?"
+    },
+    {
+      "id": "remaining-gauge",
+      "label": "남은 한도·예산 게이지",
+      "facet": "pattern",
+      "description": "남은 양을 막대/링/선으로, 페이스(예비·초과)·임계 색·일 단위 환산으로 해석해 주는 방식. AI 사용량 한도와 가계부 예산이 같은 축",
+      "tags": [
+        "limit-gauge-pace",
+        "traffic-light-limits",
+        "used-remaining-toggle",
+        "usage-badge-idle",
+        "ctx-cost-inline",
+        "pace-line-chart",
+        "progress-bar-budget",
+        "daily-allowance",
+        "category-ring-icons"
+      ],
+      "question": "남은 한도·예산을 어떻게 보여주고 해석해 주나?"
+    },
+    {
+      "id": "review-queue",
+      "label": "검토 대기열·변경 검토",
+      "facet": "pattern",
+      "description": "바뀐 것(코드 diff, 새 거래)을 목록으로 모아 검토·승인하는 흐름",
+      "tags": [
+        "changes-panel",
+        "diff-review-loop",
+        "swipe-review"
+      ],
+      "question": "바뀐 것을 어떻게 모아 검토하게 하나?"
+    },
+    {
+      "id": "scriptable-control",
+      "label": "외부 제어·문맥 접근",
+      "facet": "pattern",
+      "description": "CLI/소켓으로 앱을 제어하거나 AI가 화면 문맥(스크롤백)을 읽음",
+      "tags": [
+        "workspace-cli",
+        "scrollback-context"
+      ],
+      "question": "바깥에서 어떻게 제어하고, 무엇을 문맥으로 읽나?"
+    },
+    {
+      "id": "search-entry",
+      "label": "검색 중심 탐색",
+      "facet": "pattern",
+      "description": "첫 화면의 주인공이 검색창(단축키 / ⌘K), 추천 질의, 색·유사도 검색",
+      "tags": [
+        "search-first",
+        "keyboard-search",
+        "suggested-queries",
+        "similarity-search"
+      ],
+      "question": "찾고 싶은 것에 어떻게 바로 닿게 하나?"
+    },
+    {
+      "id": "shared-management",
+      "label": "공동 관리",
+      "facet": "pattern",
+      "description": "커플·가족이 함께 쓰는 공유 예산과 타깃 진입점",
+      "tags": [
+        "shared-budget",
+        "couples-segment"
+      ],
+      "question": "여럿이 함께 쓰게 하나?"
+    },
+    {
+      "id": "status-at-a-glance",
+      "label": "작업·항목 상태 한눈에",
+      "facet": "pattern",
+      "description": "목록/탭 행마다 현재 상태를 문장·라벨·배지로 표시하고, 급한 것(입력 필요)을 앞에 두는 방식",
+      "tags": [
+        "vertical-tabs-status",
+        "vertical-tabs-metadata",
+        "status-3state",
+        "status-summary-line",
+        "needs-input-first",
+        "status-label"
+      ],
+      "question": "여러 작업·항목의 상태를 어떻게 한눈에 보여주나?"
+    },
+    {
+      "id": "status-character",
+      "label": "상태 반응 캐릭터",
+      "facet": "pattern",
+      "description": "마스코트/펫이 작업 상태를 몸짓으로 보여주는 방식",
+      "tags": [
+        "mascot-center",
+        "mascot-states",
+        "desktop-companion"
+      ],
+      "question": "캐릭터로 상태를 어떻게 표현하나?"
+    },
+    {
+      "id": "trust-proof",
+      "label": "신뢰·사회적 증거",
+      "facet": "pattern",
+      "description": "통계·리뷰 수·수상 배지·보안/프라이버시 약속",
+      "tags": [
+        "stats-proof",
+        "review-count-proof",
+        "trust-badges",
+        "security-screen",
+        "privacy-lists",
+        "library-size-proof"
+      ],
+      "question": "신뢰를 무엇으로 증명하나?"
+    },
+    {
+      "id": "visual-style",
+      "label": "비주얼 톤",
+      "facet": "pattern",
+      "description": "다크 테마, 세리프 헤드라인, 웹·스토어 일관 브랜드, 핵심 단위를 그래픽으로",
+      "tags": [
+        "dark-theme",
+        "serif-headline",
+        "consistent-brand",
+        "category-chips",
+        "monochrome-ui",
+        "dark-default",
+        "regular-weight-hierarchy"
+      ],
+      "question": "어떤 시각 톤인가?"
+    },
+    {
+      "id": "voice-interaction",
+      "label": "음성 상호작용",
+      "facet": "pattern",
+      "description": "말하기 버튼, 듣는 중 상태, 양방향 음성 응답, 받아쓰기와 대화 구분",
+      "tags": [
+        "voice-two-way",
+        "direct-voice",
+        "listening-card",
+        "listening-state",
+        "push-to-talk-button",
+        "dictation-vs-conversation"
+      ],
+      "question": "음성으로 어떻게 주고받나?"
+    },
+    {
+      "id": "workspace-layout",
+      "label": "작업 공간 레이아웃",
+      "facet": "pattern",
+      "description": "화면을 타일/분할/위젯으로 구성하고 상황에 따라 자동 배치",
+      "tags": [
+        "block-layout",
+        "auto-snap-layout",
+        "widgets"
+      ],
+      "question": "작업 화면을 어떻게 배치하나?"
+    },
+    {
+      "id": "platform-ios",
+      "label": "iOS",
+      "facet": "platform",
+      "description": null,
+      "tags": [
+        "ios"
+      ]
+    },
+    {
+      "id": "platform-multi-os",
+      "label": "멀티 OS(Windows 포함)",
+      "facet": "platform",
+      "description": null,
+      "tags": [
+        "cross-platform",
+        "windows-tray"
+      ]
+    },
+    {
+      "id": "positioning",
+      "label": "포지셔닝 신호",
+      "facet": "positioning",
+      "description": "제품이 어디로 향하는지(엔터프라이즈, 슈퍼앱, 금융상품 중개, 공식 기능 겹침, 에이전트 무관, 디자인 가치)",
+      "tags": [
+        "enterprise-pivot",
+        "indirect-signal",
+        "official-overlap",
+        "agent-agnostic",
+        "super-app",
+        "financial-product-matching",
+        "product-matching",
+        "design-as-value"
+      ]
+    },
+    {
+      "id": "topic-adoption",
+      "label": "조직 도입·변화 관리",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "ai-adoption"
+      ]
+    },
+    {
+      "id": "topic-advanced",
+      "label": "프롬프트 너머 기술 개념(RAG·파인튜닝)",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "beyond-prompting"
+      ]
+    },
+    {
+      "id": "topic-ai-basics",
+      "label": "AI·생성형 AI 기본 이해",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "ai-basics"
+      ]
+    },
+    {
+      "id": "topic-automation",
+      "label": "업무 자동화(오피스·노코드 연동)",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "office-automation"
+      ]
+    },
+    {
+      "id": "topic-coding",
+      "label": "코딩 입문(파이썬·바이브 코딩)",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "coding-basics"
+      ]
+    },
+    {
+      "id": "topic-custom-gpt",
+      "label": "나만의 GPT·업무 비서 만들기",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "custom-gpt"
+      ]
+    },
+    {
+      "id": "topic-data",
+      "label": "데이터 정리·분석",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "data-analysis"
+      ]
+    },
+    {
+      "id": "topic-docs",
+      "label": "문서·콘텐츠 작성(보고서·이메일·회의록)",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "doc-writing",
+        "content-creation"
+      ]
+    },
+    {
+      "id": "topic-ethics",
+      "label": "AI 윤리·저작권·편향",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "ai-ethics"
+      ]
+    },
+    {
+      "id": "topic-job",
+      "label": "직무별 활용",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "job-specific"
+      ]
+    },
+    {
+      "id": "topic-limits-verify",
+      "label": "한계 이해·결과 검증(할루시네이션)",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "llm-limits"
+      ]
+    },
+    {
+      "id": "topic-media",
+      "label": "이미지·영상·음성 생성",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "image-media"
+      ]
+    },
+    {
+      "id": "topic-planning",
+      "label": "기획·리서치",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "planning-research"
+      ]
+    },
+    {
+      "id": "topic-project",
+      "label": "프로젝트·실전 과제",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "project-capstone"
+      ]
+    },
+    {
+      "id": "topic-prompting",
+      "label": "프롬프트 작성",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "prompt-basics"
+      ]
+    },
+    {
+      "id": "topic-security",
+      "label": "개인정보·회사 데이터 보안",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "data-security"
+      ]
+    },
+    {
+      "id": "topic-tools",
+      "label": "AI 도구 비교·선택",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "tool-landscape"
+      ]
+    },
+    {
+      "id": "topic-trends",
+      "label": "AI 트렌드·일의 미래",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "ai-trends"
+      ]
+    },
+    {
+      "id": "topic-use-cases",
+      "label": "내 업무 적용처 찾기",
+      "facet": "topic",
+      "description": null,
+      "tags": [
+        "use-case-discovery"
+      ]
+    }
+  ],
+  "updatedAt": "2026-10-02T05:08:24.356Z",
+  "tagLabels": {
+    "agent-agnostic": "모든 에이전트 CLI 지원",
+    "agent-pipe": "에이전트 간 출력 넘기기",
+    "ai-categorization": "AI 거래 자동 분류",
+    "ai-chat-insight": "대화형 AI 인사이트",
+    "annual-monthly-equivalent": "연간 결제를 월 환산가로 표기",
+    "auto-snap-layout": "에이전트 감지 시 화면 자동 분할",
+    "big-type-hero": "초대형 타이포 히어로",
+    "block-layout": "블록(타일) 화면 배치",
+    "bottom-tab-4": "하단 4탭 내비게이션",
+    "brew-tap-cask": "자체 tap brew cask 배포",
+    "byo-subscription": "쓰던 구독(Claude/Codex) 그대로 사용",
+    "calendar-view": "날짜별 지출 달력 뷰",
+    "carousel": "히어로 캐러셀",
+    "catch-log": "포획 기록(Catch log)",
+    "category-chips": "카테고리 칩을 그래픽 요소로",
+    "category-ring-icons": "카테고리 원형 아이콘에 여유/초과 표시",
+    "changes-panel": "변경 파일·체크 패널",
+    "concierge-service": "구독 해지·요금 협상 대행",
+    "consistent-brand": "웹·스토어 화면 톤 일치",
+    "couples-segment": "커플 전용 진입점",
+    "cover-overspending": "초과지출을 다른 카테고리에서 충당",
+    "cross-platform": "macOS·Windows·Linux 지원",
+    "ctx-cost-inline": "입력창 아래 컨텍스트·비용 한 줄",
+    "daily-allowance": "하루 사용 가능 금액",
+    "dark-theme": "다크 테마 기본",
+    "dense-table": "고밀도 표 화면",
+    "design-as-value": "디자인 자체를 가치로 내세움",
+    "desktop-companion": "데스크톱 펫",
+    "desktop-notify": "데스크톱 알림",
+    "dictation-vs-conversation": "받아쓰기와 음성 대화 구분",
+    "diff-review-loop": "diff 검토 후 코멘트를 에이전트에 되돌림",
+    "direct-voice": "에이전트와 직접 음성 대화",
+    "docs-ia": "개념별 문서 분류",
+    "double-entry": "복식부기 자산 관리",
+    "electron-shell": "Electron 데스크톱 앱",
+    "enterprise-pivot": "팀·엔터프라이즈로 방향 전환",
+    "faq": "FAQ로 반론 해소",
+    "financial-product-matching": "금융상품 비교·중개",
+    "first-person-cta": "1인칭 CTA (\"Track my spending\")",
+    "free-trial": "카드 없는 무료 체험",
+    "freemium-compare": "무료 vs 프리미엄 비교표",
+    "gamified-missions": "포인트·미션",
+    "glass-card-overlay": "사진 위 반투명 데이터 카드",
+    "global": "글로벌 시장",
+    "goal-cards": "목표 금액 카드",
+    "goal-photo-card": "사진이 들어간 목표 카드",
+    "hero-mockup": "앱 화면 목업",
+    "humor-copy": "유머·자기비하 카피",
+    "illustration-hero": "일러스트 히어로",
+    "indirect-signal": "간접 경쟁 신호",
+    "install-dmg-brew": "DMG + brew 설치 안내",
+    "ios": "iOS 앱",
+    "kr": "한국 서비스",
+    "kr-market": "국내 사용자 수요",
+    "lifestyle-photo-hero": "실사 라이프스타일 사진",
+    "limit-gauge-pace": "남은 %·리셋 카운트다운·페이스",
+    "listening-card": "'듣는 중' 카드",
+    "listening-state": "음성 입력 중 자세(listening)",
+    "mascot-center": "화면 중앙 마스코트",
+    "mascot-states": "마스코트 상태 6종",
+    "menubar-popover": "메뉴바 팝오버",
+    "needs-input-first": "입력 필요한 작업을 맨 위로",
+    "neovim-plugin": "Neovim 플러그인",
+    "notification-ring": "읽지 않음 알림 배지",
+    "official-overlap": "공식 기능과 겹침",
+    "one-page-anchor": "원페이지 앵커 내비",
+    "outcome-copy": "결과 중심 짧은 카피",
+    "outcome-reaction": "결과(성공/실패)에 따른 반응",
+    "pace-line-chart": "예산선 대비 누적 지출 선",
+    "peer-ranking": "또래 대비 순위",
+    "per-agent-integration-docs": "에이전트별 연동 문서",
+    "period-comparison-insight": "'지난달 이때보다' 비교",
+    "playful-illustration": "친근한 손그림 일러스트",
+    "privacy-lists": "수집함/수집 안 함 목록",
+    "problem-first-copy": "문제 제기형 헤드라인",
+    "product-matching": "상품 추천 동선",
+    "progress-bar-budget": "카테고리별 예산 진행바",
+    "promo-bar": "상단 프로모션 바",
+    "push-to-talk-button": "큰 마이크 버튼",
+    "qr-download": "QR로 앱 설치 유도",
+    "rarity-filter": "희귀도 필터",
+    "receipt-photo": "영수증 사진 첨부",
+    "recurring-grid": "정기결제 카드 그리드",
+    "review-count-proof": "리뷰 수 노출",
+    "roi-anchoring": "절약액으로 가격 앵커링",
+    "row-action-button": "행마다 바로 실행 버튼",
+    "sankey-cashflow": "Sankey 자금 흐름도",
+    "scroll-storytelling": "긴 스크롤 스토리텔링",
+    "scrollback-context": "터미널 스크롤백을 AI 문맥으로",
+    "security-screen": "보안 약속 전용 화면",
+    "serif-headline": "세리프 헤드라인",
+    "shared-budget": "공유 예산",
+    "single-cta": "CTA 하나로 집중",
+    "sound-cues": "대기/완료 효과음",
+    "stats-proof": "통계 수치로 신뢰",
+    "status-3state": "실행/대기/정지 3단계 표시",
+    "status-label": "상태 라벨 (Funded / Fully Spent)",
+    "status-summary-line": "상단 상태 개수 요약 줄",
+    "store-badges": "스토어 배지 CTA",
+    "subscription-hook": "구독 관리를 대표 훅으로",
+    "success-screen": "결과 한 줄 성공 화면",
+    "super-app": "슈퍼앱 안의 기능",
+    "swipe-review": "거래 검토 스와이프 카드",
+    "traffic-light-limits": "한도 초록/노랑/빨강",
+    "trust-badges": "수상·다운로드 수 배지",
+    "two-tier": "2단 요금제",
+    "upcoming-bills-calendar": "다가오는 청구 캘린더",
+    "usage-as-currency": "사용량을 게임 재화로",
+    "usage-badge-idle": "쉬는 동안만 한도 배지",
+    "used-remaining-toggle": "사용량/남은 양 전환",
+    "verb-cta": "동사형 CTA",
+    "vertical-tabs-metadata": "세로 탭에 브랜치·변경량·PR",
+    "vertical-tabs-status": "세로 탭에 상태 문장",
+    "voice-two-way": "양방향 음성(말하고 듣기)",
+    "why-pay-section": "'왜 유료인가' 설명",
+    "widgets": "위젯(그래프·파일 미리보기·웹)",
+    "windows-tray": "Windows 트레이",
+    "workspace-cli": "앱 제어 CLI",
+    "worktree-workspaces": "worktree별 격리 작업 공간",
+    "zero-based-budget": "제로베이스 예산",
+    "ai-basics": "AI·생성형 AI 기본 이해",
+    "llm-limits": "한계·할루시네이션",
+    "prompt-basics": "프롬프트 작성",
+    "use-case-discovery": "업무 적용처 찾기",
+    "tool-landscape": "도구 비교·선택",
+    "ai-ethics": "윤리·저작권·편향",
+    "data-security": "개인정보·보안",
+    "ai-trends": "트렌드·미래",
+    "doc-writing": "문서·이메일·보고서 작성",
+    "content-creation": "콘텐츠 기획·제작",
+    "data-analysis": "데이터 분석",
+    "image-media": "이미지·영상 생성",
+    "custom-gpt": "나만의 GPT 만들기",
+    "office-automation": "업무 자동화",
+    "coding-basics": "코딩 입문",
+    "planning-research": "기획·리서치",
+    "job-specific": "직무별 활용",
+    "ai-adoption": "조직 도입",
+    "beyond-prompting": "RAG·파인튜닝 개념",
+    "project-capstone": "프로젝트",
+    "search-first": "검색창이 첫 화면의 주인공",
+    "keyboard-search": "단축키 검색(/ · ⌘K)",
+    "suggested-queries": "추천 질의 목록",
+    "similarity-search": "색·시각 유사도 검색",
+    "chip-filter-row": "카테고리 칩 + 필터 한 줄",
+    "platform-tabs": "플랫폼 탭(iOS·Android·Web)",
+    "dropdown-classifier": "카테고리·패턴·컴포넌트별 드롭다운",
+    "sort-control": "정렬(최신순 등)",
+    "image-first-cards": "큰 이미지 카드, 글자 최소",
+    "product-row-screens": "제품 한 줄에 화면 여러 장",
+    "section-header-viewall": "섹션 머리 + 전체 보기",
+    "flow-sequence-view": "흐름 단위 연속 화면",
+    "annotated-recordings": "화면 녹화 + 주석",
+    "evidence-traceability": "인사이트 → 근거 연결",
+    "split-view-evidence": "근거와 분석 나란히",
+    "insight-repository": "인사이트 저장소",
+    "source-attribution": "이미지마다 출처 표시",
+    "save-to-collection": "컬렉션·보드 저장",
+    "three-step-workflow": "탐색 → 분석 → 자산화 3단계",
+    "mcp-for-agents": "MCP로 AI 에이전트 연동",
+    "ads-in-grid": "격자 속 광고·고정 배너",
+    "promo-popup": "프로모션 팝업",
+    "library-size-proof": "라이브러리 규모를 큰 숫자로",
+    "sidebar-nav": "왼쪽 사이드바 내비",
+    "brand-level-analysis": "브랜드(제품) 단위로 묶어 분석",
+    "auto-archive-daily": "매일 자동 수집(종료분 포함)",
+    "course-hours": "총 학습시간",
+    "course-order": "주제 순서",
+    "monochrome-ui": "무채색 UI — 색은 콘텐츠에서만",
+    "dark-default": "다크 배경 기본",
+    "regular-weight-hierarchy": "굵기 대신 크기·회색으로 위계",
+    "matted-thumbnails": "회색 매트·액자 위 스크린샷",
+    "caption-outside-card": "캡션을 카드 밖 한 줄로",
+    "hover-arrow-visit": "↗ 바로가기 아이콘",
+    "masonry-grid": "메이슨리(높이 다른) 격자",
+    "pill-chips-active-black": "회색 알약 칩, 선택은 검정",
+    "editorial-statement-copy": "짧고 단정한 소개 문장",
+    "floating-pill-nav": "떠 있는 알약·독 내비"
+  }
+}

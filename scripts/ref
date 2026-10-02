@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# `ref` entry point — installs core deps on first use, then runs the CLI.
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+"$DIR/ensure-deps.sh" || exit 1
+exec node "$DIR/ref.mjs" "$@"

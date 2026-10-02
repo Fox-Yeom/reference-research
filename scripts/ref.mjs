@@ -175,7 +175,7 @@ async function doctor() {
   const { captureBackend, findChrome } = await import("./capture.mjs");
   const backend = await captureBackend();
   if (backend === "aside") ok("capture: Aside (your logged-in browser)");
-  else if (backend === "chrome") ok(`capture: headless Chrome (${findChrome()}) — Aside not found, so pages are captured without your logins`);
+  else if (backend === "chrome") ok(`capture: headless Chrome (${findChrome()}) — ${process.env.REF_CAPTURE ? "forced by REF_CAPTURE" : "Aside not found"}, so pages are captured without your logins`);
   else warn("capture: no backend — screenshots unavailable; research still works with text sources", "install Google Chrome, or Aside: curl -fsSL https://releases.aside.com/install.sh | bash");
   try {
     await (await import("./embed.mjs")).loadTransformers();

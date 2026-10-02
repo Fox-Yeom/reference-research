@@ -1,7 +1,11 @@
 {
   "name": "reference-research-beta",
-  "owner": { "name": "Y-jae-heon" },
-  "metadata": { "description": "reference-research 베타 테스트용 비공개 마켓플레이스" },
+  "owner": {
+    "name": "Y-jae-heon"
+  },
+  "metadata": {
+    "description": "reference-research 베타 테스트용 비공개 마켓플레이스"
+  },
   "plugins": [
     {
       "name": "reference-research",

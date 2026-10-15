@@ -47,6 +47,10 @@ export async function startRun(params, findRelated) {
   const run = { id: nextId("R", runs), collection: col.name, goal: params.goal ?? null, domain: col.domain, kind: col.kind ?? null, startedAt: new Date().toISOString() };
   await saveRuns([run]);
   col.currentRun = run.id;
+  // the category's own purpose (board header): first run's goal unless set explicitly; audience/question when given
+  if (params.goal && !col.goal) col.goal = params.goal;
+  if (params.audience) col.audience = params.audience;
+  if (params.question) col.question = params.question;
   await writeCollection(col);
 
   const [refs, claims] = await Promise.all([readRefs(), readClaims()]);
@@ -204,8 +208,10 @@ export async function showRef(id) {
 // ---------- claims ----------
 
 /**
- * claims[]: { text, kind, subject?, sources:["S1"], tags? }
+ * claims[]: { text, kind, subject?, sources:["S1"], tags?, key?, asOf?:"YYYY-MM-DD", scope? }
  *   or { confirms:"C3", sources:[…] } · { revises:"C3" | refutes:"C3", text, kind, sources }
+ *   or { update:"C3", subject?, key?, asOf?, scope? } — metadata only, text/sources never change this way
+ * subject = short title the board shows (5–12 chars); key = headline finding; asOf = the date a price/number was true.
  * Validated as a batch before anything is written. Plan positions live in the plan layer (`ref plan link`).
  */
 export async function addClaims(params) {
@@ -217,8 +223,16 @@ export async function addClaims(params) {
   const byId = new Map(claims.map((c) => [c.id, c]));
   const now = new Date().toISOString();
   const errors = [];
+  const warnings = [];
+  const META = ["subject", "key", "asOf", "scope"];
   list.forEach((c, i) => {
     const at = `claims[${i}]`;
+    if (c.asOf != null && (!/^\d{4}-\d{2}-\d{2}$/.test(String(c.asOf)) || Number.isNaN(Date.parse(c.asOf)))) errors.push(`${at}: asOf must be a real YYYY-MM-DD date`);
+    if (c.update) {
+      if (!byId.has(c.update)) errors.push(`${at}: update ${c.update} not found`);
+      else if (!META.some((k) => c[k] !== undefined)) errors.push(`${at}: update needs one of ${META.join(", ")}`);
+      return;
+    }
     const unknown = (c.sources ?? []).filter((s) => !refById.has(s));
     if (unknown.length) errors.push(`${at}: unknown ref id(s) ${unknown.join(", ")} — add them with \`ref source add\` first`);
     if (c.context) errors.push(`${at}: plan positions live in the plan layer — use \`ref plan link\``);
@@ -231,6 +245,7 @@ export async function addClaims(params) {
       return;
     }
     if (!c.text?.trim()) errors.push(`${at}: text is required`);
+    if (!c.subject?.trim()) warnings.push(`${at}: no subject — the board will cut a title from the text; give a 5–12 char subject`);
     if (!CLAIM_KINDS.includes(c.kind)) errors.push(`${at}: kind must be one of ${CLAIM_KINDS.join(", ")}`);
     if (c.kind !== "hypothesis" && !c.sources?.length) errors.push(`${at}: needs ≥1 source (or kind "hypothesis")`);
   });
@@ -240,6 +255,17 @@ export async function addClaims(params) {
   const out = [];
   const all = [...claims];
   for (const c of list) {
+    if (c.update) {
+      const old = byId.get(c.update);
+      if (c.subject !== undefined) old.subject = c.subject || null;
+      if (c.key !== undefined) old.key = !!c.key;
+      if (c.asOf !== undefined) old.asOf = c.asOf || null;
+      if (c.scope !== undefined) old.scope = c.scope || null;
+      old.updatedAt = now;
+      write.push(old);
+      out.push(`${old.id} updated (${META.filter((k) => c[k] !== undefined).join(", ")})`);
+      continue;
+    }
     if (c.confirms) {
       const old = byId.get(c.confirms);
       old.sources = [...new Set([...old.sources, ...c.sources])];
@@ -256,9 +282,12 @@ export async function addClaims(params) {
       id: nextId("C", all),
       text: c.text.trim(),
       kind: c.kind,
-      subject: c.subject ?? null,
+      subject: c.subject?.trim() || null,
       sources: [...new Set(c.sources ?? [])],
       tags: c.tags ?? [],
+      ...(c.key ? { key: true } : {}),
+      ...(c.asOf ? { asOf: c.asOf } : {}),
+      ...(c.scope ? { scope: c.scope } : {}),
       collections: [col.name],
       status: "active",
       run,
@@ -283,7 +312,7 @@ export async function addClaims(params) {
     out.push(`${claim.id} ${prevId ? `(${c.refutes ? "refutes" : "revises"} ${prevId}) ` : ""}[${claim.kind}, ${claim.confidence}] ${claim.text.slice(0, 90)} ${cites(claim.sources)}`);
   }
   await saveClaims(write);
-  return out.join("\n");
+  return [...out, ...warnings.map((w) => `⚠ ${w}`)].join("\n");
 }
 
 // ---------- deltas ----------

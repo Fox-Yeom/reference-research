@@ -307,8 +307,8 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .claim .cbody{margin:6px 0 0;font-size:15px;line-height:1.6;max-width:72ch}
 .claim .cbody.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .claim .more{font:inherit;font-size:12.5px;color:var(--accent);background:none;border:0;padding:0;margin-top:4px;cursor:pointer}
-.claim .cmeta{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:8px;font-size:12.5px;color:var(--muted)}
-.claim .cmeta .sep{color:var(--faint)}.claim .cmeta .run{cursor:help;border-bottom:1px dotted var(--faint)}
+.cmeta{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.cmeta .sep{color:var(--faint)}.cmeta .run{cursor:help;border-bottom:1px dotted var(--faint)}
 .claim .evidence{margin-top:10px}
 .claim .prev{margin-top:10px;font-size:13px}.claim .prev summary{cursor:pointer;color:var(--muted);width:max-content}.claim .prev .old{margin-top:8px;padding:8px 14px;border-left:2px solid var(--line);color:var(--muted)}
 .fix{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--amber-soft);color:var(--amber);white-space:nowrap}
@@ -333,7 +333,19 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 /* floating */
 .totop{position:fixed;right:22px;bottom:22px;z-index:30;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--accent);font-size:18px;cursor:pointer;box-shadow:0 6px 18px rgba(25,29,58,.12);opacity:0;pointer-events:none;transition:opacity .2s}.totop.show{opacity:1;pointer-events:auto}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(10px);z-index:40;background:var(--side-bg);color:#fff;font-size:13.5px;padding:10px 16px;border-radius:999px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:90vw}.toast.show{opacity:1;transform:translateX(-50%)}
+/* key takeaways + open questions */
+.keygrid{display:grid;grid-template-columns:3fr 2fr;gap:16px}
+.keylist{list-style:none;margin:0;padding:0;counter-reset:k}.keylist li{counter-increment:k;display:grid;grid-template-columns:34px 1fr;gap:10px;padding:12px 0;border-top:1px solid var(--line)}.keylist li:first-child{border-top:0;padding-top:0}.keylist li:last-child{padding-bottom:0}
+.keylist li::before{content:counter(k);font-size:22px;font-weight:500;color:var(--accent);line-height:1.1;font-variant-numeric:tabular-nums}
+.keylist .kt{display:block;font-weight:600;font-size:15.5px;line-height:1.45}.keylist .kt a{color:var(--text)}.keylist .kb{color:var(--muted);font-size:14px;margin-top:3px;max-width:60ch}.keylist .cmeta{margin-top:6px;font-size:12px}
+.openq h4{margin:0 0 8px;font-size:14px;color:var(--muted);font-weight:600;letter-spacing:.02em}.openq ul{margin:0;padding-left:18px}.openq li{margin:6px 0;font-size:14.5px}
+.pbtn{font:inherit;font-size:12px;font-weight:500;padding:2px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--accent);cursor:copy;line-height:1.5}.pbtn:hover{border-color:var(--accent)}.pbtn.big{font-size:13.5px;padding:8px 14px;margin-top:14px;display:inline-block}
+.star{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--violet-soft);color:var(--violet);margin-right:6px;vertical-align:2px}
+.seg.tabs button{display:inline-flex;align-items:center;gap:6px}.seg.tabs button small{font-size:11px;opacity:.75;font-variant-numeric:tabular-nums}.seg.tabs .kdot{width:8px;height:8px;margin:0}
+#viewer aside .vtabs{display:flex;gap:6px;margin:0 0 10px}#viewer aside .vtabs button{padding:4px 11px;font-size:12.5px}#viewer aside .vtabs button.on{background:#5b7ff0;color:#fff}
+#viewer aside .vcl{list-style:none;margin:0;padding:0}#viewer aside .vcl li{padding:9px 0;border-top:1px solid #222;color:#d6d6d6;font-size:13.5px}#viewer aside .vcl li:first-child{border-top:0}#viewer aside .vcl a{color:#9db3f6;font-weight:600;margin-right:8px}#viewer aside .vcl .conf{font-size:11px;padding:1px 7px 1px 6px}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:860px){.keygrid{grid-template-columns:1fr}}
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.hero .goal p{font-size:15.5px}.claim .chead{flex-direction:column;gap:6px}}
 `;
 
@@ -381,8 +393,8 @@ if(gal){
 // findings: run + confidence filters; empty kind groups fold away
 const cl=$('#claims');
 if(cl){
-  const st={run:'',conf:''};
-  const apply=()=>{$$('.claim',cl).forEach(c=>c.classList.toggle('filtered',!!(st.run&&c.dataset.run!==st.run)||!!(st.conf&&c.dataset.conf!==st.conf)));
+  const st={run:'',conf:'',kind:''};$$('.seg[data-k] button.on',cl).forEach(b=>{st[b.parentElement.dataset.k]=b.dataset.v||'';});
+  const apply=()=>{$$('.claim',cl).forEach(c=>c.classList.toggle('filtered',!!(st.run&&c.dataset.run!==st.run)||!!(st.conf&&c.dataset.conf!==st.conf)||!!(st.kind&&c.dataset.kind!==st.kind)));
     $$('.kindgroup',cl).forEach(g=>g.classList.toggle('empty-group',!$$('.claim',g).some(c=>!isHidden(c))));
     count(cl,'.claim','개 표시');};
   wire(cl,st,apply);apply();
@@ -436,7 +448,7 @@ addEventListener('scroll',()=>top.classList.toggle('show',scrollY>700),{passive:
 
 const VIEWER = `<div id="viewer" role="dialog" aria-modal="true" aria-label="캡처 보기">
 <header><span class="t"></span><span class="modes"></span><a class="orig" target="_blank" rel="noopener">원본 사이트 ↗</a><button class="notesbtn" title="정보·노트 패널 (N)">정보</button><button class="pref" title="이전 레퍼런스 (Shift+←)">‹ 이전</button><button class="nref" title="다음 레퍼런스 (Shift+→)">다음 ›</button><button class="close" title="닫기 (Esc)">✕</button></header>
-<div class="stage"></div><aside hidden><div class="facts"></div><h5>분석 노트</h5><div class="prose"></div></aside><div class="strip"></div></div>`;
+<div class="stage"></div><aside hidden><div class="facts"></div><div class="vtabs"><button data-t="notes" class="on">분석 노트</button><button data-t="claims">이 화면을 근거로 쓴 발견</button></div><div class="prose"></div><div class="vclaims" hidden></div></aside><div class="strip"></div></div>`;
 
 const VIEWER_JS = `
 (()=>{
@@ -455,9 +467,12 @@ function load(m,i){
   V.querySelector('.t').innerHTML=data.id+' · '+data.title.replace(/</g,'&lt;')+'<small>'+(data.date?'캡처 '+data.date:'')+'</small>';
   V.querySelector('.orig').href=data.url;
   V.querySelector('.modes').innerHTML=avail.length>1?avail.map(k=>'<button data-m="'+k+'"'+(k===mode?' class="on"':'')+'>'+MODES[k]+'</button>').join(' '):'';
-  const facts=card.querySelector('template.facts-src'),notes=card.querySelector('template.notes-src');
+  const facts=card.querySelector('template.facts-src'),notes=card.querySelector('template.notes-src'),cls=card.querySelector('template.claims-src');
   side.querySelector('.facts').innerHTML=facts?facts.innerHTML:'';
-  side.querySelector('.prose').innerHTML=notes?notes.innerHTML:'<p style="color:#a3a097">노트 없음</p>';
+  side.querySelector('.prose').innerHTML=notes&&notes.innerHTML.trim()?notes.innerHTML:'<p style="color:#a3a097">노트 없음</p>';
+  side.querySelector('.vclaims').innerHTML=cls&&cls.innerHTML.trim()?cls.innerHTML:'<p style="color:#a3a097">이 화면을 근거로 쓴 발견이 아직 없습니다</p>';
+  const nc=+(card.dataset.claims||0);side.querySelector('[data-t=claims]').textContent='이 화면을 근거로 쓴 발견'+(nc?' '+nc:'');
+  tab(side.dataset.tab||(notes&&notes.innerHTML.trim()?'notes':nc?'claims':'notes'));
   side.hidden=!showNotes;sideWidth();
   V.querySelector('.pref').disabled=ci===0;V.querySelector('.nref').disabled=ci===cards.length-1;
   render();
@@ -471,6 +486,7 @@ function render(){
   strip.querySelector('.on')?.scrollIntoView({block:'nearest',inline:'center'});
 }
 function toggleNotes(){showNotes=!showNotes;side.hidden=!showNotes;sideWidth();}
+function tab(t){side.dataset.tab=t;side.querySelectorAll('.vtabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));side.querySelector('.prose').hidden=t!=='notes';side.querySelector('.vclaims').hidden=t!=='claims';}
 function step(d){const L=list();if(mode==='full'||L.length<2)return;idx=(idx+d+L.length)%L.length;render();}
 function ref(d){const n=ci+d;if(n<0||n>=cards.length)return;ci=n;load(mode);history.replaceState(null,'','#'+data.id);}
 function close(){V.classList.remove('open');document.body.classList.remove('viewing');stage.innerHTML='';const id=data&&data.id;history.replaceState(null,'',location.pathname+location.search);if(id)document.getElementById(id)?.scrollIntoView({block:'center'});}
@@ -484,6 +500,8 @@ document.addEventListener('click',e=>{
   if(e.target.closest('.pref'))return ref(-1);
   if(e.target.closest('.nref'))return ref(1);
   if(e.target.closest('.notesbtn'))return toggleNotes();
+  const vt=e.target.closest('.vtabs button');if(vt)return tab(vt.dataset.t);
+  const vc=e.target.closest('.vclaims a[href^="#"]');if(vc){e.preventDefault();const id=vc.getAttribute('href').slice(1);V.classList.remove('open');document.body.classList.remove('viewing');stage.innerHTML='';history.replaceState(null,'','#'+id);document.getElementById(id)?.scrollIntoView({block:'center'});return;}
   const mb=e.target.closest('.modes button');if(mb){mode=mb.dataset.m;idx=0;V.querySelectorAll('.modes button').forEach(b=>b.classList.toggle('on',b===mb));return render();}
   if(e.target.closest('.nav.prev'))return step(-1);
   if(e.target.closest('.nav.next'))return step(1);
@@ -543,6 +561,39 @@ const splitTitle = (c) => {
   const i = Math.max(cut.lastIndexOf(" "), cut.lastIndexOf(","));
   return [(i > 28 ? cut.slice(0, i) : cut).replace(/[,\s]+$/, "") + "…", t];
 };
+/**
+ * SUMMARY.md section contract (docs/BOARD-REDESIGN.md E6): headings "## 목표 · 이번 실행에서 바뀐 것 · 핵심 발견 · 공통 vs 차별 · 추천 · 열린 질문"
+ * (also "**제목**" / "**제목:** text" lines). Returns { goal, changed, key, common, recommend, open } → body markdown, unknown headings ignored.
+ */
+const SUMMARY_KEYS = [
+  ["goal", /목표|목적|goal/i],
+  ["changed", /바뀐|변경|changed/i],
+  ["key", /핵심|주요 발견|key|takeaway/i],
+  ["common", /공통|차별|common/i],
+  ["recommend", /추천|다음 (할 일|단계)|권장|recommend|next/i],
+  ["open", /열린|미해결|질문|open question/i],
+];
+export function splitSummary(src) {
+  const out = {};
+  let cur = null;
+  for (const raw of String(src ?? "").replace(/\r/g, "").split("\n")) {
+    const m = raw.match(/^#{1,4}\s+(.+?)\s*$/) ?? raw.match(/^\*\*([^*]{2,40})\*\*:?\s*(.*)$/);
+    if (m) {
+      const k = SUMMARY_KEYS.find(([, re]) => re.test(m[1]))?.[0] ?? null;
+      cur = k;
+      if (k && m[2]?.trim()) out[k] = [...(out[k] ?? []), m[2].trim()];
+      continue;
+    }
+    if (cur) out[cur] = [...(out[cur] ?? []), raw];
+  }
+  return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.join("\n").trim()]));
+}
+/** "- a" / "1. a" lines of a markdown block (one level), else non-empty lines */
+const listItems = (block) => {
+  const lines = String(block ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+  const li = lines.filter((l) => /^([-*]|\d+\.)\s+/.test(l)).map((l) => l.replace(/^([-*]|\d+\.)\s+/, ""));
+  return li.length ? li : lines.filter((l) => !/^\|/.test(l));
+};
 /** first paragraph under "## 목표" / "**목표**" in the summary markdown */
 const goalFromSummary = (s) => {
   const m = String(s ?? "").match(/(?:^|\n)(?:#{1,4}\s*목표\s*\n+|\*\*목표\*\*:?\s*)([^\n]+)/);
@@ -576,7 +627,43 @@ export function renderBoard(d) {
   let sec = 0;
   const next = () => String(++sec).padStart(2, "0");
 
+  // key takeaways: collection.highlights → claims marked key → summary "핵심 발견" list → strongest claims
+  const sum = splitSummary(d.summary);
+  const claimById = new Map([...d.claims.own, ...d.claims.related].map((c) => [c.id, c]));
+  const CONF_RANK = { high: 0, medium: 1, low: 2, hypothesis: 3 };
+  const KIND_RANK = { pattern: 0, benchmark: 1, fact: 2, failure: 3, gap: 4, opinion: 5, hypothesis: 6 };
+  let keyClaims = (col.highlights ?? []).map((id) => claimById.get(id)).filter((c) => c && c.status === "active");
+  let keySource = keyClaims.length ? "highlights" : "";
+  if (!keyClaims.length) {
+    keyClaims = active.filter((c) => c.key);
+    keySource = keyClaims.length ? "key" : "";
+  }
+  const keyLines = !keyClaims.length && sum.key ? listItems(sum.key).slice(0, 3) : [];
+  if (!keyClaims.length && !keyLines.length) {
+    keyClaims = active.slice().sort((a, b) => (CONF_RANK[a.confidence] ?? 9) - (CONF_RANK[b.confidence] ?? 9) || b.sources.length - a.sources.length || (KIND_RANK[a.kind] ?? 9) - (KIND_RANK[b.kind] ?? 9)).slice(0, 3);
+    keySource = keyClaims.length ? "auto" : "";
+  }
+  const openQ = col.openQuestions?.length ? col.openQuestions : sum.open ? listItems(sum.open) : [];
+  const nextS = col.nextSteps?.length ? col.nextSteps : sum.recommend ? listItems(sum.recommend) : [];
+  const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
+  const continuePrompt = `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})를 이어서 해줘.${openQ.length ? ` 열린 질문: ${openQ.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}${nextS.length ? ` 다음 할 일: ${nextS.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
+  const keyItem = (c) => {
+    const [t, b] = splitTitle(c);
+    return `<li><div><span class="kt"><a href="#${c.id}">${esc(t)}</a></span>${b ? `<div class="kb">${esc(short(b, 140))}</div>` : ""}<div class="cmeta">${confBadge(c.confidence)}${idBtn(c.id)}${c.asOf ? `<span class="sep">·</span><span>기준 ${esc(c.asOf)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}</span></div></div></li>`;
+  };
+  const keySection =
+    keyClaims.length || keyLines.length || openQ.length || nextS.length
+      ? `<section id="key">${sectionHead(next(), "핵심 결론", `이 조사에서 가장 중요한 것 ${keyClaims.length || keyLines.length}가지와 아직 답하지 못한 것. ${{ highlights: "결론은 <code>ref report</code>의 <code>highlights</code>로 고른 것", key: "결론은 <code>key</code>로 표시한 발견", auto: "결론은 근거가 강하고 출처가 많은 발견을 자동으로 고른 것 — <code>highlights</code>나 <code>key</code>로 바꿀 수 있습니다", "": "" }[keySource]}${keyLines.length ? "결론은 요약의 '핵심 발견' 항목" : ""}.`)}
+<div class="keygrid"><div class="panel">${
+          keyClaims.length ? `<ol class="keylist">${keyClaims.map(keyItem).join("")}</ol>` : keyLines.length ? `<ol class="keylist">${keyLines.map((l) => `<li><div><span class="kt">${inline(l, cite)}</span></div></li>`).join("")}</ol>` : `<p class="muted">아직 발견이 없습니다.</p>`
+        }</div>
+<div class="panel openq">${openQ.length ? `<h4>열린 질문</h4><ul data-limit="5" data-items="li">${openQ.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4><ul data-limit="5" data-items="li">${nextS.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
+          !openQ.length && !nextS.length ? `<p class="muted small">요약에 <code>## 열린 질문</code> · <code>## 추천</code> 절을 쓰거나 <code>ref report</code>에 <code>open_questions</code> · <code>next_steps</code>를 넘기면 여기에 표시됩니다.</p>` : ""
+        }<button class="pbtn big" type="button" data-copy="${esc(continuePrompt)}" title="Claude에게 붙여 넣을 프롬프트를 복사합니다">이 조사 이어서 하기 — 프롬프트 복사</button></div></div></section>`
+      : "";
+
   const navItems = [
+    ...(keySection ? [["key", "핵심 결론", keyClaims.length || keyLines.length]] : []),
     ["summary", "한눈에 보기", ""],
     ...(d.curriculum ? [["curriculum", "커리큘럼 비교", d.curriculum.n]] : []),
     ...(d.axes.rows.length ? [["axes", "패턴 비교", d.axes.rows.length]] : []),
@@ -663,11 +750,16 @@ ${other.length ? `<div>다른 조사에도 포함: ${other.map((c) => `<a href="
 <div style="margin-top:8px">${[...(r.screens ?? []), ...m.axes.map(axisLabel)].map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>
 ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc(c.at.slice(0, 10))}: ${esc(c.lines.join(" · ") || "변화 없음")}`).join("<br>")}</div>` : ""}`;
     const notesHtml = notes.map((x) => `${x.collection && x.collection !== col.name ? `<p style="color:#f0ad4e;font-size:12px;margin:12px 0 0">‹${esc(d.catTitle(x.collection))}› 조사에서 쓴 노트</p>` : ""}${md(x.text, cite)}`).join("<hr>");
-    return `<article class="card" id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-name="${esc(r.product ?? r.label ?? r.id)}" data-date="${esc(snap?.at ?? "")}" data-viewer="${esc(JSON.stringify(viewer))}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
+    return `<article class="card" id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-name="${esc(r.product ?? r.label ?? r.id)}" data-date="${esc(snap?.at ?? "")}" data-claims="${citedBy.get(r.id) ?? 0}" data-viewer="${esc(JSON.stringify(viewer))}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
   <button class="thumb" data-view="" title="크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt="${esc(r.label ?? r.id)}">${pics ? `<span class="count">${m.frames.length ? `${m.frames.length}화면` : `${m.screens.length}장`}</span>` : ""}<span class="go" aria-hidden="true">↗</span></button>
   <div class="cap"><div class="t"><div class="p">${esc(r.product ?? r.label ?? r.id)}</div><div class="s">${esc(r.page ?? r.title ?? "")}</div></div><div class="r">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span><br>` : ""}${other.length ? `다른 조사 ${other.length} · ` : ""}${idBtn(r.id)}</div></div>
-  <template class="facts-src">${facts}</template><template class="notes-src">${notesHtml}</template>
+  <template class="facts-src">${facts}</template><template class="notes-src">${notesHtml}</template><template class="claims-src">${citing(r.id)}</template>
 </article>`;
+  };
+  // claims that cite a reference — the viewer's 발견 tab
+  const citing = (id) => {
+    const list = [...d.claims.own, ...d.claims.related].filter((c) => c.status === "active" && c.sources.includes(id));
+    return list.length ? `<ul class="vcl">${list.map((c) => `<li><a href="#${c.id}">${c.id}</a>${confBadge(c.confidence)}<div>${esc(splitTitle(c)[0])}</div></li>`).join("")}</ul>` : "";
   };
   // captured pages go in the gallery; text-only references (articles, papers, docs) go in a table below it — no empty tiles
   const ordered = d.products.flatMap((p) => p.members);
@@ -752,10 +844,11 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
     const mix = typeMix(c.sources, typeOf);
     const olds = inl ? [] : (prevOf.get(c.id) ?? []);
     const fixed = c.status !== "active" ? `<span class="fix">${c.status === "refuted" ? "틀린 것으로 확인" : "수정됨"}${c.replacedBy ? ` → <a href="#${esc(c.replacedBy)}">${esc(c.replacedBy)}</a>` : ""}</span>` : "";
-    return `<article class="claim" id="${c.id}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
-  <div class="chead"><h4 class="ctitle">${esc(title)}</h4>${confBadge(c.confidence)}</div>
+    const recheck = `reference-research 스킬로 ${col.name}의 발견 ${c.id}을(를) 다시 확인해줘: "${plain(title)}"${c.sources.length ? ` (출처 ${c.sources.join(", ")})` : ""}`;
+    return `<article class="claim" id="${c.id}" data-kind="${esc(c.kind ?? "")}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
+  <div class="chead"><h4 class="ctitle">${c.key ? `<span class="star">핵심</span>` : ""}${esc(title)}</h4>${confBadge(c.confidence)}</div>
   ${body ? `<p class="cbody${body.length > 150 ? " clamp" : ""}">${esc(body)}</p>${body.length > 150 ? `<button class="more" type="button">더 보기</button>` : ""}` : ""}
-  <div class="cmeta">${idBtn(c.id)}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(c.run)}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${fixed ? `<span class="sep">·</span>${fixed}` : ""}</div>
+  <div class="cmeta">${idBtn(c.id)}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(c.run)}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span><button class="pbtn" type="button" data-copy="${esc(recheck)}" title="Claude에게 붙여 넣을 '다시 확인' 프롬프트를 복사합니다">다시 확인</button></div>
   ${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}
   ${olds.length ? `<details class="prev"><summary>이전 버전 ${olds.length}개 — ${olds[0].status === "refuted" ? "틀린 것으로 확인됨" : "수정됨"}</summary>${olds.map((o) => `<div class="old" id="${o.id}">${idBtn(o.id)} ${esc(o.text)} <span class="small">(${esc((o.createdAt ?? "").slice(0, 10))})</span></div>`).join("")}</details>` : ""}
 </article>`;
@@ -771,9 +864,13 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
         ? `<div class="seg" data-k="run"><button data-v="" class="on">모든 회차</button>${claimRuns.map((r) => `<button data-v="${esc(r)}" title="${esc(runGoal(r))}">${esc(r)}</button>`).join("")}</div>`
         : "";
   const confSeg = `<div class="seg" data-k="conf"><button data-v="" class="on">모든 근거</button><button data-v="high">강함</button><button data-v="medium">보통</button><button data-v="low">약함</button></div>`;
+  // one kind at a time (the biggest first); 전체 shows every group
+  const kindCounts = kinds.map((k) => [k, active.filter((c) => c.kind === k).length]).sort((a, b) => b[1] - a[1]);
+  const firstKind = active.length > 12 && kindCounts.length > 1 ? kindCounts[0][0] : "";
+  const kindTabs = kindCounts.length > 1 ? `<div class="seg tabs" data-k="kind">${kindCounts.map(([k, n]) => `<button data-v="${k}"${k === firstKind ? ' class="on"' : ""}><i class="kdot k-${k}"></i>${KIND[k][0]} <small>${n}</small></button>`).join("")}<button data-v=""${firstKind ? "" : ' class="on"'}>전체 <small>${active.length}</small></button></div>` : "";
   const claims = `<section id="claims">${sectionHead(next(), "발견과 근거", "조사에서 나온 주장과 그 근거. 제목 → 내용 → 근거 세기·조사 회차·날짜·출처 구성 순으로 읽습니다. 근거 세기는 출처의 수와 등급으로 자동 계산되고, 썸네일을 누르면 근거 화면이 열립니다. 번호를 누르면 복사됩니다.")}${
     active.length || d.claims.related.length
-      ? `<div class="stoolbar">${runFilter}${confSeg}<span class="shown"></span></div>` +
+      ? `${kindTabs ? `<div class="stoolbar">${kindTabs}</div>` : ""}<div class="stoolbar">${runFilter}${confSeg}<span class="shown"></span></div>` +
         kinds.map((k) => `<div class="kindgroup sgroup"><h3><i class="kdot k-${k}"></i>${KIND[k][0]} <span>${KIND[k][1]} · ${active.filter((c) => c.kind === k).length}개</span></h3><div class="panel">${active.filter((c) => c.kind === k).map((c) => claimRow(c)).join("")}</div></div>`).join("") +
         (d.claims.related.length ? `<div class="kindgroup sgroup"><h3>다른 조사의 발견 <span>같은 레퍼런스를 근거로 쓴 것 · ${d.claims.related.length}개</span></h3><div class="panel">${d.claims.related.map((c) => claimRow(c)).join("")}</div></div>` : "") +
         (corrected.length ? `<details class="corrections sgroup"><summary>이후 조사에서 정정된 발견 ${corrected.length}개</summary><div class="panel" style="margin-top:10px">${corrected.map((c) => claimRow(c, { inline: true })).join("")}</div></details>` : "")
@@ -811,7 +908,7 @@ ${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>�
     .join("")}</tbody></table></div><button class="morebtn" type="button" hidden></button></section>`;
 
   const foot = `<footer>${esc(col.name)} · 생성 ${esc(new Date().toLocaleString("ko-KR"))} · <code>ref report</code>로 다시 만들 수 있습니다</footer>`;
-  return shell(`${col.title ?? col.name} — 레퍼런스 보드`, side, topbar, hero.replace("</header>", collage + "</header>") + summary + curriculum + axes + refs + claims + changes + sources + foot);
+  return shell(`${col.title ?? col.name} — 레퍼런스 보드`, side, topbar, hero.replace("</header>", collage + "</header>") + keySection + summary + curriculum + axes + refs + claims + changes + sources + foot);
 }
 
 // ---------- curriculum section ----------

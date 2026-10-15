@@ -5,7 +5,8 @@ Goal frame: references must serve 5 purposes (시행착오 절감 · 벤치마�
 ## Beta (now)
 - [x] 0.1.0-beta.1 — plugin packaging, Chrome fallback, doctor/setup, optional embeddings, README tour
 - [x] Board readability phase 1 (2026-10-15, `docs/BOARD-REDESIGN.md` §3): goal block + stat tiles, 3-line claim cards with run/date/source mix, text-only refs as a table, limited lists, copyable ids, scrollspy, home goal lines. Largest real board 73,000px → 29,000px first load.
-- [ ] Board phase 2 (`BOARD-REDESIGN.md` E1·E2·E3·E6 + A2·A3·D2·D3·C4·G1): collection goal/highlights/openQuestions, claim key/asOf, subject warning in `claim add`, SUMMARY section contract → key takeaways + open questions on top, "다시 확인" / "이어서 하기" prompt copy, finding-kind tabs, viewer tabs
+- [x] Board phase 2 (2026-10-15): collection goal/audience/question/highlights/openQuestions/nextSteps, claim key/asOf/scope + `update` form + subject warning, SUMMARY heading contract → 핵심 결론 + 열린 질문 section, "다시 확인" / "이어서 하기" prompt copy, finding-kind tabs, viewer 발견 tab. Largest board 29,300px → 23,000px.
+- [ ] Phase 2 follow-ups: `ref show C#` for the "다시 확인" prompt (agent reads one claim with its sources); home cards show the collection's highlights
 - [ ] Board phase 3 (E4·E5·E7·E8·E9 + F1·F2·F4·D8): structured notes, text-ref summaries, run timeline, axis verdicts, research-domain evidence table, `ref://` URIs
 - [ ] Release 0.1.0-beta.2 after phase 1 feedback (bump all three versions — `docs/RELEASE.md`)
 - [ ] Collect tester feedback (Issues, label `beta`) → triage into this file

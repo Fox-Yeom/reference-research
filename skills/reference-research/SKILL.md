@@ -61,7 +61,8 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 ### JSON params
 ```jsonc
 // run start — domain: design | dev | research ("related": false skips the embedding search)
-{"collection":"…","goal":"which decision this run supports","domain":"design","kind":"category","description":"…"}
+// goal/audience/question also land on the category (board header: 목적 · 대상). The first run's goal becomes the category goal.
+{"collection":"…","goal":"which decision this run supports","audience":"who the result is for","question":"one-line question","domain":"design","kind":"category","description":"…"}
 
 // capture (≤ 6 URLs per call; each new capture ~10–40 s; Bash timeout 600000)
 {"collection":"…","urls":[{"url":"https://…","label":"Warp — landing","tags":["landing","direct","vertical-tabs"]},
@@ -81,14 +82,18 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 {"collection":"…","ref":"S12","note":"markdown…","tags":["limit-gauge-pace"]}
 
 // claim add — kind: fact|pattern|benchmark|failure|gap|opinion|hypothesis
+// subject = 5–12 char title the board shows (always give one) · key = headline finding (board 핵심 결론) · asOf = date a price/number was true · scope = where it applies
 {"collection":"…","claims":[
-  {"text":"…","kind":"pattern","subject":"Warp","sources":["S2","S9"],"tags":["vertical-tabs"]},
+  {"text":"…","kind":"pattern","subject":"세로 탭 상태","sources":["S2","S9"],"tags":["vertical-tabs"]},
+  {"text":"개인 유료 첫 단계 월 5–14천원","kind":"benchmark","subject":"개인 유료 가격","asOf":"2026-10-15","key":true,"sources":["S1","S2"]},
+  {"update":"C7","subject":"기업 단계","key":true},
   {"confirms":"C3","sources":["S12"]},
   {"revises":"C4","text":"corrected finding","kind":"fact","sources":["S13"]},
   {"refutes":"C5","text":"what is actually true","kind":"fact","sources":["S14"]}]}
 
-// report
-{"collection":"…","summary_file":"/path/to/summary.md","open":false}
+// report — header fields are optional and stored on the category; without them the board reads the summary's 핵심 발견 / 열린 질문 / 추천 sections
+{"collection":"…","summary_file":"/path/to/summary.md","open":false,
+ "highlights":["C12","C3","C8"],"open_questions":["…"],"next_steps":["…"],"audience":"…"}
 ```
 Tag vocabulary: screen tags `landing, features, pricing, app-ui, onboarding, help, store` (coverage) · role `direct, indirect, analogous` (per category) · anything else = **pattern tag** (kebab-case). Before inventing a tag, `ref axes show` and reuse a tag already on the right axis.
 
@@ -149,14 +154,15 @@ For a REUSED ref, add only what is new for this category's angle. Only state wha
 ## 6. Claims and deltas
 Turn every finding you would put in a summary into a claim, written **from the images/pages you looked at in this session** (not from memory of older notes):
 - `pattern` · `benchmark` (price, rating, count, speed) · `failure` (complaints, shutdowns, pitfalls) · `gap` (nobody does it — needs a query aimed at it first) · `fact` · `opinion` · `hypothesis` (no source)
+- **always a `subject`** (5–12 chars — the board's title line; `claim add` warns without one) · `asOf` on every price/number · `key:true` on the 2–4 findings a reader must not miss (`{"update":"C#","key":true}` for existing ones)
 - cite every supporting ref; prefer ≥2 independent publishers
 - baseline claim seen again → `confirms`; partly wrong → `revises`; wrong → `refutes`
 **Normalize tags** whenever `note`/`capture` warns "tags not on any axis": `ref axes suggest <collection>` proposes mutual-nearest pairs and nearest axes from tag names only — expect surface matches (scroll-storytelling ~ scrollback-context). Judge against the notes (same *solution*, not same words), then `ref axes set` (add to an existing axis, or create one with a Korean label + one-line description). An axis may span categories — that is the point (AI 한도 게이지 ≈ 가계부 예산 게이지).
 Then `ref delta <collection>`: A tells what this run changed, C what is common / partly shared / one-product **by axis** and which axes other categories share, T what changed on re-captured refs and what is stale. `ref categories` shows shared refs and shared axes between categories.
 
 ## 7. Report, learnings, commit
-- Summary markdown (scratch file): 목표 · 대상 제품 · **이번 실행에서 바뀐 것** (delta A + T) · 핵심 발견 · **공통 vs 차별** (delta C, by axis) · **다른 카테고리와 공유하는 축** · 추천 방향 · 열린 질문. Every finding line ends with `[C#]`/`[S#]`; inferences say 추정/가설.
-- `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`. The summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
+- Summary markdown (scratch file) with **these `##` headings, in this order** (the board reads them): `## 목표` · `## 이번 실행에서 바뀐 것` (delta A + T) · `## 핵심 발견` (3–5 bullets, each ending in `[C#]`) · `## 공통 vs 차별` (delta C, by axis; include 다른 카테고리와 공유하는 축) · `## 추천` · `## 열린 질문` (bullets). Every finding line ends with `[C#]`/`[S#]`; inferences say 추정/가설.
+- `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of 핵심 발견, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 핵심 결론 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
 - `ref learn add` for each reusable, verified lesson.
 - **Commit**: `git -C ~/references add -A && git -C ~/references commit -m "<collection>: <run goal>"` (end the message with the session's attribution line). Do not push unless the user asks. If the library is not a git repo, skip and suggest `ref setup --git`. **Never push the library anywhere** unless the user asks — it holds captures of third-party pages.
 - Final answer: summary, board path (`open ~/references/<collection>/index.html`; library home `open ~/references/index.html`), query count (KR/EN) + longlist size, refs NEW / REUSED / REFRESHED, categories added to existing refs, claims (by confidence) + what changed vs. baseline, coverage gaps, failures, next captures.

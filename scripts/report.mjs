@@ -5,7 +5,7 @@
 import { promises as fs, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, mustCollection } from "./evidence.mjs";
-import { LIB, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns } from "./store.mjs";
+import { LIB, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, writeCollection } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { renderBoard, renderHome } from "./board.mjs";
 import { run } from "./capture.mjs";
@@ -49,6 +49,22 @@ export async function report(params) {
     .map((m) => ({ ...m, r: byId.get(m.ref) }))
     .filter((m) => m.r)
     .sort((a, b) => String(a.r.product ?? "").localeCompare(String(b.r.product ?? "")) || a.r.id.localeCompare(b.r.id));
+  // header fields (docs/BOARD-REDESIGN.md E1): explicit params win, stored on the collection
+  const HEAD = { goal: "goal", audience: "audience", question: "question", highlights: "highlights", open_questions: "openQuestions", next_steps: "nextSteps" };
+  let touched = false;
+  for (const [p, k] of Object.entries(HEAD))
+    if (params[p] !== undefined) {
+      const v = params[p];
+      if (["highlights", "openQuestions", "nextSteps"].includes(k) && !Array.isArray(v)) bad(`${p} must be an array`);
+      if (k === "highlights") {
+        const ids = new Set(claims.map((c) => c.id));
+        const unknown = v.filter((id) => !ids.has(id));
+        if (unknown.length) bad(`highlights: unknown claim id(s) ${unknown.join(", ")}`);
+      }
+      col[k] = v;
+      touched = true;
+    }
+  if (touched) await writeCollection(col);
   let summary = params.summary ?? (params.summary_file ? readFileSync(params.summary_file, "utf8") : undefined);
   if (summary) await fs.writeFile(path.join(dir, "SUMMARY.md"), summary);
   else summary = await fs.readFile(path.join(dir, "SUMMARY.md"), "utf8").catch(() => "");

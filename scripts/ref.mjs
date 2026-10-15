@@ -19,7 +19,7 @@
  *   ref course set '<json>' | show <collection>   course structure (curriculum mode): modules, topics, hours
  * Evidence
  *   ref run start '<json>'            {collection, goal, domain, kind} → R#, baseline + related refs from other categories
- *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]
+ *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope; {update:"C#"} edits that metadata)
  *   ref delta <collection> [--run R#] run / category / time delta → DELTA.md
  *   ref cite <collection> [--file f]  every finding line cites known, active [S#]/[C#]
  *   ref report '<json>'               README.md + index.html board for a collection

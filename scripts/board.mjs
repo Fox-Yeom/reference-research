@@ -287,48 +287,150 @@ footer{border-top:0;text-align:center}
 @media (max-width:1100px){.topbar{background:var(--side-bg)!important;border-bottom:0!important}.topbar .brand{color:#fff}.topbar .search input{background:rgba(255,255,255,.1);border-color:transparent;color:#fff}.content{padding:18px 14px 60px}.hero{padding:28px 22px;border-radius:16px}section{padding:24px 18px;border-radius:14px}}
 body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 @media (max-width:760px){#viewer.open{grid-template-columns:1fr}#viewer aside{grid-column:1;grid-row:auto;width:auto;max-height:38vh;border-left:0;border-top:1px solid #222}#viewer .nav.next{right:16px}#viewer .count{bottom:auto;top:58px}}
+/* ---- readability pass (docs/BOARD-REDESIGN.md, phase 1): goal block, stat tiles, 3-line claim cards, limited lists, copyable ids, scrollspy ---- */
+.hero .goal{margin:18px 0 0;padding:16px 20px;border-radius:14px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);max-width:72ch}
+.hero .goal .lbl{display:block;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.75);margin-bottom:4px}
+.hero .goal p{margin:0;font-size:17px;line-height:1.55;color:#fff;font-weight:500}.hero .goal p .cite{background:rgba(255,255,255,.2);color:#fff}
+.hero .goal .aud{margin-top:6px;font-size:14px;font-weight:400;color:rgba(255,255,255,.82)}
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:22px 0 0}
+.tiles div{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);border-radius:12px;padding:14px 16px;min-width:0}
+.tiles b{display:block;font-size:30px;line-height:1.1;font-weight:500;letter-spacing:-.02em;color:#fff}
+.tiles span{display:block;margin-top:5px;font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.78)}
+.tiles .mbar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-top:9px;background:rgba(255,255,255,.18)}
+.tiles .mbar i{display:block;height:100%}.tiles .mbar .h{background:#6fe3a5}.tiles .mbar .m{background:#ffd27a}.tiles .mbar .l{background:#ff9d8a}
+.hero .lead,.sechead p{max-width:72ch}
+.side nav a{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.side nav a small{font-size:11.5px;opacity:.7;font-variant-numeric:tabular-nums}.side nav a.on{color:#fff;background:rgba(255,255,255,.1)}
+/* claims: title / body / meta */
+.claim{display:block;padding:18px 0;border-top:1px solid var(--line)}.claim:first-child{border-top:0;padding-top:0}
+.claim .chead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.claim .ctitle{margin:0;font-size:16px;font-weight:600;line-height:1.4;letter-spacing:-.01em}
+.claim .cbody{margin:6px 0 0;font-size:15px;line-height:1.6;max-width:72ch}
+.claim .cbody.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.claim .more{font:inherit;font-size:12.5px;color:var(--accent);background:none;border:0;padding:0;margin-top:4px;cursor:pointer}
+.claim .cmeta{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.claim .cmeta .sep{color:var(--faint)}.claim .cmeta .run{cursor:help;border-bottom:1px dotted var(--faint)}
+.claim .evidence{margin-top:10px}
+.claim .prev{margin-top:10px;font-size:13px}.claim .prev summary{cursor:pointer;color:var(--muted);width:max-content}.claim .prev .old{margin-top:8px;padding:8px 14px;border-left:2px solid var(--line);color:var(--muted)}
+.fix{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--amber-soft);color:var(--amber);white-space:nowrap}
+.idbtn{font:inherit;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:copy;line-height:1.4;white-space:nowrap}.idbtn:hover{border-color:var(--accent);color:var(--accent)}
+.idbtn.done{background:var(--green-soft);color:var(--green);border-color:transparent}
+.empty-group{display:none!important}
+/* lists with a limit ("더 보기") */
+.over-limit,.filtered{display:none!important}
+.morebtn{display:block;margin:18px auto 0;font:inherit;font-size:13.5px;font-weight:500;padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--accent);cursor:pointer}.morebtn:hover{border-color:var(--accent)}.morebtn.small{margin:10px 0 0;padding:5px 12px;font-size:12.5px}
+/* text-only references */
+.docs td .tt{font-weight:500}.docs td .sum{display:block;color:var(--muted);font-size:13px;margin-top:2px;max-width:60ch}
+.docs th.n,.docs td.n{width:1%;white-space:nowrap}
+.docs details{margin-top:4px;font-size:13px}.docs details summary{cursor:pointer;color:var(--accent);width:max-content}.docs details .prose{margin-top:6px;color:var(--muted)}.docs details .prose p{margin:4px 0}
+.stoolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}.stoolbar .shown{font-size:13px;color:var(--faint);margin-left:auto}
+.seg button.tog.on{background:var(--teal);color:#fff}
+/* home: goal line, claim-kind bar when there is no capture */
+.catcard .goal2{display:block;margin-top:6px;font-size:14px;line-height:1.5;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.catcard .meta2{display:block;margin-top:6px;font-size:12.5px;color:var(--faint)}
+.thumb.kinds{display:flex;flex-direction:column;justify-content:center;gap:10px;cursor:pointer;padding:28px}
+.kbar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--chip)}.kbar i{display:block;height:100%}
+.klegend{font-size:12.5px;color:var(--muted);line-height:1.6}
+/* floating */
+.totop{position:fixed;right:22px;bottom:22px;z-index:30;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--accent);font-size:18px;cursor:pointer;box-shadow:0 6px 18px rgba(25,29,58,.12);opacity:0;pointer-events:none;transition:opacity .2s}.totop.show{opacity:1;pointer-events:auto}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(10px);z-index:40;background:var(--side-bg);color:#fff;font-size:13.5px;padding:10px 16px;border-radius:999px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:90vw}.toast.show{opacity:1;transform:translateX(-50%)}
+@media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.hero .goal p{font-size:15.5px}.claim .chead{flex-direction:column;gap:6px}}
 `;
 
 const JS = `
 (()=>{
-// reference toolbar: role segment, pattern select, sort, view
-const gal=document.getElementById('gallery');
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const isHidden=el=>el.classList.contains('filtered')||el.classList.contains('hidden-by-search');
+// segment buttons / selects write into a state object, then re-apply
+const wire=(root,st,apply)=>{
+  $$('.seg[data-k] button',root).forEach(b=>b.addEventListener('click',()=>{const seg=b.parentElement;if(b.classList.contains('tog')){b.classList.toggle('on');st[seg.dataset.k]=b.classList.contains('on');}else{seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));st[seg.dataset.k]=b.dataset.v;}apply();}));
+  $$('select[data-k]',root).forEach(s=>s.addEventListener('change',()=>{st[s.dataset.k]=s.value;apply();}));
+};
+// lists with a limit: [data-limit] holds the items (data-items selector), a .morebtn right after it reveals more; search shows everything
+const limits=[];
+$$('[data-limit]').forEach(box=>{
+  const step=+box.dataset.limit||12;let shown=step;const sel=box.dataset.items||':scope > *';
+  let host=box;while(host.parentElement&&host.parentElement.tagName!=='MAIN'&&!(host.nextElementSibling&&host.nextElementSibling.classList.contains('morebtn')))host=host.parentElement;
+  const btn=host.nextElementSibling&&host.nextElementSibling.classList.contains('morebtn')?host.nextElementSibling:null;
+  const refresh=()=>{const all=document.body.classList.contains('searching');let n=0,rest=0;
+    $$(sel,box).forEach(el=>{if(isHidden(el)){el.classList.remove('over-limit');return;}n++;const over=!all&&n>shown;el.classList.toggle('over-limit',over);if(over)rest++;});
+    if(btn){btn.hidden=!rest;btn.textContent='더 보기 '+Math.min(rest,step)+'개 · 남은 '+rest+'개';}};
+  if(btn)btn.addEventListener('click',()=>{shown+=step;refresh();});
+  limits.push(refresh);refresh();
+});
+const refreshAll=()=>limits.forEach(f=>f());
+const count=(root,sel,label)=>{const s=$('.shown',root);if(s)s.textContent=$$(sel,root).filter(el=>!isHidden(el)).length+label;};
+// reference toolbar: role segment, pattern select, run select, sort, view
+const gal=$('#gallery');
 if(gal){
-  const st={role:'',axis:'',sort:'default',view:'grid'};
-  const cards=[...gal.querySelectorAll('.card')];const orig=cards.slice();
+  const st={role:'',axis:'',run:'',sort:'default',view:'grid'};
+  const cards=$$('.card',gal);const orig=cards.slice();const box=$('.cards',gal);
+  const match=el=>(!st.role||el.dataset.role===st.role)&&(!st.axis||(' '+el.dataset.axes+' ').includes(' '+st.axis+' '))&&(!st.run||(' '+(el.dataset.run||'')+' ').includes(' '+st.run+' '));
   const apply=()=>{
-    let n=0;
-    cards.forEach(c=>{const ok=(!st.role||c.dataset.role===st.role)&&(!st.axis||(' '+c.dataset.axes+' ').includes(' '+st.axis+' '));c.classList.toggle('filtered',!ok);c.style.display=ok&&!c.classList.contains('hidden-by-search')?'':'none';if(ok)n++;});
-    const box=gal.querySelector('.cards');
+    cards.forEach(c=>c.classList.toggle('filtered',!match(c)));
     const sorted=st.sort==='name'?cards.slice().sort((a,b)=>a.dataset.name.localeCompare(b.dataset.name,'ko')):st.sort==='recent'?cards.slice().sort((a,b)=>(b.dataset.date||'').localeCompare(a.dataset.date||'')):orig;
     sorted.forEach(c=>box.appendChild(c));
-    gal.querySelector('.cards').hidden=st.view!=='grid';gal.querySelector('.rows').hidden=st.view!=='rows';gal.querySelector('.flows-view').hidden=st.view!=='flow';
-    gal.querySelectorAll('.rows .row, .flows-view .flow').forEach(r=>{r.style.display=(!st.role||r.dataset.role===st.role)&&(!st.axis||(' '+r.dataset.axes+' ').includes(' '+st.axis+' '))?'':'none'});
-    const s=gal.querySelector('.shown');if(s)s.textContent=n+'개 표시';
+    $('.gridview',gal).hidden=st.view!=='grid';$('.rowsview',gal).hidden=st.view!=='rows';$('.flows-view',gal).hidden=st.view!=='flow';
+    $$('.rows .row, .flows-view .flow',gal).forEach(r=>r.classList.toggle('filtered',!match(r)));
+    $$('.docs tbody tr').forEach(r=>r.classList.toggle('filtered',!match(r)));
+    refreshAll();
+    count(gal,'.card','개 표시');const ds=$('.docs');if(ds)count(ds,'tbody tr','개');
   };
-  gal.querySelectorAll('.seg[data-k] button').forEach(b=>b.addEventListener('click',()=>{const seg=b.parentElement;seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));st[seg.dataset.k]=b.dataset.v;apply();}));
-  gal.querySelectorAll('select[data-k]').forEach(s=>s.addEventListener('change',()=>{st[s.dataset.k]=s.value;apply();}));
-  apply();
+  wire(gal,st,apply);window.refApply=apply;apply();
+}
+// findings: run + confidence filters; empty kind groups fold away
+const cl=$('#claims');
+if(cl){
+  const st={run:'',conf:''};
+  const apply=()=>{$$('.claim',cl).forEach(c=>c.classList.toggle('filtered',!!(st.run&&c.dataset.run!==st.run)||!!(st.conf&&c.dataset.conf!==st.conf)));
+    $$('.kindgroup',cl).forEach(g=>g.classList.toggle('empty-group',!$$('.claim',g).some(c=>!isHidden(c))));
+    count(cl,'.claim','개 표시');};
+  wire(cl,st,apply);apply();
+}
+// sources: grade / type / cited-only
+const so=$('#sources');
+if(so){
+  const st={grade:'',type:'',cited:true};
+  const apply=()=>{$$('tbody tr',so).forEach(r=>r.classList.toggle('filtered',!!(st.grade&&r.dataset.grade!==st.grade)||!!(st.type&&r.dataset.type!==st.type)||(st.cited&&r.dataset.cited==='0')));refreshAll();count(so,'tbody tr','개');};
+  wire(so,st,apply);apply();
 }
 // search: references, findings, patterns, topics
-const qs=[...document.querySelectorAll('input.q')];
+const qs=$$('input.q');
 if(qs.length){
-  const items=()=>document.querySelectorAll('[data-search]');
+  const items=()=>$$('[data-search]');
   let q=qs[0];
   const vis=()=>qs.find(x=>x.offsetParent!==null)||qs[0];
   const run=()=>{qs.forEach(x=>{if(x!==q)x.value=q.value});const t=q.value.trim().toLowerCase();document.body.classList.toggle('searching',!!t);let n=0;
     items().forEach(el=>{const hit=!t||el.dataset.search.includes(t);el.classList.toggle('hidden-by-search',!hit);if(t&&hit)n++;});
-    const info=document.querySelector('.searchinfo');if(info)info.textContent=t?('"'+q.value+'" 검색 결과 '+n+'개 — Esc로 지우기'):'';
-    document.querySelectorAll('.card').forEach(c=>{if(!c.classList.contains('filtered'))c.style.display=c.classList.contains('hidden-by-search')?'none':''});
+    const info=$('.searchinfo');if(info)info.textContent=t?('"'+q.value+'" 검색 결과 '+n+'개 — Esc로 지우기'):'';
     // collapse groups that lost every match (no empty table shells), and say so per section
-    const shown=el=>[...el.querySelectorAll('[data-search]')].some(x=>!x.classList.contains('hidden-by-search'));
-    document.querySelectorAll('.sgroup').forEach(g=>{const has=g.querySelector('[data-search]');g.classList.toggle('search-collapsed',!!t&&!!has&&!shown(g));});
-    document.querySelectorAll('main section').forEach(sec=>{const has=sec.querySelector('[data-search]');let m=sec.querySelector(':scope > .nomatch');const empty=!!t&&!!has&&!shown(sec);
+    const shown=el=>$$('[data-search]',el).some(x=>!x.classList.contains('hidden-by-search'));
+    $$('.sgroup').forEach(g=>{const has=g.querySelector('[data-search]');g.classList.toggle('search-collapsed',!!t&&!!has&&!shown(g));});
+    $$('main section').forEach(sec=>{const has=sec.querySelector('[data-search]');let m=sec.querySelector(':scope > .nomatch');const empty=!!t&&!!has&&!shown(sec);
       sec.classList.toggle('search-empty',empty);
-      if(empty){if(!m){m=document.createElement('p');m.className='nomatch';sec.appendChild(m);}m.textContent='"'+q.value+'"와 일치하는 항목이 이 섹션에는 없습니다.';}else if(m)m.remove();});};
+      if(empty){if(!m){m=document.createElement('p');m.className='nomatch';sec.appendChild(m);}m.textContent='"'+q.value+'"와 일치하는 항목이 이 섹션에는 없습니다.';}else if(m)m.remove();});
+    if(window.refApply)window.refApply();else refreshAll();};
   qs.forEach(x=>x.addEventListener('input',()=>{q=x;run();}));
   document.addEventListener('keydown',e=>{const act=qs.includes(document.activeElement);if(e.key==='/'&&!act&&!document.getElementById('viewer')?.classList.contains('open')){e.preventDefault();vis().focus();}else if(e.key==='Escape'&&act){q=document.activeElement;q.value='';run();q.blur();}});
 }
+// long finding text: 2 lines, then "더 보기"
+document.addEventListener('click',e=>{const m=e.target.closest('.claim .more');if(!m)return;const b=m.previousElementSibling;const clamped=b.classList.toggle('clamp');m.textContent=clamped?'더 보기':'접기';});
+// copy an id (S#/C#/R#) to hand it to Claude
+const toast=document.createElement('div');toast.className='toast';document.body.appendChild(toast);let tt;
+const say=msg=>{toast.textContent=msg;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove('show'),2200);};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(!b)return;e.preventDefault();const v=b.dataset.copy;
+  const done=()=>{say(v+' 복사됨 — Claude에게 "'+v+' 다시 확인해줘"처럼 붙여 쓸 수 있습니다');b.classList.add('done');setTimeout(()=>b.classList.remove('done'),1200);};
+  const fallback=()=>{const ta=document.createElement('textarea');ta.value=v;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(_){say('복사하지 못했습니다 — 직접 선택해 주세요');}ta.remove();};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(done,fallback);else fallback();});
+// side nav follows the section in view; "맨 위로" after a screen of scrolling
+const nav=$$('.side nav a[href^="#"]');
+if(nav.length&&'IntersectionObserver' in window){
+  const secs=nav.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+  const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting)nav.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+en.target.id));});},{rootMargin:'-18% 0px -72% 0px'});
+  secs.forEach(s=>io.observe(s));
+}
+const top=document.createElement('button');top.className='totop';top.textContent='↑';top.title='맨 위로';top.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));document.body.appendChild(top);
+addEventListener('scroll',()=>top.classList.toggle('show',scrollY>700),{passive:true});
 })();
 `;
 
@@ -342,7 +444,7 @@ const V=document.getElementById('viewer'),stage=V.querySelector('.stage'),strip=
 const MODES={frames:'화면 단위',full:'전체 페이지',screens:'스크린샷'};
 let cards=[],ci=0,data=null,mode='',idx=0,showNotes=true;
 const has=c=>c&&c.dataset.viewer&&JSON.parse(c.dataset.viewer).preview;
-const visible=()=>[...document.querySelectorAll('.card[data-viewer]')].filter(c=>c.style.display!=='none'&&has(c));
+const visible=()=>[...document.querySelectorAll('.card[data-viewer]')].filter(c=>!c.classList.contains('filtered')&&!c.classList.contains('hidden-by-search')&&has(c));
 const list=()=>mode==='frames'?data.frames:mode==='screens'?data.screens:mode==='full'?data.full:[data.preview];
 function sideWidth(){V.style.setProperty('--side',showNotes&&innerWidth>760?Math.min(400,innerWidth*.34)+'px':'0px');}
 function open(card,m,i){cards=visible();if(!cards.includes(card))cards=[card];ci=Math.max(0,cards.indexOf(card));load(m,i);V.classList.add('open');document.body.classList.add('viewing');history.replaceState(null,'','#'+data.id);}
@@ -412,6 +514,40 @@ const ROLE_KO = { direct: "직접 경쟁", indirect: "간접 경쟁", analogous:
 const KIND = { pattern: ["패턴", "여러 곳에서 반복되는 해법"], benchmark: ["기준치", "수치로 본 수준"], fact: ["사실", "확인된 정보"], gap: ["빈틈", "아무도(거의) 하지 않는 것"], failure: ["실패 사례", "불만·문제·피할 점"], opinion: ["의견", "평가·리뷰"], hypothesis: ["가설", "근거 없이 세운 추정"] };
 const sectionHead = (n, title, desc, extra = "") => `<div class="sechead"><span class="n">${n}</span><h2>${title}</h2>${extra}${desc ? `<p>${desc}</p>` : ""}</div>`;
 const searchText = (...parts) => esc(parts.flat().filter(Boolean).join(" ").toLowerCase());
+const DOMAIN_KO = { design: "디자인·기획", curriculum: "커리큘럼", dev: "개발", research: "연구" };
+const KIND_KO = { category: "카테고리 조사", service: "서비스 분석" };
+const UNIT = { design: "제품", dev: "제품", curriculum: "강의", research: "출처" };
+const TYPE_KO = { official: "공식", docs: "문서", store: "스토어", repo: "저장소", paper: "논문", report: "보고서", press: "언론", framework: "기준", survey: "설문", "job-posting": "채용 공고", community: "커뮤니티", blog: "블로그", listicle: "목록글", capture: "캡처", other: "기타" };
+const short = (s, n) => ((s = String(s ?? "")), s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
+/** copyable id chip — one click puts S#/C#/R# on the clipboard to hand to Claude */
+const idBtn = (id, extra = "") => `<button class="idbtn" data-copy="${esc(id)}" title="클릭하면 ${esc(id)} 복사 — Claude에게 '${esc(id)} 다시 확인해줘'라고 말할 수 있습니다"${extra}>${esc(id)}</button>`;
+/** the most common source types among ids, "논문 3 · 공식 2" */
+const typeMix = (ids, typeOf, k = 3) => {
+  const cnt = {};
+  for (const id of ids) {
+    const t = typeOf(id);
+    if (t) cnt[t] = (cnt[t] ?? 0) + 1;
+  }
+  return Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, k).map(([t, n]) => `${TYPE_KO[t] ?? t} ${n}`).join(" · ");
+};
+/** finding → [title, body]: subject, else the clause before "—"/":", else a short cut of the text */
+const splitTitle = (c) => {
+  if (c.subject) return [c.subject, c.text];
+  const t = String(c.text ?? "");
+  const m = t.match(/^(.{4,48}?)\s*(?:—|–|:)\s+([\s\S]+)$/);
+  if (m) return [m[1], m[2]];
+  if (t.length <= 64) return [t, ""];
+  const s = t.match(/^(.{10,90}?[다요음함됨임])\.\s+([\s\S]+)$/);
+  if (s) return [s[1], s[2]];
+  const cut = t.slice(0, 60);
+  const i = Math.max(cut.lastIndexOf(" "), cut.lastIndexOf(","));
+  return [(i > 28 ? cut.slice(0, i) : cut).replace(/[,\s]+$/, "") + "…", t];
+};
+/** first paragraph under "## 목표" / "**목표**" in the summary markdown */
+const goalFromSummary = (s) => {
+  const m = String(s ?? "").match(/(?:^|\n)(?:#{1,4}\s*목표\s*\n+|\*\*목표\*\*:?\s*)([^\n]+)/);
+  return m ? m[1].replace(/\*\*/g, "").trim() : "";
+};
 
 // ---------- collection board ----------
 
@@ -428,30 +564,52 @@ export function renderBoard(d) {
   const isBasis = (p) => d.curriculum && p.members.every((m) => BASIS.has(m.r.type) && !m.r.course);
   const productCount = d.products.filter((p) => !isBasis(p)).length;
   const basisCount = d.products.length - productCount;
+  const unit = d.curriculum ? "강의" : (UNIT[col.domain] ?? "제품");
+  const srcById = new Map(d.sources.map((r) => [r.id, r]));
+  const typeOf = (id) => (byRef.get(id)?.r ?? srcById.get(id))?.type;
+  const captured = d.members.filter((m) => m.thumb).length;
+  const conf = (c) => active.filter((x) => x.confidence === c).length;
+  const citedBy = new Map();
+  for (const c of [...d.claims.own, ...d.claims.related]) if (c.status === "active") for (const s of c.sources) citedBy.set(s, (citedBy.get(s) ?? 0) + 1);
+  const runGoal = (id) => d.runs.find((r) => r.id === id)?.goal ?? "";
+  const otherCats = [...new Set(d.members.flatMap((m) => (m.r.categories ?? []).filter((c) => c !== col.name)))];
   let sec = 0;
   const next = () => String(++sec).padStart(2, "0");
 
   const navItems = [
-    ["summary", "한눈에 보기"],
-    ...(d.curriculum ? [["curriculum", "커리큘럼 비교"]] : []),
-    ...(d.axes.rows.length ? [["axes", "패턴 비교"]] : []),
-    ["refs", "레퍼런스"],
-    ["claims", "발견과 근거"],
-    ["changes", "조사 기록"],
-    ["sources", "출처"],
+    ["summary", "한눈에 보기", ""],
+    ...(d.curriculum ? [["curriculum", "커리큘럼 비교", d.curriculum.n]] : []),
+    ...(d.axes.rows.length ? [["axes", "패턴 비교", d.axes.rows.length]] : []),
+    ["refs", "레퍼런스", d.members.length],
+    ["claims", "발견과 근거", active.length],
+    ["changes", "조사 기록", d.runs.length],
+    ["sources", "출처", d.sources.filter((r) => citedBy.has(r.id)).length],
   ];
   const side = `<a class="brand" href="../index.html">References <span>/ 라이브러리</span></a>
 <div class="about"><strong>${esc(col.title ?? col.name)}</strong><br>${esc(col.description ?? "")}</div>
 ${searchBox("레퍼런스·발견·패턴 검색")}
-<nav>${navItems.map(([h, t]) => `<a href="#${h}">${t}</a>`).join("")}</nav>
-<div class="foot">${productCount}개 ${d.curriculum ? "강의" : "제품"} · ${d.members.length}개 레퍼런스 · ${active.length}개 발견<br>${lastRun ? `마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>`;
+<nav>${navItems.map(([h, t, n]) => `<a href="#${h}">${t}${n ? `<small>${n}</small>` : ""}</a>`).join("")}</nav>
+<div class="foot">${productCount}개 ${unit} · ${d.members.length}개 레퍼런스 · ${active.length}개 발견<br>${lastRun ? `마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>`;
   const topbar = `<a class="brand" href="../index.html">References</a>${searchBox("검색")}`;
 
+  // why this research exists — collection goal, else the last run's goal, else the summary's 목표 line
+  const goal = col.goal ?? col.question ?? lastRun?.goal ?? goalFromSummary(d.summary);
+  const goalBlock = goal
+    ? `<div class="goal"><span class="lbl">목적</span><p>${inline(goal, cite)}</p>${col.audience ? `<p class="aud">대상: ${esc(col.audience)}</p>` : ""}${otherCats.length ? `<p class="aud">같은 레퍼런스를 쓰는 다른 조사: ${otherCats.map((c) => `<a href="../${esc(c)}/index.html" style="color:#fff;text-decoration:underline">${esc(d.catTitle(c))}</a>`).join(", ")}</p>` : ""}</div>`
+    : "";
+  const unitSub = col.domain === "research" ? `${unit} · ${typeMix(d.members.map((m) => m.r.id), typeOf, 2)}` : `${unit}${basisCount ? ` · 근거 자료 ${basisCount}` : ""}`;
+  const tiles = `<div class="tiles">
+<div><b>${productCount}</b><span>${esc(unitSub)}</span></div>
+<div><b>${d.members.length}</b><span>레퍼런스 · 캡처 ${captured} · 글 자료 ${d.members.length - captured}</span></div>
+<div><b>${active.length}</b><span>발견 · 강함 ${conf("high")} · 보통 ${conf("medium")} · 약함 ${conf("low")}</span><em class="mbar"><i class="h" style="flex:${conf("high")}"></i><i class="m" style="flex:${conf("medium")}"></i><i class="l" style="flex:${conf("low")}"></i></em></div>
+<div><b>${d.axes.rows.length}</b><span>패턴${shared ? ` · 다른 조사와 공유 ${shared}` : ""}</span></div>
+<div><b>${d.runs.length}</b><span>조사 회차${lastRun ? ` · 마지막 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</span></div>
+</div>`;
   const hero = `<header class="hero">
-<div class="eyebrow">${esc({ category: "카테고리 조사", service: "서비스 분석" }[col.kind] ?? col.kind ?? "")} · ${esc({ design: "디자인·기획", curriculum: "커리큘럼", dev: "개발", research: "연구" }[col.domain] ?? col.domain)}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>
+<div class="eyebrow">${esc(KIND_KO[col.kind] ?? col.kind ?? "")} · ${esc(DOMAIN_KO[col.domain] ?? col.domain)}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>
 <h1>${esc(col.title ?? col.name)}</h1>
 ${col.description ? `<p class="lead">${esc(col.description)}</p>` : ""}
-<p class="stats"><b>${productCount}개 ${d.curriculum ? "강의" : "제품"}</b>${basisCount ? `와 <b>${basisCount}개 근거 자료</b>` : ""}에서 <b>${d.members.length}개 레퍼런스</b>를 모아 <b>${active.length}개 발견</b>을 정리했습니다${d.axes.rows.length ? ` — 제품들이 같은 문제를 푼 방식은 <b>${d.axes.rows.length}개 패턴</b>으로 묶었고${shared ? `, 그중 ${shared}개는 다른 조사에서도 나왔습니다` : ""}` : ""}. 근거가 강한 발견 ${active.filter((c) => c.confidence === "high").length}개, 보통 ${active.filter((c) => c.confidence === "medium").length}개, 약한 발견 ${active.filter((c) => c.confidence === "low").length}개${d.runs.length ? ` · 조사 ${d.runs.length}회` : ""}.</p>
+${goalBlock}${tiles}
 </header>`;
 
   const picks = [];
@@ -470,9 +628,9 @@ ${col.description ? `<p class="lead">${esc(col.description)}</p>` : ""}
   const n = d.axes.products.length;
   const common = (r) => r.products.length >= Math.max(2, Math.ceil(n * 0.3));
   const axCard = (r) => `<article class="axcard" id="axis-${esc(r.id)}" data-search="${searchText(r.label, r.question, r.products, Object.values(r.how))}">
-  <header><strong>${esc(r.label)}</strong><span class="count"><b>${r.products.length}</b> / ${n} 제품</span></header>
+  <header><strong>${esc(r.label)}</strong><span class="count"><b>${r.products.length}</b> / ${n} ${esc(unit)}</span></header>
   ${r.question ? `<p class="q">${esc(r.question)}</p>` : ""}
-  <ul class="how">${r.products.map((p) => { const th = byRef.get(r.refBy[p])?.thumb; return `<li><button class="prod" data-open-ref="${esc(r.refBy[p])}" title="${esc(p)} 캡처 보기">${th ? `<span class="mini"><img loading="lazy" src="${esc(th)}" alt=""></span>` : `<span class="mini"></span>`}<span class="pn">${esc(p)}</span></button><span>${r.how[p].map(esc).join(" · ")}</span></li>`; }).join("")}</ul>
+  <ul class="how" data-limit="6" data-items="li">${r.products.map((p) => { const th = byRef.get(r.refBy[p])?.thumb; return `<li><button class="prod" data-open-ref="${esc(r.refBy[p])}" title="${esc(p)} 캡처 보기">${th ? `<span class="mini"><img loading="lazy" src="${esc(th)}" alt=""></span>` : `<span class="mini"></span>`}<span class="pn">${esc(p)}</span></button><span>${r.how[p].map(esc).join(" · ")}</span></li>`; }).join("")}</ul>${r.products.length > 6 ? `<button class="morebtn small" type="button" hidden></button>` : ""}
   ${r.other.length ? `<p class="also">${r.other.map((o) => `<a href="../${esc(o.name)}/index.html#axis-${esc(r.id)}">${esc(o.title)}</a> 조사에서도 같은 패턴 — ${o.products.map(esc).join(", ")}`).join("<br>")}</p>` : ""}
 </article>`;
   const groups = [
@@ -505,28 +663,46 @@ ${other.length ? `<div>다른 조사에도 포함: ${other.map((c) => `<a href="
 <div style="margin-top:8px">${[...(r.screens ?? []), ...m.axes.map(axisLabel)].map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>
 ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc(c.at.slice(0, 10))}: ${esc(c.lines.join(" · ") || "변화 없음")}`).join("<br>")}</div>` : ""}`;
     const notesHtml = notes.map((x) => `${x.collection && x.collection !== col.name ? `<p style="color:#f0ad4e;font-size:12px;margin:12px 0 0">‹${esc(d.catTitle(x.collection))}› 조사에서 쓴 노트</p>` : ""}${md(x.text, cite)}`).join("<hr>");
-    return `<article class="card" id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-name="${esc(r.product ?? r.label ?? r.id)}" data-date="${esc(snap?.at ?? "")}" data-viewer="${esc(JSON.stringify(viewer))}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
-  ${m.thumb ? `<button class="thumb" data-view="" title="크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt="${esc(r.label ?? r.id)}">${pics ? `<span class="count">${m.frames.length ? `${m.frames.length}화면` : `${m.screens.length}장`}</span>` : ""}<span class="go" aria-hidden="true">↗</span></button>` : `<a class="thumb empty" href="${esc(r.url)}" target="_blank" rel="noopener">글 출처 ↗</a>`}
-  <div class="cap"><div class="t"><div class="p">${esc(r.product ?? r.label ?? r.id)}</div><div class="s">${esc(r.page ?? r.title ?? "")}</div></div><div class="r">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span><br>` : ""}${other.length ? `다른 조사 ${other.length} · ` : ""}${r.id}</div></div>
+    return `<article class="card" id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-name="${esc(r.product ?? r.label ?? r.id)}" data-date="${esc(snap?.at ?? "")}" data-viewer="${esc(JSON.stringify(viewer))}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
+  <button class="thumb" data-view="" title="크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt="${esc(r.label ?? r.id)}">${pics ? `<span class="count">${m.frames.length ? `${m.frames.length}화면` : `${m.screens.length}장`}</span>` : ""}<span class="go" aria-hidden="true">↗</span></button>
+  <div class="cap"><div class="t"><div class="p">${esc(r.product ?? r.label ?? r.id)}</div><div class="s">${esc(r.page ?? r.title ?? "")}</div></div><div class="r">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span><br>` : ""}${other.length ? `다른 조사 ${other.length} · ` : ""}${idBtn(r.id)}</div></div>
   <template class="facts-src">${facts}</template><template class="notes-src">${notesHtml}</template>
 </article>`;
   };
+  // captured pages go in the gallery; text-only references (articles, papers, docs) go in a table below it — no empty tiles
   const ordered = d.products.flatMap((p) => p.members);
+  const shots = ordered.filter((m) => m.thumb);
+  const docs = ordered.filter((m) => !m.thumb);
+  const docRow = (m) => {
+    const r = m.r;
+    const notes = (r.notes ?? []).filter((x) => x.text?.trim());
+    const n = citedBy.get(r.id) ?? 0;
+    return `<tr id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.publisher, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
+<td class="n">${idBtn(r.id)}</td>
+<td><a class="tt" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a>${r.description ? `<span class="sum">${esc(short(r.description, 140))}</span>` : ""}${notes.length ? `<details><summary>노트 ${notes.length}</summary><div class="prose">${notes.map((x) => md(x.text, cite)).join("<hr>")}</div></details>` : ""}</td>
+<td>${esc(r.publisher ?? r.product ?? "")}</td>
+<td class="n">${esc(r.credibility)} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type)}</span></td>
+<td class="n">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span>` : ""}</td>
+<td class="n num">${n ? `<a href="#claims" title="이 자료를 인용한 발견">${n}</a>` : `<span class="muted">0</span>`}</td>
+</tr>`;
+  };
   const rows = d.products
+    .filter((p) => p.members.some((m) => m.thumb))
     .map(
-      (p) => `<div class="row" data-role="${esc(p.role ?? "")}" data-axes="${esc([...new Set(p.members.flatMap((m) => m.axes))].join(" "))}" data-search="${searchText(p.name, p.members.map((m) => [m.r.page, m.r.label]))}">
-  <div><h4>${esc(p.name)}</h4>${p.role ? `<span class="badge b-${esc(p.role)}">${ROLE_KO[p.role] ?? esc(p.role)}</span>` : ""}<div class="muted small" style="margin-top:6px">${p.members.length}개 페이지</div></div>
+      (p) => `<div class="row" data-role="${esc(p.role ?? "")}" data-axes="${esc([...new Set(p.members.flatMap((m) => m.axes))].join(" "))}" data-run="${esc([...new Set(p.members.map((m) => m.run).filter(Boolean))].join(" "))}" data-search="${searchText(p.name, p.members.map((m) => [m.r.page, m.r.label]))}">
+  <div><h4>${esc(p.name)}</h4>${p.role ? `<span class="badge b-${esc(p.role)}">${ROLE_KO[p.role] ?? esc(p.role)}</span>` : ""}<div class="muted small" style="margin-top:6px">${p.members.filter((m) => m.thumb).length}개 페이지</div></div>
   <div class="strip">${p.members
-    .map((m) => `<div>${m.thumb ? `<button class="thumb" data-open-ref="${m.r.id}"><img loading="lazy" src="${esc(m.thumb)}" alt=""></button>` : `<div class="thumb empty">이미지 없음</div>`}<div class="label">${esc(m.r.page ?? m.r.label ?? m.r.id)}</div></div>`)
+    .filter((m) => m.thumb)
+    .map((m) => `<div><button class="thumb" data-open-ref="${m.r.id}"><img loading="lazy" src="${esc(m.thumb)}" alt=""></button><div class="label">${esc(m.r.page ?? m.r.label ?? m.r.id)}</div></div>`)
     .join("")}</div></div>`,
     )
     .join("");
-  const seqs = ordered
+  const seqs = shots
     .filter((m) => m.frames.length > 1 || m.screens.length > 1)
     .map((m) => {
       const mode = m.frames.length > 1 ? "frames" : "screens";
       const list = mode === "frames" ? m.frames : m.screens;
-      return `<div class="flow" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-search="${searchText(m.r.product, m.r.page, m.r.label)}">
+      return `<div class="flow" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-search="${searchText(m.r.product, m.r.page, m.r.label)}">
   <div class="fh"><div><span class="p">${esc(m.r.product ?? m.r.label ?? m.r.id)}</span> <span class="s">${esc(m.r.page ?? "")}</span></div><span class="s">${list.length}${mode === "frames" ? "개 화면 · 스크롤 순서" : "장 · 스토어 순서"}</span></div>
   <div class="seq">${list.map((src, i) => `${i ? `<span class="arrow" aria-hidden="true">→</span>` : ""}<div class="step"><button class="thumb${mode === "frames" ? " wide" : ""}" data-open-ref="${m.r.id}" data-mode="${mode}" data-idx="${i}"><img loading="lazy" src="${esc(src)}" alt=""></button><div class="n">${i + 1}</div></div>`).join("")}</div>
 </div>`;
@@ -534,19 +710,28 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
     .join("");
   const roleSeg = ["", "direct", "indirect", "analogous"].filter((r) => !r || d.members.some((m) => m.role === r));
   const usedAxes = d.axes.rows.filter((r) => r.products.length > 1);
-  const refs = `<section id="refs">${sectionHead(next(), "레퍼런스", `보기는 세 가지 — <b>격자</b>(한 장씩), <b>제품별</b>(제품 하나에 여러 페이지), <b>흐름</b>(한 페이지의 화면을 순서대로). 이미지를 누르면 뷰어가 열립니다: <kbd>←</kbd><kbd>→</kbd> 화면 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 다른 레퍼런스 · <kbd>N</kbd> 정보 · <kbd>Esc</kbd> 닫기`)}
+  const runSelect = d.runs.length > 1 ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${d.runs.map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(short(r.goal ?? r.startedAt.slice(0, 10), 28))}</option>`).join("")}</select>` : "";
+  const more = `<button class="morebtn" type="button" hidden></button>`;
+  const refs = `<section id="refs">${sectionHead(next(), "레퍼런스", `캡처한 화면은 <b>격자</b>(한 장씩) · <b>제품별</b>(제품 하나에 여러 페이지) · <b>흐름</b>(한 페이지의 화면을 순서대로)으로 봅니다. 이미지를 누르면 뷰어가 열립니다: <kbd>←</kbd><kbd>→</kbd> 화면 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 다른 레퍼런스 · <kbd>N</kbd> 정보 · <kbd>Esc</kbd> 닫기. 글로 읽은 자료(논문·기사·문서)는 아래 <b>자료 목록</b>에 있습니다.`)}
 <div id="gallery">
 <div class="toolbar">
   ${roleSeg.length > 2 ? `<div class="seg" data-k="role">${roleSeg.map((r) => `<button data-v="${r}"${r ? "" : ' class="on"'}>${r ? ROLE_KO[r] : "전체"}</button>`).join("")}</div>` : ""}
   ${usedAxes.length ? `<select data-k="axis" aria-label="패턴으로 거르기"><option value="">모든 패턴</option>${usedAxes.map((r) => `<option value="${esc(r.id)}">${esc(r.label)}</option>`).join("")}</select>` : ""}
-  <select data-k="sort" aria-label="정렬"><option value="default">기본 순서</option><option value="name">제품 이름순</option><option value="recent">최근 캡처순</option></select>
+  ${runSelect}
+  <select data-k="sort" aria-label="정렬"><option value="default">기본 순서</option><option value="name">${esc(unit)} 이름순</option><option value="recent">최근 캡처순</option></select>
   <span class="spacer"></span><span class="shown"></span>
-  <div class="seg" data-k="view"><button data-v="grid" class="on">격자</button><button data-v="rows">제품별</button><button data-v="flow">흐름</button></div>
+  <div class="seg" data-k="view"><button data-v="grid" class="on">격자</button><button data-v="rows">${esc(unit)}별</button><button data-v="flow">흐름</button></div>
 </div>
-<div class="cards">${ordered.map(card).join("")}</div>
-<div class="rows" hidden>${rows}</div>
-<div class="flows-view" hidden>${seqs || `<p class="muted">여러 화면으로 된 레퍼런스가 없습니다.</p>`}</div>
+<div class="gridview">${shots.length ? `<div class="cards" data-limit="12" data-items=".card">${shots.map(card).join("")}</div>${more}` : `<p class="muted">캡처한 화면이 없습니다${docs.length ? " — 이 조사의 레퍼런스는 모두 글 자료입니다(아래 목록)" : ""}.</p>`}</div>
+<div class="rowsview" hidden>${rows ? `<div class="rows" data-limit="10" data-items=".row">${rows}</div>${more}` : `<p class="muted">캡처한 화면이 없습니다.</p>`}</div>
+<div class="flows-view" hidden>${seqs ? `<div class="flowlist" data-limit="8" data-items=".flow">${seqs}</div>${more}` : `<p class="muted">여러 화면으로 된 레퍼런스가 없습니다.</p>`}</div>
 </div>
+${
+  docs.length
+    ? `<div class="sgroup docs"><div class="groupcap"><h3>자료 목록</h3><span>캡처 없이 글로 읽은 자료 · <span class="shown">${docs.length}개</span> · 노트가 있으면 펼쳐 볼 수 있습니다</span></div>
+<div class="panel tablewrap" style="padding:0"><table><thead><tr><th class="n">번호</th><th>자료</th><th>발행처</th><th class="n">등급</th><th class="n">역할</th><th class="n">인용</th></tr></thead><tbody data-limit="20" data-items="tr">${docs.map(docRow).join("")}</tbody></table></div>${more}</div>`
+    : ""
+}
 ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</section>`;
 
   // claims, grouped by kind, each with its evidence
@@ -558,18 +743,40 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
         return m?.thumb ? `<button class="ev" data-open-ref="${id}" title="${label}"><img src="${esc(m.thumb)}" alt="">${id}</button>` : `<a class="ev noimg" href="${memberIds.has(id) ? `#${id}` : `#src-${id}`}" title="${label}">${id}</a>`;
       })
       .join("");
-  const claimRow = (c) => `<div class="claim" id="${c.id}" data-search="${searchText(c.id, c.subject, c.text)}">
-  <div class="text">${c.subject ? `<span class="subj">${esc(c.subject)}</span> — ` : ""}${esc(c.text)}${c.status !== "active" ? ` <em class="muted">(${c.status === "refuted" ? "틀린 것으로 확인" : "수정됨"} → <a href="#${c.replacedBy}">${c.replacedBy}</a>)</em>` : ""}</div>
-  <div class="side2">${confBadge(c.confidence)}<span class="cid">${c.id}</span></div>
-  <div class="evidence">${evidence(c.sources)}</div>
-</div>`;
+  // a finding reads top-down: title → text (2 lines, then 더 보기) → meta (strength · run · date · source mix · id) → evidence → earlier versions
+  const prevOf = new Map();
+  for (const o of d.claims.own) if (o.status !== "active" && o.replacedBy) prevOf.set(o.replacedBy, [...(prevOf.get(o.replacedBy) ?? []), o]);
+  const claimRow = (c, { inline: inl = false } = {}) => {
+    const [title, body] = splitTitle(c);
+    const date = (c.createdAt ?? "").slice(0, 10);
+    const mix = typeMix(c.sources, typeOf);
+    const olds = inl ? [] : (prevOf.get(c.id) ?? []);
+    const fixed = c.status !== "active" ? `<span class="fix">${c.status === "refuted" ? "틀린 것으로 확인" : "수정됨"}${c.replacedBy ? ` → <a href="#${esc(c.replacedBy)}">${esc(c.replacedBy)}</a>` : ""}</span>` : "";
+    return `<article class="claim" id="${c.id}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
+  <div class="chead"><h4 class="ctitle">${esc(title)}</h4>${confBadge(c.confidence)}</div>
+  ${body ? `<p class="cbody${body.length > 150 ? " clamp" : ""}">${esc(body)}</p>${body.length > 150 ? `<button class="more" type="button">더 보기</button>` : ""}` : ""}
+  <div class="cmeta">${idBtn(c.id)}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(c.run)}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${fixed ? `<span class="sep">·</span>${fixed}` : ""}</div>
+  ${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}
+  ${olds.length ? `<details class="prev"><summary>이전 버전 ${olds.length}개 — ${olds[0].status === "refuted" ? "틀린 것으로 확인됨" : "수정됨"}</summary>${olds.map((o) => `<div class="old" id="${o.id}">${idBtn(o.id)} ${esc(o.text)} <span class="small">(${esc((o.createdAt ?? "").slice(0, 10))})</span></div>`).join("")}</details>` : ""}
+</article>`;
+  };
   const kinds = Object.keys(KIND).filter((k) => active.some((c) => c.kind === k));
-  const corrected = d.claims.own.filter((c) => c.status !== "active");
-  const claims = `<section id="claims">${sectionHead(next(), "발견과 근거", "조사에서 나온 주장과 그 근거. 근거 세기는 출처의 수와 등급으로 자동 계산됩니다. 썸네일을 누르면 근거 화면이 열립니다.")}${
+  const attached = new Set([...prevOf.values()].flat().map((o) => o.id));
+  const corrected = d.claims.own.filter((c) => c.status !== "active" && !attached.has(c.id));
+  const claimRuns = [...new Set(active.map((c) => c.run).filter(Boolean))].sort();
+  const runFilter =
+    claimRuns.length > 4
+      ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${claimRuns.map((r) => `<option value="${esc(r)}">${esc(r)} · ${esc(short(runGoal(r), 28))}</option>`).join("")}</select>`
+      : claimRuns.length > 1
+        ? `<div class="seg" data-k="run"><button data-v="" class="on">모든 회차</button>${claimRuns.map((r) => `<button data-v="${esc(r)}" title="${esc(runGoal(r))}">${esc(r)}</button>`).join("")}</div>`
+        : "";
+  const confSeg = `<div class="seg" data-k="conf"><button data-v="" class="on">모든 근거</button><button data-v="high">강함</button><button data-v="medium">보통</button><button data-v="low">약함</button></div>`;
+  const claims = `<section id="claims">${sectionHead(next(), "발견과 근거", "조사에서 나온 주장과 그 근거. 제목 → 내용 → 근거 세기·조사 회차·날짜·출처 구성 순으로 읽습니다. 근거 세기는 출처의 수와 등급으로 자동 계산되고, 썸네일을 누르면 근거 화면이 열립니다. 번호를 누르면 복사됩니다.")}${
     active.length || d.claims.related.length
-      ? kinds.map((k) => `<div class="kindgroup sgroup"><h3><i class="kdot k-${k}"></i>${KIND[k][0]} <span>${KIND[k][1]} · ${active.filter((c) => c.kind === k).length}개</span></h3><div class="panel">${active.filter((c) => c.kind === k).map(claimRow).join("")}</div></div>`).join("") +
-        (d.claims.related.length ? `<div class="kindgroup sgroup"><h3>다른 조사의 발견 <span>같은 레퍼런스를 근거로 쓴 것 · ${d.claims.related.length}개</span></h3><div class="panel">${d.claims.related.map(claimRow).join("")}</div></div>` : "") +
-        (corrected.length ? `<details class="corrections sgroup"><summary>이후 조사에서 정정된 발견 ${corrected.length}개</summary><div class="panel" style="margin-top:10px">${corrected.map(claimRow).join("")}</div></details>` : "")
+      ? `<div class="stoolbar">${runFilter}${confSeg}<span class="shown"></span></div>` +
+        kinds.map((k) => `<div class="kindgroup sgroup"><h3><i class="kdot k-${k}"></i>${KIND[k][0]} <span>${KIND[k][1]} · ${active.filter((c) => c.kind === k).length}개</span></h3><div class="panel">${active.filter((c) => c.kind === k).map((c) => claimRow(c)).join("")}</div></div>`).join("") +
+        (d.claims.related.length ? `<div class="kindgroup sgroup"><h3>다른 조사의 발견 <span>같은 레퍼런스를 근거로 쓴 것 · ${d.claims.related.length}개</span></h3><div class="panel">${d.claims.related.map((c) => claimRow(c)).join("")}</div></div>` : "") +
+        (corrected.length ? `<details class="corrections sgroup"><summary>이후 조사에서 정정된 발견 ${corrected.length}개</summary><div class="panel" style="margin-top:10px">${corrected.map((c) => claimRow(c, { inline: true })).join("")}</div></details>` : "")
       : `<p class="muted">아직 기록된 발견이 없습니다.</p>`
   }</section>`;
 
@@ -591,12 +798,17 @@ ${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>�
       : `<p class="muted small">다시 캡처해서 확인된 변화는 아직 없습니다. 30일이 지난 레퍼런스는 다음 캡처 때 자동으로 다시 찍어 이전과 비교합니다.</p>`
   }${d.stale.length ? `<div class="note">90일 넘게 다시 확인하지 않은 레퍼런스: ${d.stale.map((r) => r.id).join(", ")}</div>` : ""}</section>`;
 
-  const sources = `<section id="sources">${sectionHead(next(), "출처", "등급 A 공식·1차 자료 · B 언론·조사 기관 · C 커뮤니티·블로그 · D 미확인")}<div class="panel tablewrap" style="padding:0"><table><thead><tr><th>번호</th><th>제목</th><th>등급</th><th>발행처</th><th>포함된 조사</th></tr></thead><tbody>${d.sources
-    .map(
-      (r) =>
-        `<tr id="${memberIds.has(r.id) ? `src-row-${r.id}` : `src-${r.id}`}" data-search="${searchText(r.id, r.label, r.title, r.publisher)}"><td class="num">${memberIds.has(r.id) ? `<a href="#${r.id}">${r.id}</a>` : r.id}</td><td><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a></td><td>${esc(r.credibility)} <span class="muted small">${esc(r.type)}</span></td><td>${esc(r.publisher ?? "")}</td><td>${(r.categories ?? []).map((c) => `<span class="chip">${esc(d.catTitle(c))}</span>`).join("")}</td></tr>`,
-    )
-    .join("")}</tbody></table></div></section>`;
+  // sources: the citation index — cited-only by default, filter by grade / type, 20 rows at a time
+  const grades = [...new Set(d.sources.map((r) => r.credibility))].sort();
+  const types = [...new Set(d.sources.map((r) => r.type).filter(Boolean))].sort();
+  const sources = `<section id="sources">${sectionHead(next(), "출처", "발견이 인용한 자료의 색인. 등급 A 공식·1차 자료 · B 언론·조사 기관 · C 커뮤니티·블로그 · D 미확인. 기본은 인용된 자료만 보이고, 끄면 이 조사의 모든 레퍼런스가 나옵니다.")}
+<div class="stoolbar">${grades.length > 1 ? `<div class="seg" data-k="grade"><button data-v="" class="on">모든 등급</button>${grades.map((g) => `<button data-v="${esc(g)}">${esc(g)}</button>`).join("")}</div>` : ""}${types.length > 1 ? `<select data-k="type" aria-label="종류로 거르기"><option value="">모든 종류</option>${types.map((t) => `<option value="${esc(t)}">${esc(TYPE_KO[t] ?? t)}</option>`).join("")}</select>` : ""}<div class="seg" data-k="cited"><button class="tog on" type="button">인용된 것만</button></div><span class="shown"></span></div>
+<div class="panel tablewrap" style="padding:0"><table><thead><tr><th class="n">번호</th><th>제목</th><th class="n">등급</th><th>발행처</th><th class="n">인용</th><th>포함된 조사</th></tr></thead><tbody data-limit="20" data-items="tr">${d.sources
+    .map((r) => {
+      const n = citedBy.get(r.id) ?? 0;
+      return `<tr id="${memberIds.has(r.id) ? `src-row-${r.id}` : `src-${r.id}`}" data-grade="${esc(r.credibility)}" data-type="${esc(r.type ?? "")}" data-cited="${n}" data-search="${searchText(r.id, r.label, r.title, r.publisher)}"><td class="n">${idBtn(r.id)}${memberIds.has(r.id) ? ` <a href="#${r.id}" title="이 조사의 레퍼런스로 이동">↑</a>` : ""}</td><td><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a></td><td class="n">${esc(r.credibility)} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type)}</span></td><td>${esc(r.publisher ?? "")}</td><td class="n num">${n || `<span class="muted">0</span>`}</td><td>${(r.categories ?? []).map((c) => (c === col.name ? esc(d.catTitle(c)) : `<a href="../${esc(c)}/index.html">${esc(d.catTitle(c))}</a>`)).join(", ")}</td></tr>`;
+    })
+    .join("")}</tbody></table></div><button class="morebtn" type="button" hidden></button></section>`;
 
   const foot = `<footer>${esc(col.name)} · 생성 ${esc(new Date().toLocaleString("ko-KR"))} · <code>ref report</code>로 다시 만들 수 있습니다</footer>`;
   return shell(`${col.title ?? col.name} — 레퍼런스 보드`, side, topbar, hero.replace("</header>", collage + "</header>") + summary + curriculum + axes + refs + claims + changes + sources + foot);
@@ -693,22 +905,32 @@ ${c.missing.length ? `<div class="note">강의 구조가 기록되지 않은 강
 
 // ---------- library home ----------
 
-/** h: { cats:[{name, title, description, kind, domain, refs, products, claims, run, thumbs:[], topAxes:[labels]}], axes:[{id, label, question, facet, cats:{name:n}}], totals } */
+/** h: { cats:[{name, title, description, goal, lastRun, kind, domain, refs, products, claims, kinds:{kind:n}, run, thumbs:[], topAxes:[labels]}], axes:[{id, label, question, facet, cats:{name:n}}], totals } */
 export function renderHome(h) {
   const side = `<a class="brand" href="index.html">References <span>/ 라이브러리</span></a>
 <div class="about">조사할 때마다 모은 레퍼런스와 발견. 같은 레퍼런스는 한 번만 저장하고, 여러 조사에 걸쳐 다시 씁니다.</div>
 ${searchBox("조사·패턴 검색")}
-<nav><a href="#cats">조사</a><a href="#shared">조사 사이에 겹치는 패턴</a></nav>
+<nav><a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴</a></nav>
 <div class="foot">${h.cats.length}개 조사 · ${h.totals.refs}개 레퍼런스 · ${h.totals.claims}개 발견<br>${esc(new Date().toLocaleDateString("ko-KR"))} 기준</div>`;
   const topbar = `<a class="brand" href="index.html">References</a>${searchBox("검색")}`;
-  const cats = h.cats
-    .map(
-      (c) => `<a class="card catcard" href="${esc(c.name)}/index.html" data-search="${searchText(c.title, c.description, c.topAxes)}">
-  ${c.thumbs.length ? `<span class="thumb" style="cursor:pointer"><img loading="lazy" src="${esc(c.thumbs[0])}" alt=""><span class="go" aria-hidden="true">↗</span></span>` : `<span class="thumb empty">이미지 없음</span>`}
-  <span class="cap"><span class="t"><div class="p">${esc(c.title ?? c.name)}</div><div class="s">${esc({ category: "카테고리 조사", service: "서비스 분석" }[c.kind] ?? c.kind ?? "")} · ${esc({ design: "디자인·기획", curriculum: "커리큘럼", dev: "개발", research: "연구" }[c.domain] ?? c.domain)}</div></span><span class="r">${c.products}개 제품<br>${c.claims}개 발견</span></span>
-  <span class="muted small" style="display:block">${esc(c.description ?? "")}</span></a>`,
-    )
-    .join("");
+  // no capture → show what kinds of findings the research produced instead of an empty tile
+  const kindBar = (c) => {
+    const ks = Object.entries(c.kinds ?? {}).sort((a, b) => b[1] - a[1]);
+    if (!ks.length) return `<span class="thumb empty">아직 발견이 없습니다</span>`;
+    return `<span class="thumb kinds"><span class="kbar">${ks.map(([k, n]) => `<i class="k-${esc(k)}" style="flex:${n}" title="${esc(KIND[k]?.[0] ?? k)} ${n}"></i>`).join("")}</span><span class="klegend">${ks.slice(0, 4).map(([k, n]) => `<i class="kdot k-${esc(k)}"></i> ${esc(KIND[k]?.[0] ?? k)} ${n}`).join(" · ")}</span></span>`;
+  };
+  const catCard = (c) => `<a class="card catcard" href="${esc(c.name)}/index.html" data-search="${searchText(c.title, c.description, c.goal, c.topAxes)}">
+  ${c.thumbs.length ? `<span class="thumb" style="cursor:pointer"><img loading="lazy" src="${esc(c.thumbs[0])}" alt=""><span class="go" aria-hidden="true">↗</span></span>` : kindBar(c)}
+  <span class="cap"><span class="t"><div class="p">${esc(c.title ?? c.name)}</div><div class="s">${esc(KIND_KO[c.kind] ?? c.kind ?? "")} · ${esc(DOMAIN_KO[c.domain] ?? c.domain)}</div></span><span class="r">${c.products}개 ${esc(UNIT[c.domain] ?? "제품")}<br>${c.claims}개 발견</span></span>
+  <span class="goal2">${esc(c.goal ?? c.description ?? "")}</span>
+  <span class="meta2">${[c.lastRun ? `마지막 조사 ${esc(c.lastRun)}` : "", `레퍼런스 ${c.refs}`].filter(Boolean).join(" · ")}</span></a>`;
+  const byDomain = ["design", "research", "dev", "curriculum"].map((dm) => [dm, h.cats.filter((c) => (c.domain ?? "design") === dm)]).filter(([, cs]) => cs.length);
+  const rest = h.cats.filter((c) => !["design", "research", "dev", "curriculum"].includes(c.domain ?? "design"));
+  if (rest.length) byDomain.push(["other", rest]);
+  const cats =
+    byDomain.length > 1
+      ? byDomain.map(([dm, cs]) => `<div class="sgroup"><div class="groupcap"><h3>${esc(DOMAIN_KO[dm] ?? "기타")}</h3><span>${cs.length}개 조사</span></div><div class="catcards">${cs.map(catCard).join("")}</div></div>`).join("")
+      : `<div class="catcards">${h.cats.map(catCard).join("")}</div>`;
   const total = (a) => Object.values(a.cats).reduce((x, y) => x + y, 0);
   h.axes.sort((a, b) => (a.facet === "pattern" ? 0 : 1) - (b.facet === "pattern" ? 0 : 1) || Object.keys(b.cats).length - Object.keys(a.cats).length || total(b) - total(a) || a.label.localeCompare(b.label));
   const sharedAxes = h.axes.filter((a) => Object.keys(a.cats).length > 1);
@@ -720,7 +942,7 @@ ${searchBox("조사·패턴 검색")}
     topbar,
     `<header class="hero"><div class="eyebrow">레퍼런스 라이브러리</div><h1>조사해 둔 레퍼런스</h1>
 <p class="stats"><b>${h.cats.length}개 조사</b>에서 <b>${h.totals.refs}개 레퍼런스</b>와 <b>${h.totals.claims}개 발견</b>을 모았습니다. 제품들이 같은 문제를 푼 방식은 <b>${h.axes.length}개 패턴·주제</b>로 묶여 있고, 그중 여러 조사에 걸친 것은 아래 표에 있습니다.</p></header>
-<section id="cats">${sectionHead("01", "조사", "카테고리별 레퍼런스 보드.")}<div class="catcards">${cats}</div></section>
+<section id="cats">${sectionHead("01", "조사", "카테고리별 레퍼런스 보드. 카드의 한 줄은 그 조사의 목적입니다.")}${cats}</section>
 <section id="shared">${sectionHead("02", "조사 사이에 겹치는 패턴", "숫자는 각 조사에서 그 패턴을 가진 제품 수입니다. 한 분야의 해법을 다른 분야에서 참고할 수 있는 지점이며, 숫자를 누르면 해당 보드의 패턴 카드로 갑니다.")}${
       sharedAxes.length ? table(sharedAxes) : `<p class="muted">아직 두 조사 이상에 걸친 패턴이 없습니다.</p>`
     }<details style="margin-top:14px"><summary class="muted" style="cursor:pointer">한 조사에만 있는 패턴 ${h.axes.length - sharedAxes.length}개 보기</summary><div style="margin-top:10px">${table(h.axes.filter((a) => !sharedAxes.includes(a)))}</div></details></section>

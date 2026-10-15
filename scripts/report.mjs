@@ -243,7 +243,7 @@ async function boardData(col, members, refs, claims, summary, cite, cov, relp) {
 
 /** <LIB>/index.html — every category and the patterns they share. */
 export async function writeHome() {
-  const [cols, refs, claims, axes] = await Promise.all([listCollections(), readRefs(), readClaims(), readAxes()]);
+  const [cols, refs, claims, axes, runs] = await Promise.all([listCollections(), readRefs(), readClaims(), readAxes(), readRuns()]);
   const idx = tagIndex(axes);
   const byId = new Map(refs.map((r) => [r.id, r]));
   const cats = cols.map((c) => {
@@ -254,15 +254,22 @@ export async function writeHome() {
         const ax = axes.axes.find((x) => x.id === id);
         if (ax && (ax.facet ?? "pattern") === "pattern") axisCount.set(ax.label, (axisCount.get(ax.label) ?? 0) + 1);
       }
+    const own = claims.filter((x) => (x.collections ?? []).includes(c.name) && x.status === "active");
+    const kinds = {};
+    for (const x of own) kinds[x.kind] = (kinds[x.kind] ?? 0) + 1;
+    const lastRun = runs.filter((r) => r.collection === c.name).at(-1);
     return {
       name: c.name,
       title: c.title ?? c.name,
       description: c.description,
+      goal: c.goal ?? c.question ?? lastRun?.goal ?? null,
+      lastRun: lastRun?.startedAt?.slice(0, 10) ?? null,
       kind: c.kind,
       domain: c.domain,
       refs: rs.length,
       products: new Set(rs.map((r) => r.product ?? r.id)).size,
-      claims: claims.filter((x) => (x.collections ?? []).includes(c.name) && x.status === "active").length,
+      claims: own.length,
+      kinds,
       run: c.currentRun,
       thumbs: rs.map((r) => latestSnapshot(r)?.files?.preview).filter(Boolean).slice(0, 1),
       topAxes: [...axisCount].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([l]) => l),

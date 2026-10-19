@@ -5,6 +5,12 @@
 3. `CHANGELOG.md`: new section on top, Korean, user-visible changes only.
 4. If the board or README visuals changed: `dev/demo.sh` → check the images → commit `assets/`.
 5. Commit, then push over HTTPS (see CLAUDE.md "Rules").
+   Then tag and publish the GitHub release (pre-release while in beta; notes = that CHANGELOG section):
+   ```bash
+   git tag -a v<version> -m "reference-research <version>"
+   git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin --tags
+   gh release create v<version> --title "reference-research <version>" --notes-file <changelog-section.md> --prerelease
+   ```
 6. Verify the install path in a throwaway config (does not touch the real `~/.claude`):
    ```bash
    C=$(mktemp -d); CLAUDE_CONFIG_DIR=$C claude plugin marketplace add Y-jae-heon/reference-research

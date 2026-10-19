@@ -13,7 +13,7 @@
    ```
 6. Verify the install path in a throwaway config (does not touch the real `~/.claude`):
    ```bash
-   C=$(mktemp -d); CLAUDE_CONFIG_DIR=$C claude plugin marketplace add Y-jae-heon/reference-research
+   C=$(mktemp -d); CLAUDE_CONFIG_DIR=$C claude plugin marketplace add Fox-Yeom/reference-research
    CLAUDE_CONFIG_DIR=$C claude plugin install reference-research@reference-research-beta; rm -rf $C
    ```
 7. `dev/sync-local.sh` so the maintainer's own install matches.
@@ -21,7 +21,7 @@
 
 ## Adding a tester
 ```bash
-gh api -X PUT repos/Y-jae-heon/reference-research/collaborators/<github-id>   # personal repo → write permission (no read role)
-gh api repos/Y-jae-heon/reference-research/invitations --jq '.[].invitee.login'  # pending
+gh api -X PUT repos/Fox-Yeom/reference-research/collaborators/<github-id>   # personal repo → write permission (no read role)
+gh api repos/Fox-Yeom/reference-research/invitations --jq '.[].invitee.login'  # pending
 ```
 Record them in `CLAUDE.local.md`. Send the install steps from README "설치".

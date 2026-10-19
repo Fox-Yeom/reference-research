@@ -1,7 +1,7 @@
 # reference-research — maintainer guide
 
 Claude Code plugin (skill + read-only MCP + SessionStart hook) for source-linked reference research.
-Distributed to beta testers through a **private GitHub plugin marketplace**: `Y-jae-heon/reference-research` → marketplace `reference-research-beta`.
+Distributed to beta testers through a **private GitHub plugin marketplace**: `Fox-Yeom/reference-research` → marketplace `reference-research-beta`.
 
 **This repo is canonical.** The maintainer's own install (`~/.claude/skills/reference-research`) is generated from it by `dev/sync-local.sh` — never edit that copy.
 

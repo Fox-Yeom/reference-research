@@ -77,11 +77,11 @@
 ## 설치
 **필요한 것**: Claude Code · Node.js 20 이상 · Python 3 + Pillow(`pip3 install pillow`) · Chrome 또는 Aside · git(권장)
 
-1. 메일로 온 **GitHub 초대를 수락**합니다(또는 https://github.com/Y-jae-heon/reference-research/invitations).
+1. 메일로 온 **GitHub 초대를 수락**합니다(또는 https://github.com/Fox-Yeom/reference-research/invitations).
    - 비공개 저장소라 터미널에서 GitHub 로그인이 되어 있어야 해요: `gh auth login`
 2. Claude Code에서:
    ```
-   /plugin marketplace add Y-jae-heon/reference-research
+   /plugin marketplace add Fox-Yeom/reference-research
    /plugin install reference-research@reference-research-beta
    ```
 3. Claude Code를 다시 시작하고 **"레퍼런스 조사 도구 상태 점검해줘"** 라고 말합니다.

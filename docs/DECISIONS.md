@@ -2,6 +2,9 @@
 
 Newest first. One line of context, the decision, why.
 
+## 2026-10-19 · GitHub account renamed Y-jae-heon → Fox-Yeom
+The account was renamed; the old address still redirects. → All docs, manifests (`author.name`, `repository`), the git remote and the noreply author use `Fox-Yeom`. Testers who added the marketplace under the old name keep working through the redirect; new testers use `/plugin marketplace add Fox-Yeom/reference-research`. Older entries below keep the old name as written at the time.
+
 ## 2026-10-02 · Plugin repo is canonical; local skill is generated
 Two copies (local skill `bin/`, plugin `scripts/`) drifted on day one. → Edit only this repo; `dev/sync-local.sh` regenerates `~/.claude/skills/reference-research` (rewrites paths, keeps `bin/` so the user-scope MCP registration still works) and commits there.
 

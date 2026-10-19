@@ -136,4 +136,5 @@
 4. (모은 자료까지) `~/references` 삭제 — **되돌릴 수 없으니 필요한 보드는 먼저 따로 보관하세요**
 
 ## 고지
+- 라이선스: [MIT](LICENSE).
 - 데모 화면의 캡처 이미지(Notion · Todoist · Evernote · Obsidian · Craft 요금제 페이지)는 기능 설명용 예시이며, 각 권리는 해당 회사에 있습니다.

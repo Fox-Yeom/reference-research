@@ -3,7 +3,7 @@
 Newest first. One line of context, the decision, why.
 
 ## 2026-10-19 · Repository made public
-Private-beta friction (invites, `gh auth` for install) outweighed the benefit once the library stays local anyway. → Repo is public; README drops the invite steps; marketplace name stays `reference-research-beta`. The library (`~/references`) is still never pushed. No LICENSE file yet — pick one before announcing widely.
+Private-beta friction (invites, `gh auth` for install) outweighed the benefit once the library stays local anyway. → Repo is public; README drops the invite steps; marketplace name stays `reference-research-beta`. The library (`~/references`) is still never pushed. License: MIT (`LICENSE`, 2026-10-19) — captures in `assets/` remain the property of their sites; see README 고지.
 
 ## 2026-10-19 · GitHub account renamed Y-jae-heon → Fox-Yeom
 The account was renamed; the old address still redirects. → All docs, manifests (`author.name`, `repository`), the git remote and the noreply author use `Fox-Yeom`. Testers who added the marketplace under the old name keep working through the redirect; new testers use `/plugin marketplace add Fox-Yeom/reference-research`. Older entries below keep the old name as written at the time.

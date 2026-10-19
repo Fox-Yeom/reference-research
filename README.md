@@ -6,7 +6,7 @@
 비슷한 서비스·경쟁 화면·강의를 찾아 실제 화면을 캡처하고, 발견마다 근거를 붙여 카테고리별 비교 보드로 정리합니다.</p>
 
 <p align="center">
-<img alt="beta" src="https://img.shields.io/badge/release-0.1.0--beta.2-orange">
+<img alt="beta" src="https://img.shields.io/badge/release-0.1.0--beta.3-orange">
 <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-plugin-7a4fe0">
 <img alt="macOS" src="https://img.shields.io/badge/macOS-tested-black">
 <img alt="Node" src="https://img.shields.io/badge/Node-20%2B-3c873a">

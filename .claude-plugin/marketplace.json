@@ -11,7 +11,7 @@
       "name": "reference-research",
       "source": "./",
       "description": "레퍼런스 조사 · 캡처 · 출처 있는 비교 보드 · 읽기 전용 MCP",
-      "version": "0.1.0-beta.2"
+      "version": "0.1.0-beta.3"
     }
   ]
 }

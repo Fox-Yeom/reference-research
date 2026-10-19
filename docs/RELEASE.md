@@ -20,8 +20,9 @@
 8. Tell testers: `/plugin marketplace update reference-research-beta`, then restart Claude Code. Link the CHANGELOG section.
 
 ## Adding a tester
+The repo is public (2026-10-19): anyone can install with the README "설치" steps — no invitation needed. Collaborator access (write) is only for people who should push:
 ```bash
 gh api -X PUT repos/Fox-Yeom/reference-research/collaborators/<github-id>   # personal repo → write permission (no read role)
 gh api repos/Fox-Yeom/reference-research/invitations --jq '.[].invitee.login'  # pending
 ```
-Record them in `CLAUDE.local.md`. Send the install steps from README "설치".
+Record them in `CLAUDE.local.md`.

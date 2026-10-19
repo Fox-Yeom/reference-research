@@ -12,7 +12,7 @@
 <img alt="Node" src="https://img.shields.io/badge/Node-20%2B-3c873a">
 </p>
 
-> **비공개 베타입니다.** 초대받은 분만 써 주세요. 코드는 고치지 말고, 문제나 아이디어는 [피드백](#피드백--문제-보고)으로 보내 주세요.
+> **베타입니다.** 동작과 보드 구성이 아직 바뀔 수 있어요. 문제나 아이디어는 [피드백](#피드백--문제-보고)으로 보내 주세요.
 
 ---
 
@@ -77,14 +77,12 @@
 ## 설치
 **필요한 것**: Claude Code · Node.js 20 이상 · Python 3 + Pillow(`pip3 install pillow`) · Chrome 또는 Aside · git(권장)
 
-1. 메일로 온 **GitHub 초대를 수락**합니다(또는 https://github.com/Fox-Yeom/reference-research/invitations).
-   - 비공개 저장소라 터미널에서 GitHub 로그인이 되어 있어야 해요: `gh auth login`
-2. Claude Code에서:
+1. Claude Code에서:
    ```
    /plugin marketplace add Fox-Yeom/reference-research
    /plugin install reference-research@reference-research-beta
    ```
-3. Claude Code를 다시 시작하고 **"레퍼런스 조사 도구 상태 점검해줘"** 라고 말합니다.
+2. Claude Code를 다시 시작하고 **"레퍼런스 조사 도구 상태 점검해줘"** 라고 말합니다.
    ```
    ✓ Node 22.x
    ✓ Python + Pillow 12.x
@@ -121,7 +119,7 @@
 - 라이브러리에는 다른 사이트의 화면이 들어 있습니다. **공개 저장소에 올리지 마세요.** Claude도 요청 없이는 push하지 않습니다.
 
 ## 피드백 · 문제 보고
-- 저장소 **Issues → New issue → "베타 피드백"** 양식으로 남겨 주세요.
+- 저장소 [Issues](https://github.com/Fox-Yeom/reference-research/issues) → New issue → **"베타 피드백"** 양식으로 남겨 주세요. 누구나 열 수 있습니다.
 - 붙여 주시면 좋은 것: `ref doctor` 결과 · 무엇을 요청했고 → 무엇을 기대했고 → 무엇이 보였는지 · 보드 화면 캡처(문제 있는 부분)
 - 회사 내부 자료를 조사했다면 캡처나 노트를 그대로 올리지 말고 가려 주세요.
 

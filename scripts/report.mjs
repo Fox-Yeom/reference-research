@@ -328,10 +328,28 @@ export async function writeHome() {
     return { id: ax.id, label: ax.label, question: ax.question, verdict: ax.verdict, description: ax.description, facet: ax.facet ?? "pattern", cats: counts };
   });
   const lastRunAll = runs.at(-1);
+  const titleOf = new Map(cols.map((c) => [c.name, c.title ?? c.name]));
+  const active = claims.filter((c) => c.status === "active");
+  // home phase 2a: recent runs, every active finding (search only), references used by several collections
+  const recent = runs
+    .slice(-5)
+    .reverse()
+    .map((r) => ({ id: r.id, collection: r.collection, title: titleOf.get(r.collection) ?? r.collection, goal: r.goal, result: r.result ?? null, startedAt: r.startedAt, endedAt: r.endedAt ?? null, created: active.filter((c) => (c.events ?? []).some((e) => e.run === r.id && e.type === "created")).length }));
+  const order = new Map(cats.map((c) => [c.name, c.lastRunAt ?? ""]));
+  const findings = active
+    .map((c) => ({ id: c.id, subject: c.subject, text: c.text, kind: c.kind, confidence: c.confidence, sources: c.sources.length, key: !!c.key, collections: (c.collections ?? []).map((n) => [n, titleOf.get(n) ?? n]) }))
+    .sort((a, b) => String(order.get(b.collections[0]?.[0]) ?? "").localeCompare(String(order.get(a.collections[0]?.[0]) ?? "")) || a.id.localeCompare(b.id, undefined, { numeric: true }));
+  const sharedRefs = refs
+    .filter((r) => (r.categories ?? []).length > 1)
+    .map((r) => ({ id: r.id, product: r.product, page: r.page, label: r.label ?? r.title, type: r.type, credibility: r.credibility, thumb: latestSnapshot(r)?.files?.preview ?? null, categories: r.categories.map((n) => [n, titleOf.get(n) ?? n]), cited: active.filter((c) => c.sources.includes(r.id)).length }))
+    .sort((a, b) => b.categories.length - a.categories.length || b.cited - a.cited || String(a.product ?? "").localeCompare(String(b.product ?? "")));
   const html = renderHome({
     cats,
     axes: axRows.filter((a) => Object.keys(a.cats).length),
-    totals: { refs: refs.length, claims: claims.filter((c) => c.status === "active").length, runs: runs.length, lastRun: lastRunAll?.startedAt?.slice(0, 10) ?? null, sharedRefs: refs.filter((r) => (r.categories ?? []).length > 1).length },
+    recent,
+    findings,
+    sharedRefs,
+    totals: { refs: refs.length, claims: active.length, runs: runs.length, lastRun: lastRunAll?.startedAt?.slice(0, 10) ?? null, sharedRefs: sharedRefs.length },
   });
   const file = path.join(LIB, "index.html");
   await fs.writeFile(file, html);

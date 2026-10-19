@@ -361,6 +361,11 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .catcard .concl{display:block;margin-top:8px;font-size:15px;font-weight:600;line-height:1.45;color:var(--text)}.catcard .concl .cite{margin-left:4px;vertical-align:2px}.catcard .concl.muted{font-weight:400}
 .catcard .goal2{font-weight:400;color:var(--muted);font-size:13.5px}
 .hero .goal.prompts{margin-top:18px}
+#findings{display:none}.searching #findings{display:block}
+.frows{display:flex;flex-direction:column}.frow{display:block;padding:12px 0;border-top:1px solid var(--line);color:var(--text)}.frow:first-child{border-top:0}.frow:hover{text-decoration:none;background:var(--inner)}
+.frow .fh{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.frow .fh strong{font-size:15px;font-weight:600}.frow .fb{display:block;margin-top:4px;color:var(--muted);font-size:14px;max-width:72ch}.frow .fm{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.askbar{margin:0 0 14px}.askbar .pbtn.big{margin:0}
+#recent .runs .run{grid-template-columns:150px 1fr}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:860px){.keygrid{grid-template-columns:1fr}.runs .run{grid-template-columns:1fr}.runs .rr,.runs .rc{grid-column:1}}
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.hero .goal p{font-size:15.5px}.claim .chead{flex-direction:column;gap:6px}}
@@ -381,7 +386,7 @@ $$('[data-limit]').forEach(box=>{
   const step=+box.dataset.limit||12;let shown=step;const sel=box.dataset.items||':scope > *';
   let host=box;while(host.parentElement&&host.parentElement.tagName!=='MAIN'&&!(host.nextElementSibling&&host.nextElementSibling.classList.contains('morebtn')))host=host.parentElement;
   const btn=host.nextElementSibling&&host.nextElementSibling.classList.contains('morebtn')?host.nextElementSibling:null;
-  const refresh=()=>{const all=document.body.classList.contains('searching');let n=0,rest=0;
+  const refresh=()=>{const all=document.body.classList.contains('searching')&&!box.hasAttribute('data-limit-always');let n=0,rest=0;
     $$(sel,box).forEach(el=>{if(isHidden(el)){el.classList.remove('over-limit');return;}n++;const over=!all&&n>shown;el.classList.toggle('over-limit',over);if(over)rest++;});
     if(btn){btn.hidden=!rest;btn.textContent='더 보기 '+Math.min(rest,step)+'개 · 남은 '+rest+'개';}};
   if(btn)btn.addEventListener('click',()=>{shown+=step;refresh();});
@@ -441,6 +446,7 @@ if(qs.length){
   const run=()=>{qs.forEach(x=>{if(x!==q)x.value=q.value});const t=q.value.trim().toLowerCase();document.body.classList.toggle('searching',!!t);let n=0;
     items().forEach(el=>{const hit=!t||el.dataset.search.includes(t);el.classList.toggle('hidden-by-search',!hit);if(t&&hit)n++;});
     const info=$('.searchinfo');if(info)info.textContent=t?('"'+q.value+'" 검색 결과 '+n+'개 — Esc로 지우기'):'';
+    const ask=$('#findings .askbtn');if(ask)ask.dataset.copy='reference-library에서 "'+q.value.trim()+'"에 대한 발견을 찾아 근거(S#)와 함께 정리해줘';
     // collapse groups that lost every match (no empty table shells), and say so per section
     const shown=el=>$$('[data-search]',el).some(x=>!x.classList.contains('hidden-by-search'));
     $$('.sgroup').forEach(g=>{const has=g.querySelector('[data-search]');g.classList.toggle('search-collapsed',!!t&&!!has&&!shown(g));});
@@ -1102,7 +1108,7 @@ export function renderHome(h) {
   const side = `<a class="brand" href="index.html">References <span>/ 라이브러리</span></a>
 <div class="about">조사할 때마다 모은 레퍼런스와 발견. 같은 레퍼런스는 한 번만 저장하고, 여러 조사에 걸쳐 다시 씁니다.</div>
 ${searchBox("조사·패턴 검색")}
-<nav><a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴<small>${shared.length}</small></a></nav>
+<nav>${h.recent?.length ? `<a href="#recent">최근 활동<small>${h.recent.length}</small></a>` : ""}<a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴<small>${shared.length}</small></a>${h.sharedRefs?.length ? `<a href="#sharedrefs">여러 조사에 쓴 레퍼런스<small>${h.sharedRefs.length}</small></a>` : ""}${h.findings?.length ? `<a href="#findings">발견 검색<small>${h.findings.length}</small></a>` : ""}</nav>
 <div class="foot">${h.cats.length}개 조사 · ${h.totals.refs}개 레퍼런스 · ${h.totals.claims}개 발견<br>${esc(new Date().toLocaleDateString("ko-KR"))} 기준</div>`;
   const topbar = `<a class="brand" href="index.html">References</a>${searchBox("검색")}`;
 
@@ -1145,7 +1151,7 @@ ${searchBox("조사·패턴 검색")}
   <span class="goal2">${esc(c.goal ?? c.description ?? "")}</span>
   <span class="meta2">${[c.lastRun ? `마지막 조사 ${esc(c.lastRun)}` : "", `레퍼런스 ${c.refs}`, c.openQ ? `열린 질문 ${c.openQ}` : ""].filter(Boolean).join(" · ")}${c.inProgress ? ` <span class="pill">진행 중</span>` : ""}</span></a>`;
   const sorted = h.cats.slice().sort((a, b) => String(b.lastRunAt ?? "").localeCompare(String(a.lastRunAt ?? "")));
-  const catsSection = `<section id="cats">${sectionHead("01", "조사", "카테고리별 레퍼런스 보드. 최근 조사순이고, 칩으로 분야를 고릅니다.")}
+  const catsSection = `<section id="cats">${sectionHead(h.recent?.length ? "01" : "01", "조사", "카테고리별 레퍼런스 보드. 최근 조사순이고, 칩으로 분야를 고릅니다.")}
 <div class="stoolbar">${domains.length > 1 ? `<div class="seg" data-k="domain"><button data-v="" class="on">전체 <small>${h.cats.length}</small></button>${domains.map(([dm, n]) => `<button data-v="${dm}">${esc(DOMAIN_KO[dm])} <small>${n}</small></button>`).join("")}</div>` : ""}<select data-k="sort" aria-label="정렬"><option value="recent">최근 조사순</option><option value="name">이름순</option><option value="claims">발견 많은 순</option></select><span class="shown"></span></div>
 <div class="catcards" data-limit="12" data-items=".catcard">${sorted.map(catCard).join("")}</div><button class="morebtn" type="button" hidden></button></section>`;
 
@@ -1167,5 +1173,29 @@ ${searchBox("조사·패턴 검색")}
       : ""
   }<p class="muted small" style="margin-top:14px">한 조사에만 있는 패턴 ${patternAxes.length - shared.length}개는 각 보드의 '패턴 비교'에 있습니다.</p></section>`;
 
-  return shell("레퍼런스 라이브러리", side, topbar, `${hero}${catsSection}${sharedSection}<footer>~/references · <code>ref report</code>를 실행할 때마다 다시 만들어집니다</footer>`, false);
+  // recent activity: last five runs across the library
+  const recentSection = h.recent?.length
+    ? `<section id="recent">${sectionHead("00", "최근 활동", "마지막 조사 회차 5개. 목표 → 결과(<code>ref report</code>의 <code>result</code>) → 새 발견 수.")}<ol class="runs">${h.recent
+        .map(
+          (r) => `<li class="run" data-search="${searchText(r.id, r.title, r.goal, r.result)}"><div class="rh">${idBtn(r.id)}<span class="rd">${esc(r.startedAt.slice(0, 10))}${r.endedAt && r.endedAt.slice(0, 10) !== r.startedAt.slice(0, 10) ? ` → ${esc(r.endedAt.slice(0, 10))}` : ""}</span></div>
+<div class="rg"><a href="${esc(r.collection)}/index.html">${esc(r.title)}</a> — ${esc(r.goal ?? "")}</div>${r.result ? `<div class="rr">→ ${esc(r.result)}</div>` : ""}
+<div class="rc">${r.created ? `<span class="chip">새 발견 ${r.created}</span>` : `<span class="muted small">새 발견 없음</span>`}${!r.endedAt && r.startedAt >= "2026-10-19" ? ` <span class="pill">진행 중</span>` : ""}</div></li>`,
+        )
+        .join("")}</ol></section>`
+    : "";
+  // references reused across collections — folded, ten at a time
+  const srRow = (r) => `<tr data-search="${searchText(r.id, r.product, r.page, r.label, r.categories.map(([, t]) => t))}"><td class="n">${idBtn(r.id)}</td><td>${r.thumb ? `<span class="mini"><img loading="lazy" src="${esc(r.thumb)}" alt=""></span>` : ""}<strong>${esc(r.product ?? r.label ?? r.id)}</strong>${r.page ? ` <span class="muted">· ${esc(r.page)}</span>` : ""}</td><td class="n">${esc(r.credibility ?? "")} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type ?? "")}</span></td><td class="n num">${r.cited || `<span class="muted">0</span>`}</td><td>${r.categories.map(([n, t]) => `<a class="chip" href="${esc(n)}/index.html#${esc(r.id)}">${esc(short(t, 22))}</a>`).join("")}</td></tr>`;
+  const sharedRefsSection = h.sharedRefs?.length
+    ? `<section id="sharedrefs">${sectionHead("04", "여러 조사에 쓴 레퍼런스", `한 번 모은 레퍼런스를 다른 조사가 다시 쓴 것 ${h.sharedRefs.length}개. 많이 쓰인 순입니다.`)}<details class="sgroup"><summary class="muted" style="cursor:pointer">목록 보기</summary><div class="panel tablewrap" style="padding:0;margin-top:10px"><table class="docs"><thead><tr><th class="n">번호</th><th>레퍼런스</th><th class="n">등급</th><th class="n">인용</th><th>쓴 조사</th></tr></thead><tbody data-limit="10" data-items="tr" data-limit-always>${h.sharedRefs.map(srRow).join("")}</tbody></table></div><button class="morebtn" type="button" hidden></button></details></section>`
+    : "";
+  // findings search: every active finding is in the page but only shows while a search is typed
+  const frow = (f) => {
+    const [t, b] = splitTitle(f);
+    const first = f.collections[0];
+    return `<a class="frow" href="${esc(first?.[0] ?? "")}/index.html#${esc(f.id)}" data-search="${searchText(f.id, f.subject, f.text, f.collections.map(([, x]) => x))}"><span class="fh">${idBtn(f.id)}<i class="kdot k-${esc(f.kind)}" title="${esc(KIND[f.kind]?.[0] ?? f.kind)}"></i><strong>${f.key ? `<span class="star">핵심</span>` : ""}${esc(t)}</strong>${confBadge(f.confidence)}</span>${b ? `<span class="fb">${esc(short(b, 160))}</span>` : ""}<span class="fm">${f.collections.map(([, x]) => `<span class="chip">${esc(short(x, 22))}</span>`).join("")}<span class="muted small">출처 ${f.sources}</span></span></a>`;
+  };
+  const findingsSection = h.findings?.length
+    ? `<section id="findings">${sectionHead("05", "발견 검색", `라이브러리의 발견 ${h.findings.length}개 전부. 위 검색창에 입력하면 여기에 맞는 발견이 나옵니다 — 누르면 그 보드의 발견으로 갑니다.`)}<div class="askbar"><button class="pbtn big askbtn" type="button" data-copy="" title="검색어로 Claude에게 묻는 프롬프트를 복사합니다">이 검색어로 Claude에게 묻기 — 프롬프트 복사</button></div><div class="frows" data-limit="10" data-items=".frow" data-limit-always>${h.findings.map(frow).join("")}</div><button class="morebtn" type="button" hidden></button></section>`
+    : "";
+  return shell("레퍼런스 라이브러리", side, topbar, `${hero}${recentSection}${catsSection}${sharedSection}${sharedRefsSection}${findingsSection}<footer>~/references · <code>ref report</code>를 실행할 때마다 다시 만들어집니다</footer>`, false);
 }

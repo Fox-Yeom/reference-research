@@ -12,7 +12,7 @@ Goal frame: references must serve 5 purposes (시행착오 절감 · 벤치마�
 - [x] Release 0.1.0-beta.2 (2026-10-19) — board phases 1–3
 - [x] Library home phase 1 (2026-10-19, `docs/HOME-REDESIGN.md` §6): stat tiles, Claude prompts, recent-first cards with conclusion line / open-question count / in-progress badge, domain chips + sort, shared-pattern cards. 18,452px → 4,300px.
 - [x] Library home phase 2a (2026-10-19): B1 recent runs · D3 shared references (folded) · E1 findings search (search-only, 10 at a time) · E3 ask-Claude prompt from the query. Home at rest 4,300px → 5,200px.
-- [ ] Library home phase 2b (decide first — see HOME-REDESIGN §7): B3 open-question roll-up (51 questions over 16 collections: last-3-collections vs folded-per-collection) · B2 이어서 하기 on in-progress cards · C5 plan badges · A4 stale warning
+- [x] Library home phase 2b (2026-10-19): B3 open-question roll-up (hybrid: last 3 collections open, rest folded) · B2 이어서 하기 on in-progress cards · C5 plan badges · A4 stale warning · shared prompt-action component (icon, 복사됨 ✓, 프롬프트 보기 preview). Home at rest 6,700px.
 - [ ] Library home phase 3 (E2 search scopes, verdict coverage per axis)
 - [ ] Collect tester feedback (Issues, label `beta`) → triage into this file
 - [ ] Localize remaining English board/CLI messages testers see (coverage warning, doctor lines)

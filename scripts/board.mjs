@@ -341,6 +341,11 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .openq h4{margin:0 0 8px;font-size:14px;color:var(--muted);font-weight:600;letter-spacing:.02em}.openq ul{margin:0;padding-left:18px}.openq li{margin:6px 0;font-size:14.5px}
 .pbtn{font:inherit;font-size:12px;font-weight:500;padding:2px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--accent);cursor:copy;line-height:1.5}.pbtn:hover{border-color:var(--accent)}.pbtn.big{font-size:13.5px;padding:8px 14px;margin-top:14px;display:inline-block}
 .star{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--violet-soft);color:var(--violet);margin-right:6px;vertical-align:2px}
+.pbtn::before{content:"⧉";margin-right:5px;font-size:.95em;opacity:.8}.pbtn.done::before{content:"✓"}.pbtn.done{background:var(--green-soft);color:var(--green);border-color:transparent}
+.pact{display:inline-flex;flex-direction:column;align-items:flex-start;gap:6px;vertical-align:middle;max-width:100%}.asks .pact{flex-direction:row}.pprev{font-size:12.5px}.pprev summary{cursor:pointer;color:var(--muted);list-style:none}.pprev summary::before{content:"▸ "}.pprev[open] summary::before{content:"▾ "}
+.pprev pre{margin:8px 0 4px;padding:10px 12px;border-radius:8px;background:var(--inner);border:1px solid var(--line);font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;color:var(--text);max-width:72ch;max-height:180px;overflow:auto}
+.hero .pprev summary{color:rgba(255,255,255,.8)}.hero .pprev pre{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}.hero .pprev .muted{color:rgba(255,255,255,.7)}.hero .pact:has(.pprev){flex-basis:100%}
+.oqact{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:flex-start;margin:4px 0 6px 18px}.oqact > a{padding-top:4px}.oqact a{white-space:nowrap}
 .seg.tabs button{display:inline-flex;align-items:center;gap:6px}.seg.tabs button small{font-size:11px;opacity:.75;font-variant-numeric:tabular-nums}.seg.tabs .kdot{width:8px;height:8px;margin:0}
 #viewer aside .vtabs{display:flex;gap:6px;margin:0 0 10px}#viewer aside .vtabs button{padding:4px 11px;font-size:12.5px}#viewer aside .vtabs button.on{background:#5b7ff0;color:#fff}
 #viewer aside .vcl{list-style:none;margin:0;padding:0}#viewer aside .vcl li{padding:9px 0;border-top:1px solid #222;color:#d6d6d6;font-size:13.5px}#viewer aside .vcl li:first-child{border-top:0}#viewer aside .vcl a{color:#9db3f6;font-weight:600;margin-right:8px}#viewer aside .vcl .conf{font-size:11px;padding:1px 7px 1px 6px}
@@ -366,6 +371,9 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .frow .fh{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.frow .fh strong{font-size:15px;font-weight:600}.frow .fb{display:block;margin-top:4px;color:var(--muted);font-size:14px;max-width:72ch}.frow .fm{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
 .askbar{margin:0 0 14px}.askbar .pbtn.big{margin:0}
 #recent .runs .run{grid-template-columns:150px 1fr}
+.oqs{padding:6px 22px}.oq{border-top:1px solid var(--line);padding:8px 0}.oq:first-child{border-top:0}.oq summary{cursor:pointer;list-style:none;display:flex;gap:10px;align-items:baseline;padding:6px 0;font-weight:600;font-size:15px}.oq summary::before{content:"▸";color:var(--accent);font-size:12px}.oq[open] summary::before{content:"▾"}.oq summary a{color:var(--text)}
+.oq ul{margin:4px 0 8px;padding-left:36px}.oq li{margin:5px 0;font-size:14.5px;max-width:72ch}
+.catcard .cap .p a{color:var(--accent)}.pill.plan{background:var(--teal-soft);color:var(--teal)}.meta2 .warn{color:var(--amber);font-weight:600}.catcard .meta2 .pbtn{vertical-align:1px}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:860px){.keygrid{grid-template-columns:1fr}.runs .run{grid-template-columns:1fr}.runs .rr,.runs .rc{grid-column:1}}
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.hero .goal p{font-size:15.5px}.claim .chead{flex-direction:column;gap:6px}}
@@ -463,7 +471,10 @@ document.addEventListener('click',e=>{const m=e.target.closest('.claim .more');i
 const toast=document.createElement('div');toast.className='toast';document.body.appendChild(toast);let tt;
 const say=msg=>{toast.textContent=msg;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove('show'),2200);};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(!b)return;e.preventDefault();const v=b.dataset.copy;
-  const done=()=>{say(v+' 복사됨 — Claude에게 "'+v+' 다시 확인해줘"처럼 붙여 쓸 수 있습니다');b.classList.add('done');setTimeout(()=>b.classList.remove('done'),1200);};
+  const isPrompt=b.classList.contains('pbtn');
+  const done=()=>{say(isPrompt?'프롬프트 복사됨 — Claude Code 입력창에 붙여 넣으세요':v+' 복사됨 — Claude에게 "'+v+' 다시 확인해줘"처럼 붙여 쓸 수 있습니다');b.classList.add('done');
+    if(isPrompt){if(!b.dataset.label)b.dataset.label=b.textContent;b.textContent='복사됨';}
+    setTimeout(()=>{b.classList.remove('done');if(isPrompt&&b.dataset.label)b.textContent=b.dataset.label;},1600);};
   const fallback=()=>{const ta=document.createElement('textarea');ta.value=v;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(_){say('복사하지 못했습니다 — 직접 선택해 주세요');}ta.remove();};
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(v).then(done,fallback);else fallback();});
 // side nav follows the section in view; "맨 위로" after a screen of scrolling
@@ -571,6 +582,14 @@ const TYPE_KO = { official: "공식", docs: "문서", store: "스토어", repo: 
 const short = (s, n) => ((s = String(s ?? "")), s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
 /** copyable id chip — one click puts S#/C#/R# on the clipboard to hand to Claude */
 const idBtn = (id, extra = "") => `<button class="idbtn" data-copy="${esc(id)}" title="클릭하면 ${esc(id)} 복사 — Claude에게 '${esc(id)} 다시 확인해줘'라고 말할 수 있습니다"${extra}>${esc(id)}</button>`;
+/**
+ * prompt action — a copy button (clipboard icon, "복사됨 ✓" feedback) and, with preview, a fold that shows the exact text
+ * that will be pasted into Claude Code. Used for 이어서 하기 / 다시 확인 / 새 조사 시작 / 묻기.
+ */
+const promptAction = (label, text, { preview = false, big = false, hint = "" } = {}) =>
+  `<span class="pact"><button class="pbtn${big ? " big" : ""}" type="button" data-copy="${esc(text)}" title="${esc(hint || "Claude Code에 붙여 넣을 프롬프트를 복사합니다")}">${esc(label)}</button>${
+    preview ? `<details class="pprev"><summary>프롬프트 보기</summary><pre>${esc(text)}</pre><span class="muted small">복사한 뒤 Claude Code 입력창에 붙여 넣으세요. &lt;…&gt; 자리는 채웁니다.</span></details>` : ""
+  }</span>`;
 /** the most common source types among ids, "논문 3 · 공식 2" */
 const typeMix = (ids, typeOf, k = 3) => {
   const cnt = {};
@@ -718,7 +737,7 @@ export function renderBoard(d) {
         }</div>
 <div class="panel openq">${openQ.length ? `<h4>열린 질문</h4><ul data-limit="5" data-items="li">${openQ.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4><ul data-limit="5" data-items="li">${nextS.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
           !openQ.length && !nextS.length ? `<p class="muted small">요약에 <code>## 열린 질문</code> · <code>## 추천</code> 절을 쓰거나 <code>ref report</code>에 <code>open_questions</code> · <code>next_steps</code>를 넘기면 여기에 표시됩니다.</p>` : ""
-        }<button class="pbtn big" type="button" data-copy="${esc(continuePrompt)}" title="Claude에게 붙여 넣을 프롬프트를 복사합니다">이 조사 이어서 하기 — 프롬프트 복사</button></div></div></section>`
+        }${promptAction("이 조사 이어서 하기", continuePrompt, { preview: true, big: true, hint: "열린 질문과 다음 할 일을 담은 프롬프트를 복사합니다" })}</div></div></section>`
       : "";
 
   const navItems = [
@@ -928,7 +947,7 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
     return `<article class="claim" id="${c.id}" data-kind="${esc(c.kind ?? "")}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
   <div class="chead"><h4 class="ctitle">${c.key ? `<span class="star">핵심</span>` : ""}${esc(title)}</h4>${confBadge(c.confidence)}</div>
   ${body ? `<p class="cbody${body.length > 150 ? " clamp" : ""}">${esc(body)}</p>${body.length > 150 ? `<button class="more" type="button">더 보기</button>` : ""}` : ""}
-  <div class="cmeta">${idBtn(c.id)}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(c.run)}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span><button class="pbtn" type="button" data-copy="${esc(recheck)}" title="Claude에게 붙여 넣을 '다시 확인' 프롬프트를 복사합니다">다시 확인</button></div>
+  <div class="cmeta">${idBtn(c.id)}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(c.run)}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
   ${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}
   ${olds.length ? `<details class="prev"><summary>이전 버전 ${olds.length}개 — ${olds[0].status === "refuted" ? "틀린 것으로 확인됨" : "수정됨"}</summary>${olds.map((o) => `<div class="old" id="${o.id}">${idBtn(o.id)} ${esc(o.text)} <span class="small">(${esc((o.createdAt ?? "").slice(0, 10))})</span></div>`).join("")}</details>` : ""}
 </article>`;
@@ -1099,6 +1118,7 @@ ${c.missing.length ? `<div class="note">강의 구조가 기록되지 않은 강
  */
 export function renderHome(h) {
   const titleOf = new Map(h.cats.map((c) => [c.name, c.title ?? c.name]));
+  const hcite = (id) => `<span class="cite" title="${esc(id)}">${esc(id)}</span>`; // ids on the home have no single board to link to
   const domains = ["design", "research", "dev", "curriculum"].map((dm) => [dm, h.cats.filter((c) => (c.domain ?? "design") === dm).length]).filter(([, n]) => n);
   const patternAxes = h.axes.filter((a) => a.facet === "pattern");
   const shared = patternAxes.filter((a) => Object.keys(a.cats).length > 1).sort((a, b) => Object.keys(b.cats).length - Object.keys(a.cats).length || Object.values(b.cats).reduce((x, y) => x + y, 0) - Object.values(a.cats).reduce((x, y) => x + y, 0) || a.label.localeCompare(b.label));
@@ -1108,7 +1128,7 @@ export function renderHome(h) {
   const side = `<a class="brand" href="index.html">References <span>/ 라이브러리</span></a>
 <div class="about">조사할 때마다 모은 레퍼런스와 발견. 같은 레퍼런스는 한 번만 저장하고, 여러 조사에 걸쳐 다시 씁니다.</div>
 ${searchBox("조사·패턴 검색")}
-<nav>${h.recent?.length ? `<a href="#recent">최근 활동<small>${h.recent.length}</small></a>` : ""}<a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴<small>${shared.length}</small></a>${h.sharedRefs?.length ? `<a href="#sharedrefs">여러 조사에 쓴 레퍼런스<small>${h.sharedRefs.length}</small></a>` : ""}${h.findings?.length ? `<a href="#findings">발견 검색<small>${h.findings.length}</small></a>` : ""}</nav>
+<nav>${h.recent?.length ? `<a href="#recent">최근 활동<small>${h.recent.length}</small></a>` : ""}${h.cats.some((c) => c.openQuestions?.length) ? `<a href="#openq">열린 질문<small>${h.cats.reduce((n, c) => n + (c.openQuestions?.length ?? 0), 0)}</small></a>` : ""}<a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴<small>${shared.length}</small></a>${h.sharedRefs?.length ? `<a href="#sharedrefs">여러 조사에 쓴 레퍼런스<small>${h.sharedRefs.length}</small></a>` : ""}${h.findings?.length ? `<a href="#findings">발견 검색<small>${h.findings.length}</small></a>` : ""}</nav>
 <div class="foot">${h.cats.length}개 조사 · ${h.totals.refs}개 레퍼런스 · ${h.totals.claims}개 발견<br>${esc(new Date().toLocaleDateString("ko-KR"))} 기준</div>`;
   const topbar = `<a class="brand" href="index.html">References</a>${searchBox("검색")}`;
 
@@ -1127,11 +1147,13 @@ ${searchBox("조사·패턴 검색")}
 <div><b>${h.totals.runs ?? 0}</b><span>조사 회차${h.totals.lastRun ? ` · 마지막 ${esc(h.totals.lastRun)}` : ""}</span></div>
 </div>`;
   const prompts = `<div class="goal prompts"><span class="lbl">CLAUDE에게</span>
-<button class="pbtn big" type="button" data-copy="${esc(startPrompt)}" title="새 조사를 시작하는 프롬프트를 복사합니다">새 조사 시작 — 프롬프트 복사</button>
-<span class="asks">${asks.map(([t, q]) => `<button class="pbtn" type="button" data-copy="${esc(q)}" title="${esc(q)}">${esc(t)}</button>`).join("")}</span>
-<p class="aud">&lt;…&gt; 자리를 채워 Claude Code에 붙여 넣으세요. 묻기는 MCP <code>reference-library</code>가 답합니다.</p></div>`;
+${promptAction("새 조사 시작", startPrompt, { preview: true, big: true, hint: "새 조사를 시작하는 프롬프트를 복사합니다" })}
+<span class="asks">${asks.map(([t, q]) => promptAction(t, q, { hint: q })).join("")}</span>
+<p class="aud">버튼을 누르면 프롬프트가 복사됩니다 — Claude Code 입력창에 붙여 넣고 &lt;…&gt; 자리를 채우세요. 묻기는 MCP <code>reference-library</code>가 답합니다.</p></div>`;
+  const staleCats = h.cats.filter((c) => c.stale);
+  const staleNote = staleCats.length ? `<p class="aud" style="margin-top:12px">⚠ 90일 넘게 다시 캡처하지 않은 레퍼런스가 있는 조사 ${staleCats.length}개: ${staleCats.map((c) => `<a href="${esc(c.name)}/index.html" style="color:#fff;text-decoration:underline">${esc(c.title ?? c.name)}</a> ${c.stale}`).join(", ")} — 다음 캡처 때 자동으로 다시 찍습니다.</p>` : "";
   const hero = `<header class="hero"><div class="eyebrow">레퍼런스 라이브러리</div><h1>조사해 둔 레퍼런스</h1>
-<p class="lead">최근 조사가 먼저 보입니다. 카드의 굵은 줄은 그 조사의 결론, 아래 줄은 목적입니다.</p>${prompts}${tiles}</header>`;
+<p class="lead">최근 조사가 먼저 보입니다. 카드의 굵은 줄은 그 조사의 결론, 아래 줄은 목적입니다.</p>${prompts}${tiles}${staleNote}</header>`;
 
   // collection cards — recent first; conclusion line; open questions / in-progress badges
   const kindBar = (c) => {
@@ -1144,12 +1166,14 @@ ${searchBox("조사·패턴 검색")}
     const [t, b] = splitTitle(c.conclusion);
     return `<span class="concl"${b ? ` title="${esc(short(b, 200))}"` : ""}>${c.conclusion.key ? `<span class="star">핵심</span>` : ""}${esc(t)} <span class="cite">${esc(c.conclusion.id)}</span></span>`;
   };
-  const catCard = (c) => `<a class="card catcard" href="${esc(c.name)}/index.html" data-domain="${esc(c.domain ?? "design")}" data-name="${esc(c.title ?? c.name)}" data-date="${esc(c.lastRunAt ?? "")}" data-search="${searchText(c.title, c.description, c.goal, c.topAxes, c.conclusion?.subject, c.conclusion?.text)}">
-  ${c.thumbs.length ? `<span class="thumb" style="cursor:pointer"><img loading="lazy" src="${esc(c.thumbs[0])}" alt=""><span class="go" aria-hidden="true">↗</span></span>` : kindBar(c)}
-  <span class="cap"><span class="t"><div class="p">${esc(c.title ?? c.name)}</div><div class="s">${esc(KIND_KO[c.kind] ?? c.kind ?? "")} · ${esc(DOMAIN_KO[c.domain] ?? c.domain)}</div></span><span class="r">${c.products}개 ${esc(UNIT[c.domain] ?? "제품")}<br>${c.claims}개 발견</span></span>
+  const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
+  const continuePrompt = (c) => `reference-research 스킬로 "${c.title ?? c.name}" 조사(컬렉션 ${c.name})를 이어서 해줘.${c.openQuestions?.length ? ` 열린 질문: ${c.openQuestions.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
+  const catCard = (c) => `<article class="card catcard" data-domain="${esc(c.domain ?? "design")}" data-name="${esc(c.title ?? c.name)}" data-date="${esc(c.lastRunAt ?? "")}" data-search="${searchText(c.title, c.description, c.goal, c.topAxes, c.conclusion?.subject, c.conclusion?.text, c.plans)}">
+  <a href="${esc(c.name)}/index.html">${c.thumbs.length ? `<span class="thumb" style="cursor:pointer"><img loading="lazy" src="${esc(c.thumbs[0])}" alt=""><span class="go" aria-hidden="true">↗</span></span>` : kindBar(c)}</a>
+  <span class="cap"><span class="t"><div class="p"><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a></div><div class="s">${esc(KIND_KO[c.kind] ?? c.kind ?? "")} · ${esc(DOMAIN_KO[c.domain] ?? c.domain)}${c.plans?.length ? ` · ${c.plans.map((n) => `<span class="pill plan" title="제품 계획 plans/${esc(n)}.json이 이 조사를 씁니다">${esc(n)}</span>`).join(" ")}` : ""}</div></span><span class="r">${c.products}개 ${esc(UNIT[c.domain] ?? "제품")}<br>${c.claims}개 발견</span></span>
   ${concl(c)}
   <span class="goal2">${esc(c.goal ?? c.description ?? "")}</span>
-  <span class="meta2">${[c.lastRun ? `마지막 조사 ${esc(c.lastRun)}` : "", `레퍼런스 ${c.refs}`, c.openQ ? `열린 질문 ${c.openQ}` : ""].filter(Boolean).join(" · ")}${c.inProgress ? ` <span class="pill">진행 중</span>` : ""}</span></a>`;
+  <span class="meta2">${[c.lastRun ? `마지막 조사 ${esc(c.lastRun)}` : "", `레퍼런스 ${c.refs}`, c.openQ ? `열린 질문 ${c.openQ}` : "", c.stale ? `<span class="warn">다시 캡처 필요 ${c.stale}</span>` : ""].filter(Boolean).join(" · ")}${c.inProgress ? ` <span class="pill">진행 중</span> ${promptAction("이어서 하기", continuePrompt(c), { hint: "열린 질문을 담은 프롬프트를 복사합니다" })}` : ""}</span></article>`;
   const sorted = h.cats.slice().sort((a, b) => String(b.lastRunAt ?? "").localeCompare(String(a.lastRunAt ?? "")));
   const catsSection = `<section id="cats">${sectionHead(h.recent?.length ? "01" : "01", "조사", "카테고리별 레퍼런스 보드. 최근 조사순이고, 칩으로 분야를 고릅니다.")}
 <div class="stoolbar">${domains.length > 1 ? `<div class="seg" data-k="domain"><button data-v="" class="on">전체 <small>${h.cats.length}</small></button>${domains.map(([dm, n]) => `<button data-v="${dm}">${esc(DOMAIN_KO[dm])} <small>${n}</small></button>`).join("")}</div>` : ""}<select data-k="sort" aria-label="정렬"><option value="recent">최근 조사순</option><option value="name">이름순</option><option value="claims">발견 많은 순</option></select><span class="shown"></span></div>
@@ -1161,7 +1185,7 @@ ${searchBox("조사·패턴 검색")}
     return `<article class="axcard" id="axis-${esc(a.id)}" data-search="${searchText(a.label, a.question, a.verdict, cs.map(([n]) => titleOf.get(n)))}">
   <header><strong>${esc(a.label)}</strong><span class="count"><b>${cs.length}</b> 조사</span></header>
   ${a.question ? `<p class="q">${esc(a.question)}</p>` : ""}
-  ${a.verdict ? `<p class="verdict">${inline(a.verdict)}</p>` : ""}
+  ${a.verdict ? `<p class="verdict">${inline(a.verdict, hcite)}</p>` : ""}
   <div class="schips">${cs.map(([n, k]) => `<a class="schip" href="${esc(n)}/index.html#axis-${esc(a.id)}" title="${esc(titleOf.get(n) ?? n)} — ${k}개 ${esc(UNIT[h.cats.find((c) => c.name === n)?.domain] ?? "제품")}"><b>${k}</b>${esc(short(titleOf.get(n) ?? n, 26))}</a>`).join("")}</div>
 </article>`;
   };
@@ -1183,6 +1207,13 @@ ${searchBox("조사·패턴 검색")}
         )
         .join("")}</ol></section>`
     : "";
+  // open questions across the library: the three most recent collections open, the rest folded per collection
+  const withQ = sorted.filter((c) => c.openQuestions?.length);
+  const totalQ = withQ.reduce((n, c) => n + c.openQuestions.length, 0);
+  const oqGroup = (c, open) => `<details class="oq sgroup"${open ? " open" : ""}><summary><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a><span class="muted small">${c.openQuestions.length}개${c.lastRun ? ` · ${esc(c.lastRun)}` : ""}</span>${c.inProgress ? `<span class="pill">진행 중</span>` : ""}</summary><ul>${c.openQuestions.map((q) => `<li data-search="${searchText(q, c.title)}">${inline(q, hcite)}</li>`).join("")}</ul><div class="oqact">${promptAction("이 질문들로 이어서 하기", continuePrompt(c), { preview: true, hint: "이 조사의 열린 질문을 담은 프롬프트를 복사합니다" })}<a class="muted small" href="${esc(c.name)}/index.html#key">보드의 핵심 결론 보기 →</a></div></details>`;
+  const openSection = withQ.length
+    ? `<section id="openq">${sectionHead("00", "열린 질문", `아직 답하지 못한 것 ${totalQ}개 (${withQ.length}개 조사). 최근 조사 ${Math.min(3, withQ.length)}개는 펼쳐져 있고 나머지는 제목을 누르면 열립니다.`)}<div class="panel oqs">${withQ.map((c, i) => oqGroup(c, i < 3)).join("")}</div></section>`
+    : "";
   // references reused across collections — folded, ten at a time
   const srRow = (r) => `<tr data-search="${searchText(r.id, r.product, r.page, r.label, r.categories.map(([, t]) => t))}"><td class="n">${idBtn(r.id)}</td><td>${r.thumb ? `<span class="mini"><img loading="lazy" src="${esc(r.thumb)}" alt=""></span>` : ""}<strong>${esc(r.product ?? r.label ?? r.id)}</strong>${r.page ? ` <span class="muted">· ${esc(r.page)}</span>` : ""}</td><td class="n">${esc(r.credibility ?? "")} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type ?? "")}</span></td><td class="n num">${r.cited || `<span class="muted">0</span>`}</td><td>${r.categories.map(([n, t]) => `<a class="chip" href="${esc(n)}/index.html#${esc(r.id)}">${esc(short(t, 22))}</a>`).join("")}</td></tr>`;
   const sharedRefsSection = h.sharedRefs?.length
@@ -1195,7 +1226,7 @@ ${searchBox("조사·패턴 검색")}
     return `<a class="frow" href="${esc(first?.[0] ?? "")}/index.html#${esc(f.id)}" data-search="${searchText(f.id, f.subject, f.text, f.collections.map(([, x]) => x))}"><span class="fh">${idBtn(f.id)}<i class="kdot k-${esc(f.kind)}" title="${esc(KIND[f.kind]?.[0] ?? f.kind)}"></i><strong>${f.key ? `<span class="star">핵심</span>` : ""}${esc(t)}</strong>${confBadge(f.confidence)}</span>${b ? `<span class="fb">${esc(short(b, 160))}</span>` : ""}<span class="fm">${f.collections.map(([, x]) => `<span class="chip">${esc(short(x, 22))}</span>`).join("")}<span class="muted small">출처 ${f.sources}</span></span></a>`;
   };
   const findingsSection = h.findings?.length
-    ? `<section id="findings">${sectionHead("05", "발견 검색", `라이브러리의 발견 ${h.findings.length}개 전부. 위 검색창에 입력하면 여기에 맞는 발견이 나옵니다 — 누르면 그 보드의 발견으로 갑니다.`)}<div class="askbar"><button class="pbtn big askbtn" type="button" data-copy="" title="검색어로 Claude에게 묻는 프롬프트를 복사합니다">이 검색어로 Claude에게 묻기 — 프롬프트 복사</button></div><div class="frows" data-limit="10" data-items=".frow" data-limit-always>${h.findings.map(frow).join("")}</div><button class="morebtn" type="button" hidden></button></section>`
+    ? `<section id="findings">${sectionHead("05", "발견 검색", `라이브러리의 발견 ${h.findings.length}개 전부. 위 검색창에 입력하면 여기에 맞는 발견이 나옵니다 — 누르면 그 보드의 발견으로 갑니다.`)}<div class="askbar"><span class="pact"><button class="pbtn big askbtn" type="button" data-copy="" title="검색어로 Claude에게 묻는 프롬프트를 복사합니다">이 검색어로 Claude에게 묻기</button></span></div><div class="frows" data-limit="10" data-items=".frow" data-limit-always>${h.findings.map(frow).join("")}</div><button class="morebtn" type="button" hidden></button></section>`
     : "";
-  return shell("레퍼런스 라이브러리", side, topbar, `${hero}${recentSection}${catsSection}${sharedSection}${sharedRefsSection}${findingsSection}<footer>~/references · <code>ref report</code>를 실행할 때마다 다시 만들어집니다</footer>`, false);
+  return shell("레퍼런스 라이브러리", side, topbar, `${hero}${recentSection}${openSection}${catsSection}${sharedSection}${sharedRefsSection}${findingsSection}<footer>~/references · <code>ref report</code>를 실행할 때마다 다시 만들어집니다</footer>`, false);
 }

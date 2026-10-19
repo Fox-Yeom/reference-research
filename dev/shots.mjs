@@ -15,4 +15,8 @@ for (const [n, s] of [["tour-key", "#key"], ["tour-patterns", "#axes"], ["tour-r
 await p.evaluate(() => document.querySelector('[data-open-ref="S2"]').click());
 await new Promise((r) => setTimeout(r, 900));
 await p.screenshot({ path: `${out}/tour-viewer.png` });
+// library home (one collection in the demo, but it shows the tiles, prompts, recent activity and open questions)
+await p.goto("file://" + file.replace(/[^/]+\/index\.html$/, "index.html"), { waitUntil: "networkidle0" });
+await new Promise((r) => setTimeout(r, 800));
+await shot("tour-home", { x: 0, y: 0, width: 1440, height: 900 });
 await b.close();

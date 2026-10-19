@@ -5,7 +5,7 @@
 import { promises as fs, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, mustCollection } from "./evidence.mjs";
-import { LIB, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
+import { FILES, LIB, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { renderBoard, renderHome, splitSummary } from "./board.mjs";
 import { run } from "./capture.mjs";
@@ -278,6 +278,16 @@ export async function writeHome() {
   const [cols, refs, claims, axes, runs] = await Promise.all([listCollections(), readRefs(), readClaims(), readAxes(), readRuns()]);
   const idx = tagIndex(axes);
   const byId = new Map(refs.map((r) => [r.id, r]));
+  // plans/<name>.json → which product plans draw on each collection (home card badge)
+  const plansOf = new Map();
+  for (const f of (await fs.readdir(FILES.plansDir).catch(() => [])).filter((x) => x.endsWith(".json"))) {
+    try {
+      const pl = JSON.parse(safeRead(path.join(FILES.plansDir, f)));
+      for (const n of pl.collections ?? []) plansOf.set(n, [...(plansOf.get(n) ?? []), pl.name ?? f.replace(/\.json$/, "")]);
+    } catch {
+      /* skip bad plan */
+    }
+  }
   const cats = cols.map((c) => {
     const rs = c.members.map((m) => byId.get(m.ref)).filter(Boolean);
     const axisCount = new Map();
@@ -295,7 +305,9 @@ export async function writeHome() {
     const pick = (list) => list.slice().sort((a, b) => (CONF[a.confidence] ?? 9) - (CONF[b.confidence] ?? 9) || b.sources.length - a.sources.length)[0];
     const conclusion = (c.highlights ?? []).map((id) => own.find((x) => x.id === id)).find(Boolean) ?? pick(own.filter((x) => x.key)) ?? pick(own) ?? null;
     const sum = splitSummary(safeRead(path.join(collectionDir(c.name), "SUMMARY.md")));
-    const openQ = c.openQuestions?.length ? c.openQuestions.length : sum.open ? sum.open.split("\n").filter((l) => /^\s*([-*]|\d+\.)\s+/.test(l)).length : 0;
+    const openQuestions = c.openQuestions?.length ? c.openQuestions : sum.open ? sum.open.split("\n").map((l) => l.trim()).filter((l) => /^([-*]|\d+\.)\s+/.test(l)).map((l) => l.replace(/^([-*]|\d+\.)\s+/, "")) : [];
+    const openQ = openQuestions.length;
+    const stale = rs.filter((r) => r.snapshots?.length && r.lastCaptured && daysSince(r.lastCaptured) > 90).length;
     const cur = runs.find((r) => r.id === c.currentRun);
     return {
       name: c.name,
@@ -306,6 +318,9 @@ export async function writeHome() {
       lastRunAt: lastRun?.startedAt ?? c.updatedAt ?? c.createdAt ?? "",
       conclusion: conclusion ? { id: conclusion.id, subject: conclusion.subject, text: conclusion.text, confidence: conclusion.confidence, sources: conclusion.sources.length, key: !!conclusion.key || (c.highlights ?? []).includes(conclusion.id) } : null,
       openQ,
+      openQuestions,
+      stale,
+      plans: plansOf.get(c.name) ?? [],
       // runs only get endedAt since 0.1.0-beta.2 (`ref report` result) — older open runs are not "in progress"
       inProgress: !!cur && !cur.endedAt && cur.startedAt >= RUN_CLOSE_SINCE && daysSince(cur.startedAt) <= 14,
       kind: c.kind,

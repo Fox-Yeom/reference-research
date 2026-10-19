@@ -34,7 +34,7 @@ python3 - "$D" "$ROOT/assets" <<'PY'
 import sys
 from PIL import Image
 src, dst = sys.argv[1:]
-for n in ["tour-overview", "tour-key", "tour-patterns", "tour-refs", "tour-claims", "tour-viewer"]:
+for n in ["tour-overview", "tour-key", "tour-patterns", "tour-refs", "tour-claims", "tour-viewer", "tour-home"]:
     im = Image.open(f"{src}/{n}.png").convert("RGB")
     if im.width > 1600: im = im.resize((1600, int(im.height * 1600 / im.width)), Image.LANCZOS)
     im.save(f"{dst}/{n}.jpg", quality=86, optimize=True)

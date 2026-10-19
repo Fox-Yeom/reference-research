@@ -9,7 +9,8 @@ Goal frame: references must serve 5 purposes (시행착오 절감 · 벤치마�
 - [ ] Phase 2 follow-ups: `ref show C#` for the "다시 확인" prompt (agent reads one claim with its sources); home cards show the collection's highlights
 - [x] Board phase 3 (2026-10-19): folded summary with TOC (B2), research pattern cards as grade chips (F1), axis `verdict` on cards + home table (E8·F4-lite), run timeline with `result`/`endedAt` (E7), note `fields` (E4·B4), source `summary` (E5), default view `view` / rows when ≥10 captured products (E9·F2). acne board 23,000px → 20,700px; tokyo summary folds.
 - [ ] Phase 3 leftovers: `ref://<collection>/<id>` URIs resolved by the skill (D8); home shared-axes as cards (F4 full); research findings × source-grade matrix if chips are not enough
-- [ ] Release 0.1.0-beta.2 after phase 1 feedback (bump all three versions — `docs/RELEASE.md`)
+- [x] Release 0.1.0-beta.2 (2026-10-19) — board phases 1–3
+- [ ] Library home redesign (`docs/HOME-REDESIGN.md`): phase 1 = stat tiles, prompts, recent-first cards with conclusion line, shared-axis cards; phase 2 = recent activity, open questions, findings search; phase 3 = search scopes, verdict coverage
 - [ ] Collect tester feedback (Issues, label `beta`) → triage into this file
 - [ ] Localize remaining English board/CLI messages testers see (coverage warning, doctor lines)
 - [ ] Windows/Linux: Chrome path detection, shell wrappers (`scripts/ref` is bash)

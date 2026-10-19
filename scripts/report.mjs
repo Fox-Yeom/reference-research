@@ -7,7 +7,7 @@ import * as path from "node:path";
 import { collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, mustCollection } from "./evidence.mjs";
 import { LIB, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
-import { renderBoard, renderHome } from "./board.mjs";
+import { renderBoard, renderHome, splitSummary } from "./board.mjs";
 import { run } from "./capture.mjs";
 
 export function coverage(members, domain = "design") {
@@ -264,6 +264,15 @@ async function boardData(col, members, refs, claims, summary, cite, cov, relp) {
   };
 }
 
+const RUN_CLOSE_SINCE = "2026-10-19"; // first release whose `ref report` closes runs (result → endedAt)
+const safeRead = (f) => {
+  try {
+    return readFileSync(f, "utf8");
+  } catch {
+    return "";
+  }
+};
+
 /** <LIB>/index.html — every category and the patterns they share. */
 export async function writeHome() {
   const [cols, refs, claims, axes, runs] = await Promise.all([listCollections(), readRefs(), readClaims(), readAxes(), readRuns()]);
@@ -281,12 +290,24 @@ export async function writeHome() {
     const kinds = {};
     for (const x of own) kinds[x.kind] = (kinds[x.kind] ?? 0) + 1;
     const lastRun = runs.filter((r) => r.collection === c.name).at(-1);
+    // one-line conclusion, same rule as the board's 핵심 결론: highlights → key → strongest
+    const CONF = { high: 0, medium: 1, low: 2, hypothesis: 3 };
+    const pick = (list) => list.slice().sort((a, b) => (CONF[a.confidence] ?? 9) - (CONF[b.confidence] ?? 9) || b.sources.length - a.sources.length)[0];
+    const conclusion = (c.highlights ?? []).map((id) => own.find((x) => x.id === id)).find(Boolean) ?? pick(own.filter((x) => x.key)) ?? pick(own) ?? null;
+    const sum = splitSummary(safeRead(path.join(collectionDir(c.name), "SUMMARY.md")));
+    const openQ = c.openQuestions?.length ? c.openQuestions.length : sum.open ? sum.open.split("\n").filter((l) => /^\s*([-*]|\d+\.)\s+/.test(l)).length : 0;
+    const cur = runs.find((r) => r.id === c.currentRun);
     return {
       name: c.name,
       title: c.title ?? c.name,
       description: c.description,
       goal: c.goal ?? c.question ?? lastRun?.goal ?? null,
       lastRun: lastRun?.startedAt?.slice(0, 10) ?? null,
+      lastRunAt: lastRun?.startedAt ?? c.updatedAt ?? c.createdAt ?? "",
+      conclusion: conclusion ? { id: conclusion.id, subject: conclusion.subject, text: conclusion.text, confidence: conclusion.confidence, sources: conclusion.sources.length, key: !!conclusion.key || (c.highlights ?? []).includes(conclusion.id) } : null,
+      openQ,
+      // runs only get endedAt since 0.1.0-beta.2 (`ref report` result) — older open runs are not "in progress"
+      inProgress: !!cur && !cur.endedAt && cur.startedAt >= RUN_CLOSE_SINCE && daysSince(cur.startedAt) <= 14,
       kind: c.kind,
       domain: c.domain,
       refs: rs.length,
@@ -304,9 +325,14 @@ export async function writeHome() {
       const prods = new Set(c.members.map((m) => byId.get(m.ref)).filter((r) => r && (r.tags ?? []).some((t) => ax.tags.includes(t))).map((r) => r.product ?? r.id));
       if (prods.size) counts[c.name] = prods.size;
     }
-    return { id: ax.id, label: ax.label, question: ax.question, verdict: ax.verdict, facet: ax.facet ?? "pattern", cats: counts };
+    return { id: ax.id, label: ax.label, question: ax.question, verdict: ax.verdict, description: ax.description, facet: ax.facet ?? "pattern", cats: counts };
   });
-  const html = renderHome({ cats, axes: axRows.filter((a) => Object.keys(a.cats).length), totals: { refs: refs.length, claims: claims.filter((c) => c.status === "active").length } });
+  const lastRunAll = runs.at(-1);
+  const html = renderHome({
+    cats,
+    axes: axRows.filter((a) => Object.keys(a.cats).length),
+    totals: { refs: refs.length, claims: claims.filter((c) => c.status === "active").length, runs: runs.length, lastRun: lastRunAll?.startedAt?.slice(0, 10) ?? null, sharedRefs: refs.filter((r) => (r.categories ?? []).length > 1).length },
+  });
   const file = path.join(LIB, "index.html");
   await fs.writeFile(file, html);
   return file;

@@ -146,7 +146,7 @@ tbody tr:last-child td{border-bottom:0}
 .toolbar{position:sticky;top:0;z-index:10;background:var(--bg);padding:12px 0;margin:-8px 0 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
 .seg{display:inline-flex;gap:4px}
 .seg button{font:inherit;font-size:13px;border:0;border-radius:999px;background:var(--chip);color:var(--muted);padding:5px 13px;cursor:pointer}.seg button:hover{color:var(--text)}.seg button.on{background:var(--chip-on);color:var(--chip-on-text)}
-.toolbar select{font:inherit;font-size:13px;padding:5px 28px 5px 12px;border:0;border-radius:999px;background:var(--chip);color:var(--text);appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+.toolbar select,.stoolbar select{font:inherit;font-size:13px;padding:5px 28px 5px 12px;border:0;border-radius:999px;background:var(--chip);color:var(--text);appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
 .toolbar .spacer{flex:1}.toolbar .shown{font-size:13px;color:var(--faint)}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:36px 24px}
 .card{display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -356,6 +356,11 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .nf{margin:8px 0;display:grid;grid-template-columns:72px 1fr;gap:6px 12px}.nf dt{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;padding-top:2px}.nf dd{margin:0;font-size:14px}
 .nl{display:block;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;margin:8px 0 2px}
 #viewer aside .nf dt,#viewer aside .nl{color:#8f8f8f}#viewer aside .nf dd{color:#d6d6d6}
+/* home */
+.hero .prompts{max-width:none;display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center}.hero .prompts .lbl{width:100%;margin:0}.hero .prompts .pbtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff}.hero .prompts .pbtn.big{margin:0}.hero .prompts .asks{display:flex;flex-wrap:wrap;gap:6px}.hero .prompts .aud{width:100%;margin:2px 0 0;font-size:12.5px}.hero .prompts code{background:rgba(255,255,255,.18);color:#fff}
+.catcard .concl{display:block;margin-top:8px;font-size:15px;font-weight:600;line-height:1.45;color:var(--text)}.catcard .concl .cite{margin-left:4px;vertical-align:2px}.catcard .concl.muted{font-weight:400}
+.catcard .goal2{font-weight:400;color:var(--muted);font-size:13.5px}
+.hero .goal.prompts{margin-top:18px}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:860px){.keygrid{grid-template-columns:1fr}.runs .run{grid-template-columns:1fr}.runs .rr,.runs .rc{grid-column:1}}
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.hero .goal p{font-size:15.5px}.claim .chead{flex-direction:column;gap:6px}}
@@ -401,6 +406,15 @@ if(gal){
     count(gal,'.card','개 표시');const ds=$('.docs');if(ds)count(ds,'tbody tr','개');
   };
   wire(gal,st,apply);window.refApply=apply;apply();
+}
+// library home: collection cards — domain chips, sort (recent / name / claims)
+const hm=$('#cats .catcards');
+if(hm){
+  const st={domain:'',sort:'recent'};const root=$('#cats');const cards=$$('.catcard',hm);
+  const apply=()=>{cards.forEach(c=>c.classList.toggle('filtered',!!(st.domain&&c.dataset.domain!==st.domain)));
+    const sorted=st.sort==='name'?cards.slice().sort((a,b)=>a.dataset.name.localeCompare(b.dataset.name,'ko')):st.sort==='claims'?cards.slice().sort((a,b)=>(+b.querySelector('.r').textContent.match(/(\d+)개 발견/)?.[1]||0)-(+a.querySelector('.r').textContent.match(/(\d+)개 발견/)?.[1]||0)):cards.slice().sort((a,b)=>(b.dataset.date||'').localeCompare(a.dataset.date||''));
+    sorted.forEach(c=>hm.appendChild(c));refreshAll();count(root,'.catcard','개 조사');};
+  wire(root,st,apply);apply();
 }
 // findings: run + confidence filters; empty kind groups fold away
 const cl=$('#claims');
@@ -1072,48 +1086,86 @@ ${c.missing.length ? `<div class="note">강의 구조가 기록되지 않은 강
 
 // ---------- library home ----------
 
-/** h: { cats:[{name, title, description, goal, lastRun, kind, domain, refs, products, claims, kinds:{kind:n}, run, thumbs:[], topAxes:[labels]}], axes:[{id, label, question, facet, cats:{name:n}}], totals } */
+/**
+ * h: { cats:[{name, title, description, goal, lastRun, lastRunAt, conclusion:{id,subject,text,confidence,sources,key}|null, openQ, inProgress, kind, domain, refs, products, claims, kinds:{kind:n}, run, thumbs:[], topAxes:[labels]}],
+ *      axes:[{id, label, question, verdict, description, facet, cats:{name:n}}], totals:{refs, claims, runs, lastRun, sharedRefs} }
+ * Home (docs/HOME-REDESIGN.md phase 1): stat tiles + prompts → recent-first collection cards with a conclusion line → shared-pattern cards.
+ */
 export function renderHome(h) {
+  const titleOf = new Map(h.cats.map((c) => [c.name, c.title ?? c.name]));
+  const domains = ["design", "research", "dev", "curriculum"].map((dm) => [dm, h.cats.filter((c) => (c.domain ?? "design") === dm).length]).filter(([, n]) => n);
+  const patternAxes = h.axes.filter((a) => a.facet === "pattern");
+  const shared = patternAxes.filter((a) => Object.keys(a.cats).length > 1).sort((a, b) => Object.keys(b.cats).length - Object.keys(a.cats).length || Object.values(b.cats).reduce((x, y) => x + y, 0) - Object.values(a.cats).reduce((x, y) => x + y, 0) || a.label.localeCompare(b.label));
+  const otherFacets = h.axes.filter((a) => a.facet !== "pattern" && Object.keys(a.cats).length > 1);
+  const FACET_KO = { topic: "커리큘럼 주제", market: "시장", platform: "플랫폼", positioning: "포지셔닝" };
+
   const side = `<a class="brand" href="index.html">References <span>/ 라이브러리</span></a>
 <div class="about">조사할 때마다 모은 레퍼런스와 발견. 같은 레퍼런스는 한 번만 저장하고, 여러 조사에 걸쳐 다시 씁니다.</div>
 ${searchBox("조사·패턴 검색")}
-<nav><a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴</a></nav>
+<nav><a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴<small>${shared.length}</small></a></nav>
 <div class="foot">${h.cats.length}개 조사 · ${h.totals.refs}개 레퍼런스 · ${h.totals.claims}개 발견<br>${esc(new Date().toLocaleDateString("ko-KR"))} 기준</div>`;
   const topbar = `<a class="brand" href="index.html">References</a>${searchBox("검색")}`;
-  // no capture → show what kinds of findings the research produced instead of an empty tile
+
+  // hero: tiles + the two ways into Claude (start a research, ask the library)
+  const startPrompt = `reference-research 스킬로 "<주제>" 레퍼런스 조사를 시작해줘. 목적: <어떤 결정을 위해>, 대상: <누구를 위해>`;
+  const asks = [
+    ["지난 조사 찾기", `reference-library에서 "<패턴이나 제품>"을 다룬 발견을 찾아줘`],
+    ["근거 다시 보기", `reference-library에서 C<번호>의 근거 화면을 보여줘`],
+    ["패턴 비교", `reference-library에서 "<패턴 이름>"을 쓴 제품을 조사별로 비교해줘`],
+  ];
+  const tiles = `<div class="tiles">
+<div><b>${h.cats.length}</b><span>조사 · ${domains.map(([dm, n]) => `${DOMAIN_KO[dm]} ${n}`).join(" · ")}</span></div>
+<div><b>${h.totals.refs}</b><span>레퍼런스 · 여러 조사에 걸친 것 ${h.totals.sharedRefs ?? 0}</span></div>
+<div><b>${h.totals.claims}</b><span>발견</span></div>
+<div><b>${shared.length}</b><span>여러 조사에 걸친 패턴 · 전체 ${patternAxes.length}</span></div>
+<div><b>${h.totals.runs ?? 0}</b><span>조사 회차${h.totals.lastRun ? ` · 마지막 ${esc(h.totals.lastRun)}` : ""}</span></div>
+</div>`;
+  const prompts = `<div class="goal prompts"><span class="lbl">CLAUDE에게</span>
+<button class="pbtn big" type="button" data-copy="${esc(startPrompt)}" title="새 조사를 시작하는 프롬프트를 복사합니다">새 조사 시작 — 프롬프트 복사</button>
+<span class="asks">${asks.map(([t, q]) => `<button class="pbtn" type="button" data-copy="${esc(q)}" title="${esc(q)}">${esc(t)}</button>`).join("")}</span>
+<p class="aud">&lt;…&gt; 자리를 채워 Claude Code에 붙여 넣으세요. 묻기는 MCP <code>reference-library</code>가 답합니다.</p></div>`;
+  const hero = `<header class="hero"><div class="eyebrow">레퍼런스 라이브러리</div><h1>조사해 둔 레퍼런스</h1>
+<p class="lead">최근 조사가 먼저 보입니다. 카드의 굵은 줄은 그 조사의 결론, 아래 줄은 목적입니다.</p>${prompts}${tiles}</header>`;
+
+  // collection cards — recent first; conclusion line; open questions / in-progress badges
   const kindBar = (c) => {
     const ks = Object.entries(c.kinds ?? {}).sort((a, b) => b[1] - a[1]);
     if (!ks.length) return `<span class="thumb empty">아직 발견이 없습니다</span>`;
     return `<span class="thumb kinds"><span class="kbar">${ks.map(([k, n]) => `<i class="k-${esc(k)}" style="flex:${n}" title="${esc(KIND[k]?.[0] ?? k)} ${n}"></i>`).join("")}</span><span class="klegend">${ks.slice(0, 4).map(([k, n]) => `<i class="kdot k-${esc(k)}"></i> ${esc(KIND[k]?.[0] ?? k)} ${n}`).join(" · ")}</span></span>`;
   };
-  const catCard = (c) => `<a class="card catcard" href="${esc(c.name)}/index.html" data-search="${searchText(c.title, c.description, c.goal, c.topAxes)}">
+  const concl = (c) => {
+    if (!c.conclusion) return `<span class="concl muted">아직 발견이 없습니다</span>`;
+    const [t, b] = splitTitle(c.conclusion);
+    return `<span class="concl"${b ? ` title="${esc(short(b, 200))}"` : ""}>${c.conclusion.key ? `<span class="star">핵심</span>` : ""}${esc(t)} <span class="cite">${esc(c.conclusion.id)}</span></span>`;
+  };
+  const catCard = (c) => `<a class="card catcard" href="${esc(c.name)}/index.html" data-domain="${esc(c.domain ?? "design")}" data-name="${esc(c.title ?? c.name)}" data-date="${esc(c.lastRunAt ?? "")}" data-search="${searchText(c.title, c.description, c.goal, c.topAxes, c.conclusion?.subject, c.conclusion?.text)}">
   ${c.thumbs.length ? `<span class="thumb" style="cursor:pointer"><img loading="lazy" src="${esc(c.thumbs[0])}" alt=""><span class="go" aria-hidden="true">↗</span></span>` : kindBar(c)}
   <span class="cap"><span class="t"><div class="p">${esc(c.title ?? c.name)}</div><div class="s">${esc(KIND_KO[c.kind] ?? c.kind ?? "")} · ${esc(DOMAIN_KO[c.domain] ?? c.domain)}</div></span><span class="r">${c.products}개 ${esc(UNIT[c.domain] ?? "제품")}<br>${c.claims}개 발견</span></span>
+  ${concl(c)}
   <span class="goal2">${esc(c.goal ?? c.description ?? "")}</span>
-  <span class="meta2">${[c.lastRun ? `마지막 조사 ${esc(c.lastRun)}` : "", `레퍼런스 ${c.refs}`].filter(Boolean).join(" · ")}</span></a>`;
-  const byDomain = ["design", "research", "dev", "curriculum"].map((dm) => [dm, h.cats.filter((c) => (c.domain ?? "design") === dm)]).filter(([, cs]) => cs.length);
-  const rest = h.cats.filter((c) => !["design", "research", "dev", "curriculum"].includes(c.domain ?? "design"));
-  if (rest.length) byDomain.push(["other", rest]);
-  const cats =
-    byDomain.length > 1
-      ? byDomain.map(([dm, cs]) => `<div class="sgroup"><div class="groupcap"><h3>${esc(DOMAIN_KO[dm] ?? "기타")}</h3><span>${cs.length}개 조사</span></div><div class="catcards">${cs.map(catCard).join("")}</div></div>`).join("")
-      : `<div class="catcards">${h.cats.map(catCard).join("")}</div>`;
-  const total = (a) => Object.values(a.cats).reduce((x, y) => x + y, 0);
-  h.axes.sort((a, b) => (a.facet === "pattern" ? 0 : 1) - (b.facet === "pattern" ? 0 : 1) || Object.keys(b.cats).length - Object.keys(a.cats).length || total(b) - total(a) || a.label.localeCompare(b.label));
-  const sharedAxes = h.axes.filter((a) => Object.keys(a.cats).length > 1);
-  const axisRow = (a) => `<tr data-search="${searchText(a.label, a.question)}"><td><strong>${esc(a.label)}</strong><div class="muted small">${esc(a.facet !== "pattern" ? { topic: "커리큘럼 주제", market: "시장", platform: "플랫폼", positioning: "포지셔닝" }[a.facet] ?? a.facet : a.question ?? "")}</div>${a.verdict ? `<div class="verdict small">${esc(a.verdict)}</div>` : ""}</td>${h.cats.map((c) => `<td class="num">${a.cats[c.name] ? `<a href="${esc(c.name)}/index.html#axis-${esc(a.id)}">${a.cats[c.name]}</a>` : `<span class="muted">—</span>`}</td>`).join("")}</tr>`;
-  const table = (rows) => `<div class="panel tablewrap" style="padding:0"><table><thead><tr><th>패턴</th>${h.cats.map((c) => `<th>${esc(c.title ?? c.name)}</th>`).join("")}</tr></thead><tbody>${rows.map(axisRow).join("")}</tbody></table></div>`;
-  return shell(
-    "레퍼런스 라이브러리",
-    side,
-    topbar,
-    `<header class="hero"><div class="eyebrow">레퍼런스 라이브러리</div><h1>조사해 둔 레퍼런스</h1>
-<p class="stats"><b>${h.cats.length}개 조사</b>에서 <b>${h.totals.refs}개 레퍼런스</b>와 <b>${h.totals.claims}개 발견</b>을 모았습니다. 제품들이 같은 문제를 푼 방식은 <b>${h.axes.length}개 패턴·주제</b>로 묶여 있고, 그중 여러 조사에 걸친 것은 아래 표에 있습니다.</p></header>
-<section id="cats">${sectionHead("01", "조사", "카테고리별 레퍼런스 보드. 카드의 한 줄은 그 조사의 목적입니다.")}${cats}</section>
-<section id="shared">${sectionHead("02", "조사 사이에 겹치는 패턴", "숫자는 각 조사에서 그 패턴을 가진 제품 수입니다. 한 분야의 해법을 다른 분야에서 참고할 수 있는 지점이며, 숫자를 누르면 해당 보드의 패턴 카드로 갑니다.")}${
-      sharedAxes.length ? table(sharedAxes) : `<p class="muted">아직 두 조사 이상에 걸친 패턴이 없습니다.</p>`
-    }<details style="margin-top:14px"><summary class="muted" style="cursor:pointer">한 조사에만 있는 패턴 ${h.axes.length - sharedAxes.length}개 보기</summary><div style="margin-top:10px">${table(h.axes.filter((a) => !sharedAxes.includes(a)))}</div></details></section>
-<footer>~/references · <code>ref report</code>를 실행할 때마다 다시 만들어집니다</footer>`,
-    false,
-  );
+  <span class="meta2">${[c.lastRun ? `마지막 조사 ${esc(c.lastRun)}` : "", `레퍼런스 ${c.refs}`, c.openQ ? `열린 질문 ${c.openQ}` : ""].filter(Boolean).join(" · ")}${c.inProgress ? ` <span class="pill">진행 중</span>` : ""}</span></a>`;
+  const sorted = h.cats.slice().sort((a, b) => String(b.lastRunAt ?? "").localeCompare(String(a.lastRunAt ?? "")));
+  const catsSection = `<section id="cats">${sectionHead("01", "조사", "카테고리별 레퍼런스 보드. 최근 조사순이고, 칩으로 분야를 고릅니다.")}
+<div class="stoolbar">${domains.length > 1 ? `<div class="seg" data-k="domain"><button data-v="" class="on">전체 <small>${h.cats.length}</small></button>${domains.map(([dm, n]) => `<button data-v="${dm}">${esc(DOMAIN_KO[dm])} <small>${n}</small></button>`).join("")}</div>` : ""}<select data-k="sort" aria-label="정렬"><option value="recent">최근 조사순</option><option value="name">이름순</option><option value="claims">발견 많은 순</option></select><span class="shown"></span></div>
+<div class="catcards" data-limit="12" data-items=".catcard">${sorted.map(catCard).join("")}</div><button class="morebtn" type="button" hidden></button></section>`;
+
+  // shared patterns as cards: label · question · verdict · one chip per collection
+  const axCard = (a) => {
+    const cs = Object.entries(a.cats).sort((x, y) => y[1] - x[1]);
+    return `<article class="axcard" id="axis-${esc(a.id)}" data-search="${searchText(a.label, a.question, a.verdict, cs.map(([n]) => titleOf.get(n)))}">
+  <header><strong>${esc(a.label)}</strong><span class="count"><b>${cs.length}</b> 조사</span></header>
+  ${a.question ? `<p class="q">${esc(a.question)}</p>` : ""}
+  ${a.verdict ? `<p class="verdict">${inline(a.verdict)}</p>` : ""}
+  <div class="schips">${cs.map(([n, k]) => `<a class="schip" href="${esc(n)}/index.html#axis-${esc(a.id)}" title="${esc(titleOf.get(n) ?? n)} — ${k}개 ${esc(UNIT[h.cats.find((c) => c.name === n)?.domain] ?? "제품")}"><b>${k}</b>${esc(short(titleOf.get(n) ?? n, 26))}</a>`).join("")}</div>
+</article>`;
+  };
+  const sharedSection = `<section id="shared">${sectionHead("02", "조사 사이에 겹치는 패턴", "두 조사 이상에서 나온 해법. 한 분야의 답을 다른 분야에서 참고할 수 있는 지점입니다. 칩의 숫자는 그 조사에서 이 패턴을 가진 제품 수이고, 누르면 그 보드의 패턴 카드로 갑니다. 결론 줄은 <code>ref axes set</code>의 <code>verdict</code>입니다.")}${
+    shared.length ? `<div class="axcards" data-limit="12" data-items=".axcard">${shared.map(axCard).join("")}</div><button class="morebtn" type="button" hidden></button>` : `<p class="muted">아직 두 조사 이상에 걸친 패턴이 없습니다.</p>`
+  }${
+    otherFacets.length
+      ? `<details class="sgroup" style="margin-top:18px"><summary class="muted" style="cursor:pointer">패턴이 아닌 공통 속성 ${otherFacets.length}개 (${[...new Set(otherFacets.map((a) => FACET_KO[a.facet] ?? a.facet))].join(" · ")})</summary><div class="axcards" style="margin-top:10px">${otherFacets.map(axCard).join("")}</div></details>`
+      : ""
+  }<p class="muted small" style="margin-top:14px">한 조사에만 있는 패턴 ${patternAxes.length - shared.length}개는 각 보드의 '패턴 비교'에 있습니다.</p></section>`;
+
+  return shell("레퍼런스 라이브러리", side, topbar, `${hero}${catsSection}${sharedSection}<footer>~/references · <code>ref report</code>를 실행할 때마다 다시 만들어집니다</footer>`, false);
 }

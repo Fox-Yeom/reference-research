@@ -10,7 +10,9 @@ Goal frame: references must serve 5 purposes (시행착오 절감 · 벤치마�
 - [x] Board phase 3 (2026-10-19): folded summary with TOC (B2), research pattern cards as grade chips (F1), axis `verdict` on cards + home table (E8·F4-lite), run timeline with `result`/`endedAt` (E7), note `fields` (E4·B4), source `summary` (E5), default view `view` / rows when ≥10 captured products (E9·F2). acne board 23,000px → 20,700px; tokyo summary folds.
 - [ ] Phase 3 leftovers: `ref://<collection>/<id>` URIs resolved by the skill (D8); home shared-axes as cards (F4 full); research findings × source-grade matrix if chips are not enough
 - [x] Release 0.1.0-beta.2 (2026-10-19) — board phases 1–3
-- [ ] Library home redesign (`docs/HOME-REDESIGN.md`): phase 1 = stat tiles, prompts, recent-first cards with conclusion line, shared-axis cards; phase 2 = recent activity, open questions, findings search; phase 3 = search scopes, verdict coverage
+- [x] Library home phase 1 (2026-10-19, `docs/HOME-REDESIGN.md` §6): stat tiles, Claude prompts, recent-first cards with conclusion line / open-question count / in-progress badge, domain chips + sort, shared-pattern cards. 18,452px → 4,300px.
+- [ ] Library home phase 2 (B1 recent runs timeline · B2 in-progress + 이어서 하기 · B3 open-question roll-up · C5 plan badges · D3 shared references · A4 stale warning · E1 findings search in the page · E3 ask-Claude from search)
+- [ ] Library home phase 3 (E2 search scopes, verdict coverage per axis)
 - [ ] Collect tester feedback (Issues, label `beta`) → triage into this file
 - [ ] Localize remaining English board/CLI messages testers see (coverage warning, doctor lines)
 - [ ] Windows/Linux: Chrome path detection, shell wrappers (`scripts/ref` is bash)

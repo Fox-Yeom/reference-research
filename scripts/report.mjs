@@ -5,7 +5,7 @@
 import { promises as fs, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, mustCollection } from "./evidence.mjs";
-import { LIB, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, writeCollection } from "./store.mjs";
+import { LIB, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { renderBoard, renderHome } from "./board.mjs";
 import { run } from "./capture.mjs";
@@ -50,7 +50,7 @@ export async function report(params) {
     .filter((m) => m.r)
     .sort((a, b) => String(a.r.product ?? "").localeCompare(String(b.r.product ?? "")) || a.r.id.localeCompare(b.r.id));
   // header fields (docs/BOARD-REDESIGN.md E1): explicit params win, stored on the collection
-  const HEAD = { goal: "goal", audience: "audience", question: "question", highlights: "highlights", open_questions: "openQuestions", next_steps: "nextSteps" };
+  const HEAD = { goal: "goal", audience: "audience", question: "question", highlights: "highlights", open_questions: "openQuestions", next_steps: "nextSteps", view: "view" };
   let touched = false;
   for (const [p, k] of Object.entries(HEAD))
     if (params[p] !== undefined) {
@@ -61,10 +61,17 @@ export async function report(params) {
         const unknown = v.filter((id) => !ids.has(id));
         if (unknown.length) bad(`highlights: unknown claim id(s) ${unknown.join(", ")}`);
       }
+      if (k === "view" && !["grid", "rows", "flow"].includes(v)) bad("view must be grid, rows or flow");
       col[k] = v;
       touched = true;
     }
   if (touched) await writeCollection(col);
+  // result = one-line outcome of the current run; closes it (endedAt) for the 조사 기록 timeline
+  if (params.result !== undefined) {
+    const run = (await readRuns()).find((r) => r.id === col.currentRun);
+    if (!run) bad("result: no current run on this collection — start one with `ref run start`");
+    await saveRuns([{ ...run, result: String(params.result), endedAt: new Date().toISOString() }]);
+  }
   let summary = params.summary ?? (params.summary_file ? readFileSync(params.summary_file, "utf8") : undefined);
   if (summary) await fs.writeFile(path.join(dir, "SUMMARY.md"), summary);
   else summary = await fs.readFile(path.join(dir, "SUMMARY.md"), "utf8").catch(() => "");
@@ -187,7 +194,7 @@ async function boardData(col, members, refs, claims, summary, cite, cov, relp) {
           facetMap.set(id, f);
           continue;
         }
-        const row = rowsMap.get(id) ?? { id, label: ax.label, question: ax.question, description: ax.description, products: [], tagsBy: {}, how: {}, refBy: {}, other: [] };
+        const row = rowsMap.get(id) ?? { id, label: ax.label, question: ax.question, verdict: ax.verdict, description: ax.description, products: [], tagsBy: {}, how: {}, refBy: {}, other: [] };
         if (!row.products.includes(p.name)) row.products.push(p.name);
         row.tagsBy[p.name] = [...new Set([...(row.tagsBy[p.name] ?? []), t])];
         row.how[p.name] = row.tagsBy[p.name].map((x) => tagLabel(axes, x));
@@ -297,7 +304,7 @@ export async function writeHome() {
       const prods = new Set(c.members.map((m) => byId.get(m.ref)).filter((r) => r && (r.tags ?? []).some((t) => ax.tags.includes(t))).map((r) => r.product ?? r.id));
       if (prods.size) counts[c.name] = prods.size;
     }
-    return { id: ax.id, label: ax.label, question: ax.question, facet: ax.facet ?? "pattern", cats: counts };
+    return { id: ax.id, label: ax.label, question: ax.question, verdict: ax.verdict, facet: ax.facet ?? "pattern", cats: counts };
   });
   const html = renderHome({ cats, axes: axRows.filter((a) => Object.keys(a.cats).length), totals: { refs: refs.length, claims: claims.filter((c) => c.status === "active").length } });
   const file = path.join(LIB, "index.html");

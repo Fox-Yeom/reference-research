@@ -27,6 +27,7 @@ for j in \
 {"text":"팀·기업 단계는 가격 대신 영업 문의로 분리한다","kind":"pattern","subject":"기업 단계","sources":["S1","S3"]},
 {"text":"Obsidian은 앱을 무료로 두고 동기화·게시만 부가 서비스로 판매한다","kind":"fact","subject":"Obsidian","sources":["S4"]},
 {"text":"개인 유료 첫 단계는 Todoist $5 · Craft ₩9,667 · Notion ₩14,000(월, 연간 결제 기준) 수준이다","kind":"benchmark","subject":"개인 유료 가격","key":true,"asOf":"'"$(date +%F)"'","sources":["S1","S2","S5"]}]}' >/dev/null
+"$R" axes set '{"axes":[{"id":"pricing-justification","verdict":"월간/연간 토글과 연간 할인은 기본기 — 따라간다 [C1]"}]}' >/dev/null
 "$R" report "{\"collection\":\"note-app-pricing\",\"summary_file\":\"$ROOT/dev/demo-summary.md\",\"open\":false,\"open_questions\":[\"가족 요금제가 우리 사용자층에도 필요한가 [C5]\",\"동기화를 유료로 묶으면 무료 사용자의 이탈이 얼마나 되나 [C4]\"],\"next_steps\":[\"무료 + 개인 유료 1단으로 시작, 팀 단계는 문의형 [C2, C3]\",\"동기화를 유료 기능으로 묶는 안도 검토 [C4]\"]}" >/dev/null
 node "$ROOT/dev/shots.mjs" "$D/lib/note-app-pricing/index.html" "$D"
 python3 - "$D" "$ROOT/assets" <<'PY'

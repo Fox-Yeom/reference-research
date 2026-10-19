@@ -344,8 +344,20 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .seg.tabs button{display:inline-flex;align-items:center;gap:6px}.seg.tabs button small{font-size:11px;opacity:.75;font-variant-numeric:tabular-nums}.seg.tabs .kdot{width:8px;height:8px;margin:0}
 #viewer aside .vtabs{display:flex;gap:6px;margin:0 0 10px}#viewer aside .vtabs button{padding:4px 11px;font-size:12.5px}#viewer aside .vtabs button.on{background:#5b7ff0;color:#fff}
 #viewer aside .vcl{list-style:none;margin:0;padding:0}#viewer aside .vcl li{padding:9px 0;border-top:1px solid #222;color:#d6d6d6;font-size:13.5px}#viewer aside .vcl li:first-child{border-top:0}#viewer aside .vcl a{color:#9db3f6;font-weight:600;margin-right:8px}#viewer aside .vcl .conf{font-size:11px;padding:1px 7px 1px 6px}
+/* phase 3: folded summary, research chips, verdicts, run timeline, structured notes */
+.sumtoc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.sumtoc a{font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--chip);color:var(--muted)}.sumtoc a:hover{color:var(--accent);text-decoration:none}
+.sumsec{border-top:1px solid var(--line);padding:6px 0}.sumsec:first-child{border-top:0}.sumsec summary{cursor:pointer;font-size:15.5px;font-weight:600;padding:8px 0;list-style:none;display:flex;gap:8px;align-items:baseline}.sumsec summary::before{content:"▸";color:var(--accent);font-size:12px}.sumsec[open] summary::before{content:"▾"}.sumsec summary .cite{font-weight:600}
+.sumbody{padding:0 0 10px 18px}.sumbody > :first-child{margin-top:0}
+.schips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.schip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 9px 3px 4px;border-radius:999px;background:var(--chip);color:var(--text);text-decoration:none}.schip:hover{background:var(--accent-soft);text-decoration:none}
+.schip b{font-size:10.5px;font-weight:700;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--gray-soft);color:var(--muted)}.schip.g-A b{background:var(--green-soft);color:var(--green)}.schip.g-B b{background:var(--blue-soft);color:var(--blue)}.schip.g-C b{background:var(--amber-soft);color:var(--amber)}.schip.g-D b{background:var(--coral-soft);color:var(--coral)}
+.verdict{margin:2px 0 10px;padding:8px 12px;border-left:3px solid var(--accent);background:var(--accent-soft);color:var(--text);font-size:14px;border-radius:0 8px 8px 0}.verdict.small{font-size:12.5px;margin:6px 0 0;padding:4px 10px}
+.runs{list-style:none;margin:0;padding:0}.runs .run{display:grid;grid-template-columns:150px 1fr;gap:6px 18px;padding:14px 0;border-top:1px solid var(--line)}.runs .run:first-child{border-top:0;padding-top:0}
+.runs .rh{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.runs .rd{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}.runs .rg{font-size:15px;line-height:1.5;max-width:72ch}.runs .rr{grid-column:2;color:var(--muted);font-size:14px;padding-left:14px;border-left:2px solid var(--line)}.runs .rc{grid-column:2}.runs .cur .rg{font-weight:500}
+.nf{margin:8px 0;display:grid;grid-template-columns:72px 1fr;gap:6px 12px}.nf dt{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;padding-top:2px}.nf dd{margin:0;font-size:14px}
+.nl{display:block;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;margin:8px 0 2px}
+#viewer aside .nf dt,#viewer aside .nl{color:#8f8f8f}#viewer aside .nf dd{color:#d6d6d6}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:860px){.keygrid{grid-template-columns:1fr}}
+@media (max-width:860px){.keygrid{grid-template-columns:1fr}.runs .run{grid-template-columns:1fr}.runs .rr,.runs .rc{grid-column:1}}
 @media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.hero .goal p{font-size:15.5px}.claim .chead{flex-direction:column;gap:6px}}
 `;
 
@@ -375,7 +387,7 @@ const count=(root,sel,label)=>{const s=$('.shown',root);if(s)s.textContent=$$(se
 // reference toolbar: role segment, pattern select, run select, sort, view
 const gal=$('#gallery');
 if(gal){
-  const st={role:'',axis:'',run:'',sort:'default',view:'grid'};
+  const st={role:'',axis:'',run:'',sort:'default',view:'grid'};$$('.seg[data-k] button.on',gal).forEach(b=>{st[b.parentElement.dataset.k]=b.dataset.v||'';});
   const cards=$$('.card',gal);const orig=cards.slice();const box=$('.cards',gal);
   const match=el=>(!st.role||el.dataset.role===st.role)&&(!st.axis||(' '+el.dataset.axes+' ').includes(' '+st.axis+' '))&&(!st.run||(' '+(el.dataset.run||'')+' ').includes(' '+st.run+' '));
   const apply=()=>{
@@ -588,6 +600,33 @@ export function splitSummary(src) {
   }
   return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.join("\n").trim()]));
 }
+/** every heading-delimited section of a summary, in order: [{ title|null, body }] (preamble first) */
+const sectionsOf = (src) => {
+  const out = [];
+  let cur = { title: null, body: [] };
+  const lines = String(src ?? "").replace(/\r/g, "").split("\n");
+  const levels = lines.map((l) => l.match(/^(#{1,4})\s+\S/)?.[1].length).filter(Boolean);
+  const count = (lv) => levels.filter((x) => x === lv).length;
+  // the section level = the shallowest heading level that occurs ≥3 times (a lone "# 제목" is the document title), else the shallowest
+  const top = levels.length ? ([1, 2, 3, 4].find((lv) => count(lv) >= 3) ?? Math.min(...levels)) : 0; // 0 → fall back to "**제목**" lines
+  for (const raw of lines) {
+    const m = top ? raw.match(new RegExp(`^#{${top}}\\s+(.+?)\\s*$`)) : raw.match(/^\*\*([^*]{2,40})\*\*:?\s*(.*)$/);
+    if (m) {
+      if (cur.title !== null || cur.body.join("").trim()) out.push(cur);
+      cur = { title: m[1], body: m[2]?.trim() ? [m[2].trim()] : [] };
+      continue;
+    }
+    cur.body.push(raw);
+  }
+  if (cur.title !== null || cur.body.join("").trim()) out.push(cur);
+  return out.map((x) => ({ ...x, body: x.body.join("\n").trim() }));
+};
+const NOTE_FIELDS_KO = { structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", adopt: "차용할 점", avoid: "피할 점" };
+/** a note → html: structured fields as a definition list, else markdown with "**라벨**:" lines styled as labels */
+const noteHtml = (x, cite) => {
+  if (x.fields && Object.keys(x.fields).length) return `<dl class="nf">${Object.entries(x.fields).map(([k, v]) => `<dt>${esc(NOTE_FIELDS_KO[k] ?? k)}</dt><dd>${inline(String(v), cite)}</dd>`).join("")}</dl>`;
+  return md(x.text, cite).replace(/<strong>([^<]{1,20})<\/strong>\s*[:：]\s*/g, '<span class="nl">$1</span>');
+};
 /** "- a" / "1. a" lines of a markdown block (one level), else non-empty lines */
 const listItems = (block) => {
   const lines = String(block ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
@@ -705,19 +744,38 @@ ${goalBlock}${tiles}
     if (m && picks.length < 8) picks.push(m);
   }
   const collage = picks.length >= 3 ? `<div class="collage">${picks.map((m) => `<button class="thumb" data-open-ref="${m.r.id}" title="${esc(m.r.product ?? m.r.id)}"><img loading="lazy" src="${esc(m.thumb)}" alt=""></button>`).join("")}</div>` : "";
-  const summary = `<section id="summary">${sectionHead(next(), "한눈에 보기", "조사 결과 요약. 문장 끝의 번호(C·S)를 누르면 해당 발견이나 레퍼런스로 이동합니다.")}${
-    d.summary ? `<div class="panel prose">${md(d.summary, cite)}</div>` : `<p class="muted">요약이 아직 없습니다 — <code>ref report</code>에 <code>summary_file</code>을 넘기면 여기에 표시됩니다.</p>`
-  }${d.citeWarn ? `<div class="note">${esc(d.citeWarn)}</div>` : ""}</section>`;
+  // long summaries fold: every heading becomes a section, the first two stay open, a mini TOC jumps and opens
+  const secs = sectionsOf(d.summary);
+  const titled = secs.filter((x) => x.title !== null);
+  const summaryBody = !d.summary
+    ? `<p class="muted">요약이 아직 없습니다 — <code>ref report</code>에 <code>summary_file</code>을 넘기면 여기에 표시됩니다.</p>`
+    : titled.length < 3 || d.summary.length < 2500
+      ? `<div class="panel prose">${md(d.summary, cite)}</div>`
+      : `<div class="sumtoc">${titled.map((x, i) => `<a href="#sum-${i}">${esc(x.title)}</a>`).join("")}</div>
+<div class="panel prose sumsecs">${secs
+          .map((x, i) => {
+            if (x.title === null) return md(x.body, cite);
+            const n = titled.indexOf(x);
+            return `<details class="sumsec" id="sum-${n}"${n < 2 ? " open" : ""}><summary>${inline(x.title, cite)}<span class="muted small">${x.body.length > 0 ? ` · ${Math.max(1, Math.round(x.body.length / 350))}분` : ""}</span></summary><div class="sumbody">${md(x.body, cite)}</div></details>`;
+          })
+          .join("")}</div>`;
+  const summary = `<section id="summary">${sectionHead(next(), "한눈에 보기", `조사 결과 요약. 문장 끝의 번호(C·S)를 누르면 해당 발견이나 레퍼런스로 이동합니다.${titled.length >= 3 && d.summary.length >= 2500 ? " 긴 요약은 절마다 접혀 있고, 제목을 누르면 펼쳐집니다." : ""}`)}${summaryBody}${d.citeWarn ? `<div class="note">${esc(d.citeWarn)}</div>` : ""}</section>`;
 
   const curriculum = d.curriculum ? renderCurriculum(d.curriculum, cite, next()) : "";
 
   // patterns
   const n = d.axes.products.length;
   const common = (r) => r.products.length >= Math.max(2, Math.ceil(n * 0.3));
-  const axCard = (r) => `<article class="axcard" id="axis-${esc(r.id)}" data-search="${searchText(r.label, r.question, r.products, Object.values(r.how))}">
+  const compact = col.domain === "research"; // research boards: sources as grade chips, not thumbnail rows
+  const axCard = (r) => `<article class="axcard" id="axis-${esc(r.id)}" data-search="${searchText(r.label, r.question, r.verdict, r.products, Object.values(r.how))}">
   <header><strong>${esc(r.label)}</strong><span class="count"><b>${r.products.length}</b> / ${n} ${esc(unit)}</span></header>
   ${r.question ? `<p class="q">${esc(r.question)}</p>` : ""}
-  <ul class="how" data-limit="6" data-items="li">${r.products.map((p) => { const th = byRef.get(r.refBy[p])?.thumb; return `<li><button class="prod" data-open-ref="${esc(r.refBy[p])}" title="${esc(p)} 캡처 보기">${th ? `<span class="mini"><img loading="lazy" src="${esc(th)}" alt=""></span>` : `<span class="mini"></span>`}<span class="pn">${esc(p)}</span></button><span>${r.how[p].map(esc).join(" · ")}</span></li>`; }).join("")}</ul>${r.products.length > 6 ? `<button class="morebtn small" type="button" hidden></button>` : ""}
+  ${r.verdict ? `<p class="verdict">${inline(r.verdict, cite)}</p>` : ""}
+  ${
+    compact
+      ? `<div class="schips">${r.products.map((p) => { const m = byRef.get(r.refBy[p]); const g = m?.r.credibility ?? ""; return `<a class="schip g-${esc(g)}" href="#${esc(r.refBy[p])}" title="${esc(p)} — ${esc(r.how[p].join(" · "))}"><b>${esc(g)}</b>${esc(short(p, 18))}</a>`; }).join("")}</div>`
+      : `<ul class="how" data-limit="6" data-items="li">${r.products.map((p) => { const th = byRef.get(r.refBy[p])?.thumb; return `<li><button class="prod" data-open-ref="${esc(r.refBy[p])}" title="${esc(p)} 캡처 보기">${th ? `<span class="mini"><img loading="lazy" src="${esc(th)}" alt=""></span>` : `<span class="mini"></span>`}<span class="pn">${esc(p)}</span></button><span>${r.how[p].map(esc).join(" · ")}</span></li>`; }).join("")}</ul>${r.products.length > 6 ? `<button class="morebtn small" type="button" hidden></button>` : ""}`
+  }
   ${r.other.length ? `<p class="also">${r.other.map((o) => `<a href="../${esc(o.name)}/index.html#axis-${esc(r.id)}">${esc(o.title)}</a> 조사에서도 같은 패턴 — ${o.products.map(esc).join(", ")}`).join("<br>")}</p>` : ""}
 </article>`;
   const groups = [
@@ -749,7 +807,7 @@ ${snap ? `<div>캡처 ${r.snapshots.length}회 · 최신 ${esc(snap.at.slice(0, 
 ${other.length ? `<div>다른 조사에도 포함: ${other.map((c) => `<a href="../${esc(c)}/index.html#${r.id}">${esc(d.catTitle(c))}</a>`).join(", ")}</div>` : ""}
 <div style="margin-top:8px">${[...(r.screens ?? []), ...m.axes.map(axisLabel)].map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>
 ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc(c.at.slice(0, 10))}: ${esc(c.lines.join(" · ") || "변화 없음")}`).join("<br>")}</div>` : ""}`;
-    const notesHtml = notes.map((x) => `${x.collection && x.collection !== col.name ? `<p style="color:#f0ad4e;font-size:12px;margin:12px 0 0">‹${esc(d.catTitle(x.collection))}› 조사에서 쓴 노트</p>` : ""}${md(x.text, cite)}`).join("<hr>");
+    const notesHtml = notes.map((x) => `${x.collection && x.collection !== col.name ? `<p style="color:#f0ad4e;font-size:12px;margin:12px 0 0">‹${esc(d.catTitle(x.collection))}› 조사에서 쓴 노트</p>` : ""}${noteHtml(x, cite)}`).join("<hr>");
     return `<article class="card" id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-name="${esc(r.product ?? r.label ?? r.id)}" data-date="${esc(snap?.at ?? "")}" data-claims="${citedBy.get(r.id) ?? 0}" data-viewer="${esc(JSON.stringify(viewer))}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
   <button class="thumb" data-view="" title="크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt="${esc(r.label ?? r.id)}">${pics ? `<span class="count">${m.frames.length ? `${m.frames.length}화면` : `${m.screens.length}장`}</span>` : ""}<span class="go" aria-hidden="true">↗</span></button>
   <div class="cap"><div class="t"><div class="p">${esc(r.product ?? r.label ?? r.id)}</div><div class="s">${esc(r.page ?? r.title ?? "")}</div></div><div class="r">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span><br>` : ""}${other.length ? `다른 조사 ${other.length} · ` : ""}${idBtn(r.id)}</div></div>
@@ -771,7 +829,7 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
     const n = citedBy.get(r.id) ?? 0;
     return `<tr id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.publisher, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
 <td class="n">${idBtn(r.id)}</td>
-<td><a class="tt" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a>${r.description ? `<span class="sum">${esc(short(r.description, 140))}</span>` : ""}${notes.length ? `<details><summary>노트 ${notes.length}</summary><div class="prose">${notes.map((x) => md(x.text, cite)).join("<hr>")}</div></details>` : ""}</td>
+<td><a class="tt" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a>${r.summary || r.description ? `<span class="sum">${esc(short(r.summary ?? r.description, 160))}</span>` : ""}${notes.length ? `<details><summary>노트 ${notes.length}</summary><div class="prose">${notes.map((x) => noteHtml(x, cite)).join("<hr>")}</div></details>` : ""}</td>
 <td>${esc(r.publisher ?? r.product ?? "")}</td>
 <td class="n">${esc(r.credibility)} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type)}</span></td>
 <td class="n">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span>` : ""}</td>
@@ -804,6 +862,8 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
   const usedAxes = d.axes.rows.filter((r) => r.products.length > 1);
   const runSelect = d.runs.length > 1 ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${d.runs.map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(short(r.goal ?? r.startedAt.slice(0, 10), 28))}</option>`).join("")}</select>` : "";
   const more = `<button class="morebtn" type="button" hidden></button>`;
+  const shotProducts = d.products.filter((p) => p.members.some((m) => m.thumb)).length;
+  const view0 = ["grid", "rows", "flow"].includes(col.view) ? col.view : col.domain !== "research" && shotProducts >= 10 && rows ? "rows" : "grid";
   const refs = `<section id="refs">${sectionHead(next(), "레퍼런스", `캡처한 화면은 <b>격자</b>(한 장씩) · <b>제품별</b>(제품 하나에 여러 페이지) · <b>흐름</b>(한 페이지의 화면을 순서대로)으로 봅니다. 이미지를 누르면 뷰어가 열립니다: <kbd>←</kbd><kbd>→</kbd> 화면 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 다른 레퍼런스 · <kbd>N</kbd> 정보 · <kbd>Esc</kbd> 닫기. 글로 읽은 자료(논문·기사·문서)는 아래 <b>자료 목록</b>에 있습니다.`)}
 <div id="gallery">
 <div class="toolbar">
@@ -812,11 +872,11 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
   ${runSelect}
   <select data-k="sort" aria-label="정렬"><option value="default">기본 순서</option><option value="name">${esc(unit)} 이름순</option><option value="recent">최근 캡처순</option></select>
   <span class="spacer"></span><span class="shown"></span>
-  <div class="seg" data-k="view"><button data-v="grid" class="on">격자</button><button data-v="rows">${esc(unit)}별</button><button data-v="flow">흐름</button></div>
+  <div class="seg" data-k="view">${[["grid", "격자"], ["rows", `${esc(unit)}별`], ["flow", "흐름"]].map(([v, t]) => `<button data-v="${v}"${v === view0 ? ' class="on"' : ""}>${t}</button>`).join("")}</div>
 </div>
-<div class="gridview">${shots.length ? `<div class="cards" data-limit="12" data-items=".card">${shots.map(card).join("")}</div>${more}` : `<p class="muted">캡처한 화면이 없습니다${docs.length ? " — 이 조사의 레퍼런스는 모두 글 자료입니다(아래 목록)" : ""}.</p>`}</div>
-<div class="rowsview" hidden>${rows ? `<div class="rows" data-limit="10" data-items=".row">${rows}</div>${more}` : `<p class="muted">캡처한 화면이 없습니다.</p>`}</div>
-<div class="flows-view" hidden>${seqs ? `<div class="flowlist" data-limit="8" data-items=".flow">${seqs}</div>${more}` : `<p class="muted">여러 화면으로 된 레퍼런스가 없습니다.</p>`}</div>
+<div class="gridview"${view0 !== "grid" ? " hidden" : ""}>${shots.length ? `<div class="cards" data-limit="12" data-items=".card">${shots.map(card).join("")}</div>${more}` : `<p class="muted">캡처한 화면이 없습니다${docs.length ? " — 이 조사의 레퍼런스는 모두 글 자료입니다(아래 목록)" : ""}.</p>`}</div>
+<div class="rowsview"${view0 !== "rows" ? " hidden" : ""}>${rows ? `<div class="rows" data-limit="10" data-items=".row">${rows}</div>${more}` : `<p class="muted">캡처한 화면이 없습니다.</p>`}</div>
+<div class="flows-view"${view0 !== "flow" ? " hidden" : ""}>${seqs ? `<div class="flowlist" data-limit="8" data-items=".flow">${seqs}</div>${more}` : `<p class="muted">여러 화면으로 된 레퍼런스가 없습니다.</p>`}</div>
 </div>
 ${
   docs.length
@@ -881,9 +941,19 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
   const cur = d.current;
   const li = (tag, c, extra = "") => `<li><strong>${tag}</strong> ${c.subject ? `${esc(c.subject)} — ` : ""}${esc(c.text)} ${c.sources.map(cite).join("")}${extra}</li>`;
   const changes = `<section id="changes">${sectionHead(next(), "조사 기록", "언제 무엇을 조사했고, 그때 무엇이 새로 나오거나 바뀌었는지.")}
-<div class="panel tablewrap" style="padding:0"><table><thead><tr><th>회차</th><th>목표</th><th>날짜</th><th>새 발견</th><th>정정</th><th>재확인</th></tr></thead><tbody>${d.runs
-    .map((r) => `<tr><td class="num">${r.id}</td><td>${esc(r.goal ?? "")}</td><td>${esc(r.startedAt.slice(0, 10))}</td><td>${r.counts.created}</td><td>${r.counts.revised + r.counts.refuted}</td><td>${r.counts.confirmed}</td></tr>`)
-    .join("")}</tbody></table></div>
+${
+    d.runs.length
+      ? `<ol class="runs">${d.runs
+          .slice()
+          .reverse()
+          .map(
+            (r) => `<li class="run${r.id === col.currentRun ? " cur" : ""}" data-search="${searchText(r.id, r.goal, r.result)}"><div class="rh">${idBtn(r.id)}<span class="rd">${esc(r.startedAt.slice(0, 10))}${r.endedAt && r.endedAt.slice(0, 10) !== r.startedAt.slice(0, 10) ? ` → ${esc(r.endedAt.slice(0, 10))}` : ""}</span>${r.id === col.currentRun ? `<span class="pill">현재</span>` : ""}</div>
+<div class="rg">${esc(r.goal ?? "")}</div>${r.result ? `<div class="rr">→ ${inline(r.result, cite)}</div>` : ""}
+<div class="rc">${[["새 발견", r.counts.created], ["정정", r.counts.revised + r.counts.refuted], ["다시 확인", r.counts.confirmed]].filter(([, v]) => v).map(([k, v]) => `<span class="chip">${k} ${v}</span>`).join("") || `<span class="muted small">발견 변화 없음</span>`}</div></li>`,
+          )
+          .join("")}</ol>`
+      : `<p class="muted">아직 조사 회차가 없습니다.</p>`
+  }
 ${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>최근 조사(${esc(cur.run)})에서 바뀐 것</h3><div class="panel prose"><ul>${[
     ...cur.refuted.map((c) => li("틀린 것으로 확인", c, ` <span class="muted">(${c.refutes} 대체)</span>`)),
     ...cur.revised.map((c) => li("수정", c, ` <span class="muted">(${c.revises} 대체)</span>`)),
@@ -1031,7 +1101,7 @@ ${searchBox("조사·패턴 검색")}
   const total = (a) => Object.values(a.cats).reduce((x, y) => x + y, 0);
   h.axes.sort((a, b) => (a.facet === "pattern" ? 0 : 1) - (b.facet === "pattern" ? 0 : 1) || Object.keys(b.cats).length - Object.keys(a.cats).length || total(b) - total(a) || a.label.localeCompare(b.label));
   const sharedAxes = h.axes.filter((a) => Object.keys(a.cats).length > 1);
-  const axisRow = (a) => `<tr data-search="${searchText(a.label, a.question)}"><td><strong>${esc(a.label)}</strong><div class="muted small">${esc(a.facet !== "pattern" ? { topic: "커리큘럼 주제", market: "시장", platform: "플랫폼", positioning: "포지셔닝" }[a.facet] ?? a.facet : a.question ?? "")}</div></td>${h.cats.map((c) => `<td class="num">${a.cats[c.name] ? `<a href="${esc(c.name)}/index.html#axis-${esc(a.id)}">${a.cats[c.name]}</a>` : `<span class="muted">—</span>`}</td>`).join("")}</tr>`;
+  const axisRow = (a) => `<tr data-search="${searchText(a.label, a.question)}"><td><strong>${esc(a.label)}</strong><div class="muted small">${esc(a.facet !== "pattern" ? { topic: "커리큘럼 주제", market: "시장", platform: "플랫폼", positioning: "포지셔닝" }[a.facet] ?? a.facet : a.question ?? "")}</div>${a.verdict ? `<div class="verdict small">${esc(a.verdict)}</div>` : ""}</td>${h.cats.map((c) => `<td class="num">${a.cats[c.name] ? `<a href="${esc(c.name)}/index.html#axis-${esc(a.id)}">${a.cats[c.name]}</a>` : `<span class="muted">—</span>`}</td>`).join("")}</tr>`;
   const table = (rows) => `<div class="panel tablewrap" style="padding:0"><table><thead><tr><th>패턴</th>${h.cats.map((c) => `<th>${esc(c.title ?? c.name)}</th>`).join("")}</tr></thead><tbody>${rows.map(axisRow).join("")}</tbody></table></div>`;
   return shell(
     "레퍼런스 라이브러리",

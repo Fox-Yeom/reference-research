@@ -73,13 +73,14 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 {"collection":"…","app":"Toss","country":"kr","label":"토스 — App Store","tags":["direct"],"max_screens":10}
 
 // source add — type: official|docs|store|repo|paper|report|press|community|blog|listicle|other ; credibility A–D (default from type)
-{"collection":"…","sources":[{"url":"…","label":"VoiceMode — GitHub README","type":"repo","publisher":"VoiceMode","published":"2026-05-01","note":"…","role":"analogous"}]}
+{"collection":"…","sources":[{"url":"…","label":"VoiceMode — GitHub README","type":"repo","publisher":"VoiceMode","published":"2026-05-01","summary":"one-line 요지 (board 자료 목록)","note":"…","role":"analogous"}]}
 
 // collect
 {"collection":"…","refs":["S5","S18"],"role":"indirect","note":"why it belongs here"}
 
 // note — "ref" omitted = category note; tags = pattern names, they feed the category delta
-{"collection":"…","ref":"S12","note":"markdown…","tags":["limit-gauge-pace"]}
+// prefer "fields" for a screen analysis (the viewer renders them as 구조 / 카피 / 비주얼 / UI 패턴 / 차용 / 피할 점); "note" markdown is still accepted
+{"collection":"…","ref":"S12","fields":{"structure":"…","copy":"…","visual":"…","ui":"…","adopt":"…","avoid":"…"},"tags":["limit-gauge-pace"]}
 
 // claim add — kind: fact|pattern|benchmark|failure|gap|opinion|hypothesis
 // subject = 5–12 char title the board shows (always give one) · key = headline finding (board 핵심 결론) · asOf = date a price/number was true · scope = where it applies
@@ -92,14 +93,16 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
   {"refutes":"C5","text":"what is actually true","kind":"fact","sources":["S14"]}]}
 
 // report — header fields are optional and stored on the category; without them the board reads the summary's 핵심 발견 / 열린 질문 / 추천 sections
+// result = one-line outcome of this run (closes it in 조사 기록) · view = default reference view grid|rows|flow
 {"collection":"…","summary_file":"/path/to/summary.md","open":false,
- "highlights":["C12","C3","C8"],"open_questions":["…"],"next_steps":["…"],"audience":"…"}
+ "highlights":["C12","C3","C8"],"open_questions":["…"],"next_steps":["…"],"audience":"…","result":"…"}
 ```
 Tag vocabulary: screen tags `landing, features, pricing, app-ui, onboarding, help, store` (coverage) · role `direct, indirect, analogous` (per category) · anything else = **pattern tag** (kebab-case). Before inventing a tag, `ref axes show` and reuse a tag already on the right axis.
 
 ```jsonc
 // axes set — merged by id; listed tags MOVE into this axis; "remove":[ids], "untag":[tags]
-{"axes":[{"id":"remaining-gauge","label":"남은 한도·예산 게이지","facet":"pattern","description":"…","tags":["limit-gauge-pace","traffic-light-limits"]}]}
+// verdict = the one-line conclusion for this pattern (shown on the card): 기본기인가, 선택인가, 차별점인가 — cite [C#]
+{"axes":[{"id":"remaining-gauge","label":"남은 한도·예산 게이지","facet":"pattern","description":"…","verdict":"게이지는 기본기 — 따라간다 [C4]","tags":["limit-gauge-pace","traffic-light-limits"]}]}
 ```
 
 Confidence is computed: **high** ≥2 independent publishers and score ≥4 (A=3, B=2, C=1, D=0) · **medium** score ≥2 · **low** otherwise · `gap` (absence) caps at medium. Independence = `publisher` if set, else GitHub owner, else host → set `publisher` when one company spans several domains.
@@ -142,7 +145,7 @@ Same product name before " — " in labels (`Warp — landing`). `ref list <coll
 - Retry failures once separately with higher wait_ms; record a lesson if a site keeps failing. Desktop viewport only — mobile UI comes from `store`.
 
 ## 5. Analyze — look at the images
-Read every printed image. For each new or refreshed ref, `ref note` (with `ref`) covering:
+Read every printed image. For each new or refreshed ref, `ref note` (with `ref`, as `fields`) covering:
 - **구조**: layout, section/screen order, information hierarchy
 - **카피/CTA**: headline, value prop, CTA wording & placement
 - **비주얼**: palette (`colors:`), typography (`fonts:`), imagery
@@ -163,6 +166,7 @@ Then `ref delta <collection>`: A tells what this run changed, C what is common /
 ## 7. Report, learnings, commit
 - Summary markdown (scratch file) with **these `##` headings, in this order** (the board reads them): `## 목표` · `## 이번 실행에서 바뀐 것` (delta A + T) · `## 핵심 발견` (3–5 bullets, each ending in `[C#]`) · `## 공통 vs 차별` (delta C, by axis; include 다른 카테고리와 공유하는 축) · `## 추천` · `## 열린 질문` (bullets). Every finding line ends with `[C#]`/`[S#]`; inferences say 추정/가설.
 - `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of 핵심 발견, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 핵심 결론 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
+- After `ref delta`, give each pattern axis with ≥2 products a `verdict` (`ref axes set`): 기본기 / 선택지 / 차별점 후보, cited. Pass the run's one-line outcome as `result` to `ref report`.
 - `ref learn add` for each reusable, verified lesson.
 - **Commit**: `git -C ~/references add -A && git -C ~/references commit -m "<collection>: <run goal>"` (end the message with the session's attribution line). Do not push unless the user asks. If the library is not a git repo, skip and suggest `ref setup --git`. **Never push the library anywhere** unless the user asks — it holds captures of third-party pages.
 - Final answer: summary, board path (`open ~/references/<collection>/index.html`; library home `open ~/references/index.html`), query count (KR/EN) + longlist size, refs NEW / REUSED / REFRESHED, categories added to existing refs, claims (by confidence) + what changed vs. baseline, coverage gaps, failures, next captures.

@@ -107,7 +107,7 @@ export async function addSources(params) {
       r = { id: nextId("S", refs), slug: refSlug(refs, it.url), url: it.url, normUrl: normUrl(it.url), aliases: [], label: it.label ?? it.title ?? null, product: product || null, page, screens: [], tags: [], categories: [], notes: [], snapshots: [], changes: [], firstSeen: now, run: col?.currentRun ?? null };
       refs.push(r);
     }
-    for (const k of ["title", "publisher", "published", "label", "description"]) if (it[k] !== undefined) r[k] = it[k];
+    for (const k of ["title", "publisher", "published", "label", "description", "summary"]) if (it[k] !== undefined) r[k] = it[k]; // summary = one-line 요지 shown in the board's 자료 목록
     if (it.type) r.type = it.type;
     r.type ??= "other";
     if (it.credibility) Object.assign(r, { credibility: it.credibility, credibilitySet: true });
@@ -160,8 +160,17 @@ export async function uncollect(name, id) {
   return `${id} removed from ${col.name} (ref and its snapshots kept; categories now: ${r.categories.join(", ") || "none"})`;
 }
 
+/** structured note fields (SKILL §5) — stored next to the markdown text, rendered as a definition list in the viewer */
+export const NOTE_FIELDS = { structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", adopt: "차용할 점", avoid: "피할 점" };
+
 export async function addNote(params) {
-  if (!params.note) bad("note is required");
+  const fields = params.fields && typeof params.fields === "object" ? Object.fromEntries(Object.entries(params.fields).filter(([k, v]) => NOTE_FIELDS[k] && String(v ?? "").trim())) : null;
+  if (params.fields) {
+    const unknown = Object.keys(params.fields).filter((k) => !NOTE_FIELDS[k]);
+    if (unknown.length) bad(`fields: unknown key(s) ${unknown.join(", ")} — use ${Object.keys(NOTE_FIELDS).join(", ")}`);
+  }
+  if (!params.note && !fields) bad("note (markdown) or fields {structure, copy, visual, ui, adopt, avoid} is required");
+  params.note = params.note ?? Object.entries(fields).map(([k, v]) => `**${NOTE_FIELDS[k]}**: ${String(v).trim()}`).join("\n");
   const col = await mustCollection(params.collection ?? params.project);
   const now = new Date().toISOString();
   const refId = params.ref ?? params.entry_id;
@@ -170,7 +179,7 @@ export async function addNote(params) {
     const refs = await readRefs();
     const r = refs.find((x) => x.id === refId);
     if (!r) bad(`ref not found: ${refId}`);
-    r.notes.push({ at: now, collection: col.name, run: col.currentRun ?? null, text: params.note, tags: params.tags ?? [] });
+    r.notes.push({ at: now, collection: col.name, run: col.currentRun ?? null, text: params.note, tags: params.tags ?? [], ...(fields ? { fields } : {}) });
     if (params.tags) r.tags = [...new Set([...r.tags, ...params.tags])];
     await saveRefs([r]);
     target = `${r.id} (${r.label ?? r.url})`;

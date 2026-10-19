@@ -72,7 +72,8 @@ export async function tagUsage() {
 }
 
 /**
- * axes[]: { id?, label, facet?, description?, tags:[…] } — merged by id (id defaults to slug of label);
+ * axes[]: { id?, label, facet?, description?, question?, verdict?, tags:[…] } — merged by id (id defaults to slug of label);
+ * verdict = one-line conclusion the board shows on the pattern card ("연간 결제 할인은 기본기 — 따라간다");
  * listed tags are moved into this axis (removed from any other). remove: [axis ids]. untag: [tags] (unmap).
  */
 export async function setAxes(params) {
@@ -88,7 +89,7 @@ export async function setAxes(params) {
       ax = { id, label: it.label ?? id, facet: it.facet ?? "pattern", description: it.description ?? null, tags: [] };
       a.axes.push(ax);
     }
-    for (const k of ["label", "facet", "description", "question"]) if (it[k] !== undefined) ax[k] = it[k];
+    for (const k of ["label", "facet", "description", "question", "verdict"]) if (it[k] !== undefined) ax[k] = it[k];
     for (const t of it.tags ?? []) {
       if (!use.has(t)) out.push(`⚠ ${id}: tag "${t}" is not used anywhere (kept, will match future notes)`);
       for (const other of a.axes) if (other !== ax) other.tags = other.tags.filter((x) => x !== t);

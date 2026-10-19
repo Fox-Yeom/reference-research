@@ -8,7 +8,7 @@
  *   ref source add '<json>'           text-only refs (articles, docs, papers, threads)
  *   ref collect '<json>'              add existing refs to a collection (= add a category)
  *   ref uncollect <collection> <S#>
- *   ref note '<json>'                 note on a ref (attributed to the collection) or on the collection
+ *   ref note '<json>'                 note on a ref (attributed to the collection) or on the collection; "fields":{structure,copy,visual,ui,adopt,avoid}
  * Look
  *   ref list [collection] [--query "a b"]     collections / members + coverage / global text search
  *   ref show <S#|url>                 one ref: categories, snapshots, changes, notes from every category, citing claims

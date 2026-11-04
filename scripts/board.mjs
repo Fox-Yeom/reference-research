@@ -7,7 +7,7 @@
  * [C46], editorial tone [C49], no popups/ads [C48].
  */
 
-import { SOURCE_LED } from "./store.mjs";
+import { FRESH_KO, SOURCE_LED, freshness, refDate } from "./store.mjs";
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -128,7 +128,7 @@ tbody tr:last-child td{border-bottom:0}
 .conf{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:2px 9px 2px 8px;border-radius:999px;white-space:nowrap;background:var(--gray-soft);color:var(--muted)}.conf::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 .conf.high{background:var(--green-soft);color:var(--green)}.conf.medium{background:var(--amber-soft);color:var(--amber)}.conf.low{background:var(--coral-soft);color:var(--coral)}
 .note{background:var(--amber-soft);color:var(--amber);border-radius:8px;padding:10px 14px;font-size:14px;margin:12px 0}
-.role{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}.r-direct{background:var(--blue-soft);color:var(--blue)}.r-indirect{background:var(--amber-soft);color:var(--amber)}.r-analogous,.r-trend{background:var(--teal-soft);color:var(--teal)}
+.role{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}.r-direct{background:var(--blue-soft);color:var(--blue)}.r-indirect{background:var(--amber-soft);color:var(--amber)}.r-analogous,.r-trend{background:var(--teal-soft);color:var(--teal)}.fr-fresh{background:var(--green-soft);color:var(--green)}.fr-stale{background:var(--gray-soft);color:var(--muted)}.fr-unknown{background:var(--amber-soft);color:var(--amber)}
 .kdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:2px;vertical-align:0}.k-pattern{background:var(--blue)}.k-benchmark{background:var(--violet)}.k-fact{background:var(--teal)}.k-gap{background:var(--amber)}.k-failure{background:var(--coral)}.k-opinion,.k-hypothesis{background:var(--faint)}
 .muted{color:var(--muted)}.small{font-size:13px}
 .prod{font:inherit;font-size:13.5px;font-weight:500;background:none;border:0;padding:0;color:var(--accent);cursor:zoom-in;text-align:left}.prod:hover{text-decoration:underline;text-underline-offset:3px}
@@ -874,6 +874,7 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
 <td><a class="tt" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a>${r.summary || r.description ? `<span class="sum">${esc(short(r.summary ?? r.description, 160))}</span>` : ""}${notes.length ? `<details><summary>노트 ${notes.length}</summary><div class="prose">${notes.map((x) => noteHtml(x, cite)).join("<hr>")}</div></details>` : ""}</td>
 <td>${esc(r.publisher ?? r.product ?? "")}</td>
 <td class="n">${esc(r.credibility)} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type)}</span></td>
+<td class="n">${refDate(r) ? `<span class="small">${esc(refDate(r).slice(0, 10))}</span> ` : ""}<span class="role fr-${freshness(r)}">${FRESH_KO[freshness(r)]}</span></td>
 <td class="n">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span>` : ""}</td>
 <td class="n num">${n ? `<a href="#claims" title="이 자료를 인용한 발견">${n}</a>` : `<span class="muted">0</span>`}</td>
 </tr>`;
@@ -923,7 +924,7 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
 ${
   docs.length
     ? `<div class="sgroup docs"><div class="groupcap"><h3>자료 목록</h3><span>캡처 없이 글로 읽은 자료 · <span class="shown">${docs.length}개</span> · 노트가 있으면 펼쳐 볼 수 있습니다</span></div>
-<div class="panel tablewrap" style="padding:0"><table><thead><tr><th class="n">번호</th><th>자료</th><th>발행처</th><th class="n">등급</th><th class="n">역할</th><th class="n">인용</th></tr></thead><tbody data-limit="20" data-items="tr">${docs.map(docRow).join("")}</tbody></table></div>${more}</div>`
+<div class="panel tablewrap" style="padding:0"><table><thead><tr><th class="n">번호</th><th>자료</th><th>발행처</th><th class="n">등급</th><th class="n">날짜</th><th class="n">역할</th><th class="n">인용</th></tr></thead><tbody data-limit="20" data-items="tr">${[...docs].sort((a, b) => String(refDate(b.r) ?? "").localeCompare(String(refDate(a.r) ?? ""))).map(docRow).join("")}</tbody></table></div>${more}</div>`
     : ""
 }
 ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</section>`;
@@ -950,7 +951,7 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
     return `<article class="claim" id="${c.id}" data-kind="${esc(c.kind ?? "")}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
   <div class="chead"><h4 class="ctitle">${c.key ? `<span class="star">핵심</span>` : ""}${esc(title)}</h4>${confBadge(c.confidence)}</div>
   ${body ? `<p class="cbody${body.length > 150 ? " clamp" : ""}">${esc(body)}</p>${body.length > 150 ? `<button class="more" type="button">더 보기</button>` : ""}` : ""}
-  <div class="cmeta">${idBtn(c.id)}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(c.run)}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
+  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 핵심 결론은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(c.run)}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
   ${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}
   ${olds.length ? `<details class="prev"><summary>이전 버전 ${olds.length}개 — ${olds[0].status === "refuted" ? "틀린 것으로 확인됨" : "수정됨"}</summary>${olds.map((o) => `<div class="old" id="${o.id}">${idBtn(o.id)} ${esc(o.text)} <span class="small">(${esc((o.createdAt ?? "").slice(0, 10))})</span></div>`).join("")}</details>` : ""}
 </article>`;

@@ -54,7 +54,9 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | `ref note '<json>'` | note on a ref (`ref`) or on the category; attributed to the category |
 | `ref claim add '<json>'` / `ref claim list [collection] [--status] [--kind] [--run]` | findings (create / confirm / revise / refute) |
 | `ref delta <collection> [--run R#]` | **A** run delta · **C** category delta (common vs. one-product tags, shared refs) · **T** time delta (re-capture changes, stale members) → `DELTA.md` |
-| `ref cite <collection> [--file f]` | every finding line cites known, active `[S#]`/`[C#]` |
+| `ref cite <collection> [--file f]` | every finding line cites known, active `[S#]`/`[C#]`; also warns on key claims citing only 지난 자료 |
+| `ref fresh <collection>` | 신선 / 지난 자료 / 날짜 미상 split, key claims citing only 지난 자료, undated refs in the order to fill them |
+| `ref channels <collection>` | refs per channel (1차 · 해석 · 반응 · 이유) and Korean sources; warns on what is missing |
 | `ref report '<json>'` | category board `<collection>/index.html` — 목적 블록 + 숫자 타일 · 한눈에 보기 · (커리큘럼 비교) · 패턴 비교 · 레퍼런스(검색 `/`, 역할·패턴·회차·정렬, 보기 3종: 격자 · 제품별 · **흐름**(한 페이지의 화면을 순서대로), 화면 뷰어 + 정보 패널; 캡처 없는 자료는 **자료 목록** 표) · 발견과 근거(제목/내용/메타 3단, 근거 화면 썸네일, 회차·근거 세기 필터) · 조사 기록 · 출처(인용된 것만, 등급·종류 필터) — ids are copy buttons. Plus library home `~/references/index.html` and `README.md`. One template (`scripts/board.mjs`) for every board: change it, re-run `ref report` per collection. The goal block reads `collection.goal`, else the last run's goal, else the summary's "목표" line |
 | `ref plan set\|show\|link\|delta` | optional plan layer (see §8) |
 | `ref course set '<json>'` / `ref course show <collection>` | curriculum mode: a course's structure (modules · topics · hours) / comparison: topic coverage, usual order, gaps vs. basis (see §9) |
@@ -71,7 +73,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 {"collection":"…","brief":{"scope":["direct"]},"reason":"0바퀴 뒤 직접 경쟁으로 좁힘"}
 
 // run round — after every round. lang is inferred when omitted; published only as a full date from the page; new_axes = patterns seen this round, repeats are dropped by the CLI
-{"collection":"…","queries":[{"q":"…","lang":"ko"}],"candidates":[{"url":"…","title":"…","published":"2026-09-30"}],"new_axes":["무료 한도"],"dropped":[{"channel":"G2","ref":"S41","reason":"화면 의견 없음"}]}
+{"collection":"…","queries":[{"q":"…","lang":"ko"}],"candidates":[{"url":"…","title":"…","published":"2026-09-30"}],"new_axes":["무료 한도"],"dropped":[{"channel":"reaction","ref":"S41","reason":"G2 표본에 화면 의견 없음"}]}
 
 // capture (≤ 6 URLs per call; each new capture ~10–40 s; Bash timeout 600000)
 {"collection":"…","urls":[{"url":"https://…","label":"Warp — landing","tags":["landing","direct","vertical-tabs"]},
@@ -185,7 +187,7 @@ Date unknown → look for it on the page, then `ref date <S#>` for a lower bound
 | 교육과정 (§9) | 강의계획서 | 역량 프레임워크·수요 조사 | 수강 후기 | — | 판매 페이지 과장 | 모듈·시간·순서 |
 
 - Per value type, see ≥ 1 primary, ≥ 1 reaction and ≥ 1 rationale channel (where the table has one), including ≥ 1 Korean channel.
-- To drop a channel, sample one item from it first and record its S# and the reason in the search log.
+- To drop a channel, sample one item from it first and pass its channel, S# and reason in `dropped` of `ref run round`. `ref channels <collection>` checks all of this before analysis, for the category as a whole.
 - Several value types → give the main one more queries. Splitting channels across subagents is possible but costly: only when the user asks.
 
 ### Rounds — widen → read → narrow, at most 3 rounds including round 0
@@ -243,7 +245,7 @@ Turn every finding you would put in a summary into a claim, written **from the i
 - `pattern` · `benchmark` (price, rating, count, speed) · `failure` (complaints, shutdowns, pitfalls) · `gap` (nobody does it — needs a query aimed at it first) · `fact` · `opinion` · `hypothesis` (no source)
 - **always a `subject`** (5–12 chars — the board's title line; `claim add` warns without one) · `asOf` on every price/number · `key:true` on the 2–4 findings a reader must not miss (`{"update":"C#","key":true}` for existing ones)
 - cite every supporting ref; prefer ≥2 independent publishers
-- **before `key:true`** (the CLI does not check these yet): a key claim needs ≥ 1 신선 source unless it is `scope:"원리"`, and cannot rest on a 왜 or 결과 that is only 추정
+- **key claims**: need ≥ 1 신선 source unless `scope:"원리"`; `ref fresh <collection>` lists the ones that do not, and what to fix. A key claim also cannot rest on a 왜 or 결과 that is only 추정: check that yourself
 - baseline claim seen again → `confirms`; partly wrong → `revises`; wrong → `refutes`
 **Normalize tags** whenever `note`/`capture` warns "tags not on any axis": `ref axes suggest <collection>` proposes mutual-nearest pairs and nearest axes from tag names only — expect surface matches (scroll-storytelling ~ scrollback-context). Judge against the notes (same *solution*, not same words), then `ref axes set` (add to an existing axis, or create one with a Korean label + one-line description). An axis may span categories — that is the point (AI 한도 게이지 ≈ 가계부 예산 게이지).
 Then `ref delta <collection>`: A tells what this run changed, C what is common / partly shared / one-product **by axis** and which axes other categories share, T what changed on re-captured refs and what is stale. `ref categories` shows shared refs and shared axes between categories.
@@ -262,7 +264,7 @@ Then `ref delta <collection>`: A tells what this run changed, C what is common /
 | `## 이번 실행에서 바뀐 것` | delta A + T |
 | `## 조사 과정` | short prose, no bullets: brief, channels, rounds, how many sources are 신선 vs 지난 자료 |
 - Writing rules: a headline is a claim sentence of about 40 characters, not a topic label · C#/S# appear only as trailing chips, never inside the prose · ≤ 3 sentences per paragraph · inside a section use bullets or tables, because the board reads a line starting with `**` as a heading · every finding line ends with `[C#]`/`[S#]`; inferences say 추정/가설.
-- `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of 핵심 결론, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 핵심 결론 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
+- `ref fresh <collection>` and `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of 핵심 결론, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 핵심 결론 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
 - After `ref delta`, give each pattern axis with ≥2 products a `verdict` (`ref axes set`): 기본기 / 선택지 / 차별점 후보, cited. Pass the run's one-line outcome as `result` to `ref report`.
 - `ref learn add` for each reusable, verified lesson.
 - **Commit**: `git -C <library> add -A && git -C <library> commit -m "<collection>: <run goal>"`, with `<library>` from the `library:` line of `ref doctor` (end the message with the session's attribution line). Do not push unless the user asks. If the library is not a git repo, skip and suggest `ref setup --git`. **Never push the library anywhere** unless the user asks — it holds captures of third-party pages.

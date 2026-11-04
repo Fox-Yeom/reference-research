@@ -4,7 +4,7 @@
  */
 import { promises as fs, readFileSync } from "node:fs";
 import * as path from "node:path";
-import { collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, mustCollection } from "./evidence.mjs";
+import { collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, freshWarnings, mustCollection, staleKeyClaims } from "./evidence.mjs";
 import { FILES, LIB, SOURCE_LED, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { renderBoard, renderHome, splitSummary } from "./board.mjs";
@@ -131,7 +131,7 @@ export async function report(params) {
     const r = await run("open", [htmlPath], 15_000);
     opened = r.code === 0 ? "\nOpened in the default browser." : `\nOpen failed: ${r.stderr}`;
   }
-  return `Report built:\n- ${htmlPath}\n- ${home} (library home)\n- ${path.join(dir, "README.md")}\n- ${path.join(dir, "DELTA.md")}${opened}${cite ? `\n\nCitation check:\n${cite}` : ""}`;
+  return `Report built:\n- ${htmlPath}\n- ${home} (library home)\n- ${path.join(dir, "README.md")}\n- ${path.join(dir, "DELTA.md")}${opened}${cite ? `\n\nCitation check:\n${cite}` : ""}${[...freshWarnings(col, claims, refs)].map((l) => `\n${l}`).join("")}`;
 }
 
 // ---------- board data ----------
@@ -254,6 +254,7 @@ async function boardData(col, members, refs, claims, summary, cite, cov, relp) {
     coverageWarn,
     axes: { rows, products: axisProducts, facets: [...facetMap.values()], unmapped },
     claims: { own, related },
+    staleKey: new Set(staleKeyClaims(col, claims, refs).map((c) => c.id)),
     runs: runRows,
     current,
     changes: ms.flatMap((m) => (m.r.changes ?? []).map((c) => ({ r: m.r, c }))),

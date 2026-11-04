@@ -24,6 +24,8 @@
  *   ref run round '<json>' | show <collection>   {collection, queries:[{q,lang}], candidates:[{url,title,published}], new_axes:[], dropped:[]} → round line, stop rule
  *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope; {update:"C#"} edits that metadata)
  *   ref delta <collection> [--run R#] run / category / time delta → DELTA.md
+ *   ref fresh <collection>            freshness split, key claims resting only on old sources, undated refs to fill first
+ *   ref channels <collection>         channel coverage (primary · interpretation · reaction · rationale), Korean sources
  *   ref cite <collection> [--file f]  every finding line cites known, active [S#]/[C#]
  *   ref report '<json>'               README.md + index.html board for a collection
  * Plans (optional, outside the categories)
@@ -47,7 +49,7 @@ import { archiveDates, capture, storeScreens } from "./capture.mjs";
 import * as ev from "./evidence.mjs";
 import { report, coverage } from "./report.mjs";
 import { migrate, migrateRoles } from "./migrate.mjs";
-import { FILES, LIB, REF_HOME, RefError, collectionName, compactAll, latestSnapshot, listCollections, readClaims, readRefs } from "./store.mjs";
+import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate } from "./store.mjs";
 import { spawnSync } from "node:child_process";
 
 function fail(msg) {
@@ -122,7 +124,7 @@ async function list(name, query, limit) {
   }
   const col = await ev.mustCollection(name);
   const byId = new Map(refs.map((r) => [r.id, r]));
-  const members = col.members.map((m) => ({ ...m, r: byId.get(m.ref) })).filter((m) => m.r);
+  const members = col.members.map((m) => ({ ...m, r: byId.get(m.ref) })).filter((m) => m.r).sort((a, b) => String(refDate(b.r) ?? "").localeCompare(String(refDate(a.r) ?? "")));
   const own = claims.filter((c) => (c.collections ?? []).includes(col.name) && c.status === "active");
   print(
     [
@@ -130,7 +132,7 @@ async function list(name, query, limit) {
       ...members.map(({ r, role }) => {
         const s = latestSnapshot(r);
         const other = (r.categories ?? []).filter((c) => c !== col.name);
-        return `- ${r.id} ${r.label ?? r.url}${role ? ` (${role})` : ""} · ${s ? `captured ${s.at.slice(0, 10)}${r.snapshots.length > 1 ? ` ×${r.snapshots.length}` : ""}` : "text"}${other.length ? ` ‹also: ${other.join(", ")}›` : ""}`;
+        return `- ${r.id} ${r.label ?? r.url}${role ? ` (${role})` : ""} · ${refDate(r) ? `${refDate(r).slice(0, 10)} ` : ""}${FRESH_KO[freshness(r)]} · ${s ? `captured ${s.at.slice(0, 10)}${r.snapshots.length > 1 ? ` ×${r.snapshots.length}` : ""}` : "text"}${other.length ? ` ‹also: ${other.join(", ")}›` : ""}`;
       }),
       "",
       "Coverage:",
@@ -361,6 +363,12 @@ try {
       } else fail("usage: ref claim add '<json>' | ref claim list [collection] [--status s] [--kind k] [--run R#]");
       break;
     }
+    case "fresh":
+      print(await ev.freshReport(args[0] ?? fail("usage: ref fresh <collection>")));
+      break;
+    case "channels":
+      print(await ev.channelReport(args[0] ?? fail("usage: ref channels <collection>")));
+      break;
     case "delta": {
       const run = flag(args, "--run");
       print(await ev.delta(args[0], run));
@@ -371,6 +379,10 @@ try {
       const target = f ?? path.join(LIB, collectionName(args[0] ?? fail("usage: ref cite <collection> [--file f]")), "SUMMARY.md");
       if (!existsSync(target)) fail(`no file to check: ${target}`);
       print(ev.formatCiteCheck(await ev.citeCheck(readFileSync(target, "utf8"))));
+      if (args[0]) {
+        const warnings = ev.freshWarnings(await ev.mustCollection(args[0]), await readClaims(), await readRefs());
+        if (warnings.length) print(warnings.join("\n"));
+      }
       break;
     }
     case "report":

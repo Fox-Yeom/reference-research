@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { axisOf, readAxes, tagIndex } from "./axes.mjs";
 import {
   CHANNELS, CLAIM_KINDS, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
-  channelOf, confidence, daysSince, ensureCollection, findRef, latestSnapshot, nextId, normUrl, readClaims, readCollection, readRefs,
+  FRESH_KO, channelOf, confidence, daysSince, freshness, ensureCollection, findRef, latestSnapshot, nextId, normUrl, readClaims, readCollection, readRefs,
   readRuns, recomputeConfidence, refSlug, saveClaims, saveRefs, saveRuns, splitLabel, writeCollection,
 } from "./store.mjs";
 
@@ -664,6 +664,87 @@ export async function planDelta(name, suggest) {
   const text = md.join("\n");
   await fs.writeFile(path.join(FILES.plansDir, `${p.name}-DELTA.md`), text + "\n");
   return text;
+}
+
+// ---------- freshness and channels ----------
+
+const FRESH_RULE_SINCE = "2026-11-04"; // older claims get a board badge, not a warning
+const CHANNEL_KO = { primary: "1차", interpretation: "해석", reaction: "반응", rationale: "이유" };
+const NO_RATIONALE = new Set(["여행·동선", "교육과정"]); // SKILL §2: the channel table has no rationale column for these
+const KR_HOST = /(\.kr|(^|\.)(naver\.com|daum\.net|kakao\.com|tistory\.com|velog\.io|toss\.im|tossinvest\.com|hada\.io|disquiet\.io|inflearn\.com))$/;
+
+/** Active key claims of a category that cite only 지난 자료 or undated sources; scope "원리" is exempt */
+export function staleKeyClaims(col, claims, refs) {
+  const byId = new Map(refs.map((r) => [r.id, r]));
+  const picked = new Set(col.highlights ?? []);
+  return collectionClaims(col, claims).own.filter((c) => c.status === "active" && (c.key || picked.has(c.id)) && c.scope !== "원리" && c.sources.length && c.sources.every((s) => !byId.has(s) || freshness(byId.get(s)) !== "fresh"));
+}
+
+export function freshWarnings(col, claims, refs) {
+  const hit = staleKeyClaims(col, claims, refs).filter((c) => c.createdAt >= FRESH_RULE_SINCE);
+  if (!hit.length) return [];
+  return [`⚠ 지난 자료만 인용한 핵심 결론 ${hit.length}건: 신선한 근거를 찾거나, 원리면 {"update":"C#","scope":"원리"}, 아니면 {"update":"C#","key":false}`, ...hit.map(claimLine)];
+}
+
+export async function freshReport(name) {
+  const col = await mustCollection(name);
+  const [refs, claims] = await Promise.all([readRefs(), readClaims()]);
+  const byId = new Map(refs.map((r) => [r.id, r]));
+  const members = col.members.map((m) => byId.get(m.ref)).filter(Boolean);
+  const count = (f) => members.filter((r) => freshness(r) === f).length;
+  const own = collectionClaims(col, claims).own.filter((c) => c.status === "active");
+  const citing = (r) => own.filter((c) => c.sources.includes(r.id));
+  const undated = members
+    .filter((r) => freshness(r) === "unknown")
+    .map((r) => ({ r, key: citing(r).filter((c) => c.key).length, all: citing(r).length }))
+    .sort((a, b) => b.key - a.key || b.all - a.all);
+  const old = staleKeyClaims(col, claims, refs).filter((c) => !(c.createdAt >= FRESH_RULE_SINCE));
+  return [
+    `${col.name}: ${FRESH_KO.fresh} ${count("fresh")} · ${FRESH_KO.stale} ${count("stale")} · ${FRESH_KO.unknown} ${count("unknown")} (기준 12개월)`,
+    ...freshWarnings(col, claims, refs),
+    ...(old.length ? [`기존 핵심 결론 ${old.length}건도 지난 자료만 인용: 규칙 이전 기록이라 보드 배지로만 표시`] : []),
+    ...(undated.length ? ["", "날짜 미상, 채울 순서대로 (`ref source add`로 날짜 입력, 페이지에 없으면 `ref date`):", ...undated.map(({ r, key, all }) => `- ${r.id} ${r.label ?? r.url} · 핵심 결론 ${key} · 발견 ${all}`)] : []),
+  ].join("\n");
+}
+
+const isKorean = (r) => {
+  const host = (() => {
+    try {
+      return new URL(r.url).hostname;
+    } catch {
+      return "";
+    }
+  })();
+  return KR_HOST.test(host) || /^ko/i.test(latestSnapshot(r)?.meta?.lang ?? "") || /[가-힣]/.test(r.title ?? "");
+};
+
+/** Channel coverage of a category. Refs carry no value type, so this counts the category as a whole. */
+export async function channelReport(name) {
+  const col = await mustCollection(name);
+  const [refs, runs] = await Promise.all([readRefs(), readRuns()]);
+  const byId = new Map(refs.map((r) => [r.id, r]));
+  const members = col.members.map((m) => byId.get(m.ref)).filter(Boolean);
+  const types = [col.brief?.value_types ?? []].flat();
+  const needed = ["primary", "reaction", ...(types.length && types.every((t) => NO_RATIONALE.has(t)) ? [] : ["rationale"])];
+  const dropped = runs.filter((r) => r.collection === col.name).flatMap((r) => (r.rounds ?? []).flatMap((x) => x.dropped));
+  const droppedFor = (ch) => dropped.find((d) => d.channel === ch || d.channel === CHANNEL_KO[ch]);
+  const rows = Object.keys(CHANNEL_KO).map((ch) => {
+    const hit = members.filter((r) => channelOf(r) === ch);
+    return `| ${CHANNEL_KO[ch]} | ${hit.length} | ${hit.filter(isKorean).length} | ${hit.slice(0, 3).map((r) => `${r.id} ${r.product ?? r.label ?? ""}`.trim()).join(", ")} |`;
+  });
+  const missing = needed.filter((ch) => !members.some((r) => channelOf(r) === ch));
+  const excused = missing.filter(droppedFor);
+  const unexcused = missing.filter((ch) => !droppedFor(ch));
+  return [
+    `${col.name}: 가치 유형 ${types.join(" · ") || "개요 없음"}`,
+    "| 채널 | 레퍼런스 | 국내 | 예시 |",
+    "|---|:-:|:-:|---|",
+    ...rows,
+    `미분류 ${members.filter((r) => !channelOf(r)).length}`,
+    ...excused.map((ch) => `제외: ${CHANNEL_KO[ch]} — ${droppedFor(ch).ref ?? ""} ${droppedFor(ch).reason ?? ""}`.trim()),
+    ...(unexcused.length ? [`⚠ 없는 채널: ${unexcused.map((ch) => CHANNEL_KO[ch]).join(", ")} — 더 찾거나, 표본 1건을 보고 \`ref run round\`의 dropped에 남긴다`] : []),
+    ...(members.some(isKorean) ? [] : ["⚠ 국내 채널 없음"]),
+  ].join("\n");
 }
 
 // ---------- citation check ----------

@@ -110,6 +110,21 @@ export function splitLabel(label) {
 export const rel = (p) => (p ? path.relative(LIB, p) : p);
 export const abs = (p) => (p ? (path.isAbsolute(p) ? p : path.join(LIB, p)) : p);
 export const daysSince = (iso) => (iso ? (Date.now() - Date.parse(iso)) / 864e5 : Infinity);
+
+/** freshness rule (SKILL §2): 12 months from the newest date a source states */
+const FRESH_DAYS = 365;
+export const FRESH_KO = { fresh: "신선", stale: "지난 자료", unknown: "날짜 미상" };
+/** newest stated date, as written: a bare year sorts below any full date of that year */
+export const refDate = (r) => [r.updated, r.published].filter(Boolean).map(String).sort().at(-1) ?? null;
+
+export function freshness(r) {
+  const stated = [r.updated, r.published].filter(Boolean).map(String);
+  const dated = stated.filter((d) => /^\d{4}-\d{2}/.test(d)).sort().at(-1);
+  if (dated) return daysSince(dated) <= FRESH_DAYS ? "fresh" : "stale";
+  // a bare year or the first archive date only says "no later than this": old enough settles it, recent does not
+  const bounds = [...stated.map((y) => `${y}-12-31`), ...(r.firstArchived ? [r.firstArchived] : [])];
+  return bounds.some((d) => daysSince(d) > FRESH_DAYS) ? "stale" : "unknown";
+}
 export const cites = (ids) => (ids?.length ? `[${ids.join(", ")}]` : "");
 
 export function nextId(prefix, items) {

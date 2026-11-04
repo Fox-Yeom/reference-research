@@ -138,7 +138,7 @@ Ask before searching. Models are weak at noticing a vague request on their own, 
 | 트렌드 (`trend`) | 해외·최신 흐름. 이 분야가 어디로 가는지 |
 
 **Brief**: turn the answers into a table (목적 · 대상 · 문제 · 성공 기준 · 가치 유형 · 범위 · 고정할 것 · 뺄 것 · 가정). Fill blanks yourself and mark them **가정**; scope unknown → all three scopes, marked 가정.
-- **Confirm it before searching**: AskUserQuestion, one single-select question "이 개요로 시작할까요?", options `이대로 시작` / `고칠 곳 있음`, with the full table in each option's `preview`. `고칠 곳 있음` → ask what to change, update the table, confirm again. A prose summary does not count. Without that tool, print the full table.
+- **Confirm it before searching**: AskUserQuestion, one single-select question "이 개요로 시작할까요?", options `이대로 시작` / `고칠 곳 있음`, with the full table in each option's `preview`. `고칠 곳 있음` → AskUserQuestion again, one question per 가정 slot (≤ 4): the current value first, then 1–3 concrete alternatives. Update the table and confirm again. A prose summary does not count. Without that tool, print the full table.
 - **Print the full table instead, then start**, when the user said "알아서" (in the request or as an answer), or when no slot is 가정.
 - The request already states 문제, 목표 and 가치 유형 → skip round 1 and go straight to the brief.
 
@@ -162,7 +162,7 @@ Read newest first and let the newest sources rewrite the next queries. WebSearch
 | 신선 | published or updated within 12 months | anything: exemplars, key claims |
 | 지난 자료 | older, or date unknown | only a principle (human cognition, theory) or a before/after comparison |
 
-Date unknown → look for it on the page before giving up.
+Date unknown → look for it on the page before giving up. Never invent a month or day: a year alone counts as unknown.
 
 ### Channels by value type — choose before round 0
 | 가치 유형 | 1차 (사실·실물) | 해석 | 반응 | 이유 근거 | 편향 주의 | 남길 것 |
@@ -185,12 +185,14 @@ Date unknown → look for it on the page before giving up.
 4. **Branch**: follow good sources backward (what they reference) and forward (what came after, what copied them).
 5. **Stop**: a round that adds no new pattern ends the search.
 
-End every round with one chat line, so the loop is visible: `N바퀴 끝: 질의 X개 · 후보 Y개 · 새 패턴 Z개 → 다음: <queries or why it stops>`.
+End every round, round 1 included, with exactly this chat line, so the loop is visible: `N바퀴 끝: 질의 X개 · 후보 Y개 · 새 패턴 Z개 → 다음: <queries or why it stops>`. Do not rephrase it or drop the round label.
 
 ### Minimums, across all rounds
 - **≥ 8 WebSearch queries**, **≥ 3 Korean and ≥ 3 English**, covering all 5 angles: listicle/best-of · alternatives/vs · community (reddit, `site:news.ycombinator.com`, 긱뉴스, velog/디스콰이엇) · open source (`github`, `awesome …`) · KR market/local players
 - if earlier runs set a direction, **≥ 2 queries aimed at products not yet in the library**
 - `ref list --query <name>` before capturing a candidate — it may already be a ref in another category
+- Capture only URLs seen in search or fetch results; never guess one
+- WebFetch refused or blocked (403, bot check) → `ref capture` that URL before settling for a secondary source
 - **Longlist before shortlist**: every candidate **with its URL** (name · type · URL · published date or 미상 · source query · one line), newest first, aim for ≥ 12; then select 3–5 direct, 1–2 indirect, 1–2 trend with reasons. Exemplars must be 신선. Candidates you will cite but not capture → `ref source add` (so they are refs, not just names)
 - **Search log**: each round's queries and new patterns, the longlist, the selection and dropped channels, as a category note tagged `search-log`. The final answer states query count (KR/EN), rounds and longlist size
 
@@ -207,7 +209,8 @@ Same product name before " — " in labels (`Warp — landing`). `ref list <coll
 ## 4. Capture
 - Output per URL: `NEW` (new ref), `REUSED` (already in library — category added, preview printed; read its earlier notes with `ref show`), `REFRESHED` (re-captured; read the printed changes).
 - Defaults: wait_ms 1500, max_frames 16, frame_wait_ms 800. Heavy SPAs: wait_ms 3000–5000; scroll-animated: frame_wait_ms 1200; long READMEs: max_frames ≥ 20.
-- Opens tabs in the user's **Aside** browser (logged-in sessions). Read-only: never submit forms, sign up, pay, post, or click consent buttons (overlays are hidden, not clicked).
+- Opens tabs in the user's **Aside** browser (logged-in sessions). Read-only: never submit forms, sign up, pay, post, or click consent buttons (cookie banners and modal popups are hidden, not clicked; `"hide_overlays":false` keeps them).
+- Keep the `Capture backend:` line when filtering the output, and say it in chat (`캡처: Aside 4건`). `Notes:` lines are warnings, not failures: the page was captured.
 - Retry failures once separately with higher wait_ms; record a lesson if a site keeps failing. Desktop viewport only — mobile UI comes from `store`.
 
 ## 5. Analyze — look at the images, then trace why
@@ -251,7 +254,7 @@ Then `ref delta <collection>`: A tells what this run changed, C what is common /
 - `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of 핵심 결론, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 핵심 결론 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
 - After `ref delta`, give each pattern axis with ≥2 products a `verdict` (`ref axes set`): 기본기 / 선택지 / 차별점 후보, cited. Pass the run's one-line outcome as `result` to `ref report`.
 - `ref learn add` for each reusable, verified lesson.
-- **Commit**: `git -C ~/references add -A && git -C ~/references commit -m "<collection>: <run goal>"` (end the message with the session's attribution line). Do not push unless the user asks. If the library is not a git repo, skip and suggest `ref setup --git`. **Never push the library anywhere** unless the user asks — it holds captures of third-party pages.
+- **Commit**: `git -C <library> add -A && git -C <library> commit -m "<collection>: <run goal>"`, with `<library>` from the `library:` line of `ref doctor` (end the message with the session's attribution line). Do not push unless the user asks. If the library is not a git repo, skip and suggest `ref setup --git`. **Never push the library anywhere** unless the user asks — it holds captures of third-party pages.
 - Final answer: summary, board path (`open ~/references/<collection>/index.html`; library home `open ~/references/index.html`), query count (KR/EN) + rounds + longlist size, refs NEW / REUSED / REFRESHED, categories added to existing refs, claims (by confidence) + what changed vs. baseline, coverage gaps, failures, next captures.
 
 ## 8. Plans (optional)

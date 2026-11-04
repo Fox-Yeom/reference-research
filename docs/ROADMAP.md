@@ -23,8 +23,22 @@ Goal frame: references must serve 5 purposes (시행착오 절감 · 벤치마�
 - [x] Phase 1 — SKILL.md: brief-first question loop (Q1–Q5), recency-first looping search with a 12-month freshness rule (F1–F3), value-type channel table (C1–C2), 6-part rationale notes (W1), conclusion-first summary order (R1), AskUserQuestion/WebSearch usage (T8–T9); code exception: role vocabulary gains `trend` (store · evidence · board · report)
 - [x] Phase 2 (2a–2d, released in 0.1.0-beta.4) — CLI/board/MCP: 2a data (published extraction, `ref date`, `ref brief`, `ref run round`, `channel`, note fields, role migration, bot-check detection) · 2b checks (`ref fresh`, `ref channels`) · 2c board (conclusion-first hero, reader types, color tokens, rationale cards) · 2d MCP (`get_brief`, `get_conclusion`, `get_rationale`, `since`) · 2e optional connectors (HN, App Store reviews, GitHub Releases → Naver, OpenDART)
 - [x] Phase 3 — re-run one real research with the new flow and compare (result in the redesign doc)
-- [ ] Next version — connectors, keyless first: Speaker Deck feed · GeekNews feed · HN Algolia · App Store reviews · GitHub Releases
-- [ ] Tune the channel table with `ref learn` after two real runs on the new flow
+
+## Next version: 0.1.0-beta.5
+- [ ] Connectors, keyless first (`docs/CONNECTORS.md`): `ref fetch` · HN Algolia · GitHub Releases · Speaker Deck account pages · App Store rating distribution + shown reviews. GeekNews gets no connector: a WebSearch instruction in SKILL.md §2 instead
+
+## After 0.1.0-beta.5
+- [ ] Tune the channel table after two real runs on the new flow (1 of 2 done: R37, design + tech). Run the next one on another value type, e.g. strategy or user reaction. Shared changes go into SKILL.md §2 and ship in a release; `ref learn` only reaches one library
+- [ ] Connectors, second tier: Stack Exchange · arXiv
+- [ ] Connectors needing a key: Naver · OpenDART · YouTube
+- [ ] Connectors on hold, reasons in redesign doc §7.3: Reddit · Semantic Scholar · Product Hunt · EDGAR · Google Play
+- [ ] Progress pane as a mod: feasible, build it on `ref run round`; check whether a plugin's `hooks.json` can hold both shell hooks and `modules`
+- [ ] Date-sorted search through Aside (Google, Naver): would fill the gap WebSearch leaves, unverified
+- [ ] PDF capture: a PDF URL failed in R37 and left no screen on the board
+- [ ] Source grades: third-party articles with no URL signal stay at A; agents now pass `type`, older captures remain
+- [ ] Library home head is still large; the board head was restructured, the home kept its layout
+- [ ] Verify an interactive session on a marketplace install (`--plugin-dir` on the release tag is verified; a throwaway config has no login)
+- [ ] Remove the internal product names in `docs/HOME-REDESIGN.md` (already public)
 
 ## Next modes
 - [ ] **dev mode** (`domain: dev`): library/architecture comparison — repos, docs, benchmarks, issues as sources; anti-pattern claims
@@ -33,3 +47,5 @@ Goal frame: references must serve 5 purposes (시행착오 절감 · 벤치마�
 ## Library content (maintainer's own, not shipped)
 - [ ] `budget-app-category`: 17 refs, 0 claims — write claims
 - [ ] optional: design-visualization research for boards
+- [ ] Fill dates on 1,162 undated refs (`ref fresh`, `ref date`), most from bare-year `published` values
+- [ ] Rewrite old collections' `question` where it holds run notes: the board head now shows it

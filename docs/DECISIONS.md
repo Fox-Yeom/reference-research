@@ -2,6 +2,9 @@
 
 Newest first. One line of context, the decision, why.
 
+## 2026-11-04 · Connectors: paths follow docs or robots; three of five changed
+Re-measuring before implementation (`docs/CONNECTORS.md`): robots disallows Speaker Deck account feeds and the App Store review RSS, the RSS returned 0 entries for 6 apps, and GeekNews has no keyword path while WebSearch limited to its domain worked. → (1) Documented APIs follow their docs; undocumented paths follow `robots.txt` `User-agent: *`, so `ref store`'s documented iTunes Search API stays. (2) No GeekNews connector; SKILL.md gives a WebSearch instruction. (3) Speaker Deck reads account and deck pages. (4) App Store gives the rating distribution plus the reviews the page shows, labelled as neither newest-first nor a sample; newest reviews are given up. (5) `store` defaults to the `primary` channel so `reaction` no longer counts store pages; old collections may get a new warning from `ref channels`.
+
 ## 2026-11-04 · Board head is a structured panel; progress goes through a hook
 Real-use feedback on the indigo head: "not structured, just a blue background with loud color". → The board head is one white panel: a question/answer/decision/evidence/counter table beside evidence-strength, freshness and channel stats; the home head follows. This narrows, not reverses, 2026-10-02: indigo stays the structural accent, semantic colors carry meaning. Separately, agents did not relay CLI output (brief table, round lines, capture backend) in 5 of 5 and 3 of 3 runs, whatever the wording. → `ref` writes such lines to `announce.log`, and a PostToolUse hook in the SKILL frontmatter shows them as `systemMessage`; verified in a real terminal. A file, because agents also filter stdout.
 

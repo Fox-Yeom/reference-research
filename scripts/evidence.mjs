@@ -45,6 +45,7 @@ export const BRIEF_FIELDS = { purpose: "목적", audience: "대상", problem: "�
 const SHOW_BRIEF = "Show this table to the user as is; a prose summary does not count.";
 
 const briefCell = (v) => String((Array.isArray(v) ? v.join(" · ") : v) || "—").replace(/\|/g, "\\|").replace(/\n/g, " ");
+export const briefRows = (b) => (b ? Object.entries(BRIEF_FIELDS).filter(([k]) => b[k]?.length).map(([k, label]) => [label, briefCell(b[k]).replace(/\\\|/g, "|")]) : []);
 const briefTable = (b) => ["| 칸 | 내용 |", "|---|---|", ...Object.entries(BRIEF_FIELDS).map(([k, label]) => `| ${label} | ${briefCell(b?.[k])} |`)].join("\n");
 
 /** Merge into collection.brief; a change to an existing brief goes on briefHistory, because the brief is a hypothesis (SKILL §1). */
@@ -719,9 +720,7 @@ const isKorean = (r) => {
 };
 
 /** Channel coverage of a category. Refs carry no value type, so this counts the category as a whole. */
-export async function channelReport(name) {
-  const col = await mustCollection(name);
-  const [refs, runs] = await Promise.all([readRefs(), readRuns()]);
+export function channelCounts(col, refs, runs) {
   const byId = new Map(refs.map((r) => [r.id, r]));
   const members = col.members.map((m) => byId.get(m.ref)).filter(Boolean);
   const types = [col.brief?.value_types ?? []].flat();
@@ -730,20 +729,32 @@ export async function channelReport(name) {
   const droppedFor = (ch) => dropped.find((d) => d.channel === ch || d.channel === CHANNEL_KO[ch]);
   const rows = Object.keys(CHANNEL_KO).map((ch) => {
     const hit = members.filter((r) => channelOf(r) === ch);
-    return `| ${CHANNEL_KO[ch]} | ${hit.length} | ${hit.filter(isKorean).length} | ${hit.slice(0, 3).map((r) => `${r.id} ${r.product ?? r.label ?? ""}`.trim()).join(", ")} |`;
+    return { label: CHANNEL_KO[ch], count: hit.length, korean: hit.filter(isKorean).length, sample: hit.slice(0, 3).map((r) => `${r.id} ${r.product ?? r.label ?? ""}`.trim()) };
   });
-  const missing = needed.filter((ch) => !members.some((r) => channelOf(r) === ch));
-  const excused = missing.filter(droppedFor);
-  const unexcused = missing.filter((ch) => !droppedFor(ch));
+  const lacking = needed.filter((ch) => !members.some((r) => channelOf(r) === ch));
+  return {
+    types,
+    rows,
+    unclassified: members.filter((r) => !channelOf(r)).length,
+    excused: lacking.filter(droppedFor).map((ch) => ({ label: CHANNEL_KO[ch], ref: droppedFor(ch).ref ?? "", reason: droppedFor(ch).reason ?? "" })),
+    missing: lacking.filter((ch) => !droppedFor(ch)).map((ch) => CHANNEL_KO[ch]),
+    korean: members.some(isKorean),
+  };
+}
+
+export async function channelReport(name) {
+  const col = await mustCollection(name);
+  const [refs, runs] = await Promise.all([readRefs(), readRuns()]);
+  const c = channelCounts(col, refs, runs);
   return [
-    `${col.name}: 가치 유형 ${types.join(" · ") || "개요 없음"}`,
+    `${col.name}: 가치 유형 ${c.types.join(" · ") || "개요 없음"}`,
     "| 채널 | 레퍼런스 | 국내 | 예시 |",
     "|---|:-:|:-:|---|",
-    ...rows,
-    `미분류 ${members.filter((r) => !channelOf(r)).length}`,
-    ...excused.map((ch) => `제외: ${CHANNEL_KO[ch]} — ${droppedFor(ch).ref ?? ""} ${droppedFor(ch).reason ?? ""}`.trim()),
-    ...(unexcused.length ? [`⚠ 없는 채널: ${unexcused.map((ch) => CHANNEL_KO[ch]).join(", ")} — 더 찾거나, 표본 1건을 보고 \`ref run round\`의 dropped에 남긴다`] : []),
-    ...(members.some(isKorean) ? [] : ["⚠ 국내 채널 없음"]),
+    ...c.rows.map((r) => `| ${r.label} | ${r.count} | ${r.korean} | ${r.sample.join(", ")} |`),
+    `미분류 ${c.unclassified}`,
+    ...c.excused.map((x) => `제외: ${x.label} — ${x.ref} ${x.reason}`.trim()),
+    ...(c.missing.length ? [`⚠ 없는 채널: ${c.missing.join(", ")} — 더 찾거나, 표본 1건을 보고 \`ref run round\`의 dropped에 남긴다`] : []),
+    ...(c.korean ? [] : ["⚠ 국내 채널 없음"]),
   ].join("\n");
 }
 
@@ -764,7 +775,7 @@ export async function citeCheck(text) {
     if (/^\|[-:| ]+\|$/.test(l) && prev && uncited.at(-1) === prev.slice(0, 120)) uncited.pop();
     prev = l;
     if (/^#+\s|^\*\*[^*]+\*\*:?$/.test(l)) {
-      exempt = /목표|goal|질문|question|대상|coverage|커버리지|출처|sources/i.test(l);
+      exempt = /목표|goal|질문|question|대상|coverage|커버리지|출처|sources|조사 과정|process/i.test(l);
       continue;
     }
     const ids = [...l.matchAll(CITE_RE)].flatMap((m) => m[1].split(/\s*,\s*/));

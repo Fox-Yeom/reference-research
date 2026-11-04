@@ -57,7 +57,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | `ref cite <collection> [--file f]` | every finding line cites known, active `[S#]`/`[C#]`; also warns on key claims citing only 지난 자료 |
 | `ref fresh <collection>` | 신선 / 지난 자료 / 날짜 미상 split, key claims citing only 지난 자료, undated refs in the order to fill them |
 | `ref channels <collection>` | refs per channel (1차 · 해석 · 반응 · 이유) and Korean sources; warns on what is missing |
-| `ref report '<json>'` | category board `<collection>/index.html` — 목적 블록 + 숫자 타일 · 한눈에 보기 · (커리큘럼 비교) · 패턴 비교 · 레퍼런스(검색 `/`, 역할·패턴·회차·정렬, 보기 3종: 격자 · 제품별 · **흐름**(한 페이지의 화면을 순서대로), 화면 뷰어 + 정보 패널; 캡처 없는 자료는 **자료 목록** 표) · 발견과 근거(제목/내용/메타 3단, 근거 화면 썸네일, 회차·근거 세기 필터) · 조사 기록 · 출처(인용된 것만, 등급·종류 필터) — ids are copy buttons. Plus library home `~/references/index.html` and `README.md`. One template (`scripts/board.mjs`) for every board: change it, re-run `ref report` per collection. The goal block reads `collection.goal`, else the last run's goal, else the summary's "목표" line |
+| `ref report '<json>'` | category board `<collection>/index.html`, conclusion first: 머리(질문 · 답 · 제안) · 근거 3개와 반대 근거 · 왜 이렇게 만들었나(역추적 카드) · 패턴 비교 · (커리큘럼 비교) · 피할 것 · 열린 질문 · 레퍼런스(검색 `/`, 역할·패턴·회차·정렬, 보기 3종: 격자 · 제품별 · **흐름**, 화면 뷰어 + 정보 패널; 캡처 없는 자료는 **자료 목록** 표) · 발견과 근거 · 전체 요약 · 조사 과정(접힘: 개요 · 바퀴 · 채널 · 신선도 · 회차 기록) · 출처. `reader` picks the order: `decision` · `practitioner` (default) · `archive`. Ids are copy buttons. Plus library home `~/references/index.html` and `README.md`. One template (`scripts/board.mjs`) for every board: change it, re-run `ref report` per collection |
 | `ref plan set\|show\|link\|delta` | optional plan layer (see §8) |
 | `ref course set '<json>'` / `ref course show <collection>` | curriculum mode: a course's structure (modules · topics · hours) / comparison: topic coverage, usual order, gaps vs. basis (see §9) |
 | `ref axes show [collection]` · `ref axes suggest [collection]` · `ref axes set '<json>'` | axes with products/categories · candidate groupings for unmapped tags · define/merge axes |
@@ -106,7 +106,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
   {"refutes":"C5","text":"what is actually true","kind":"fact","sources":["S14"]}]}
 
 // report — header fields are optional and stored on the category; without them the board reads the summary's 핵심 결론 / 열린 질문 / 추천 sections
-// result = one-line outcome of this run (closes it in 조사 기록) · view = default reference view grid|rows|flow
+// result = one-line outcome of this run (closes it in 조사 과정) · view = default reference view grid|rows|flow · reader = decision|practitioner|archive
 {"collection":"…","summary_file":"/path/to/summary.md","open":false,
  "highlights":["C12","C3","C8"],"open_questions":["…"],"next_steps":["…"],"audience":"…","result":"…"}
 ```
@@ -255,7 +255,7 @@ Then `ref delta <collection>`: A tells what this run changed, C what is common /
 | heading | content |
 |---|---|
 | `## 목표` | the decision this run supports |
-| `## 핵심 결론` | bullets, in order: the question answered · the answer in one sentence · the proposed decision · the strongest counter-evidence · 3 evidence bullets (claim headline + `[C#]`, with `[S#]` of the representative screen) |
+| `## 핵심 결론` | labelled bullets, the board's first screen reads them: `- 질문: …` · `- 답: …` (one sentence) · `- 제안: …` · `- 반대 근거: …` · 3 × `- 근거: <claim headline> [C#] [S#]` (`[C#]` first, `[S#]` = representative screen) |
 | `## 왜 이렇게 만들었나` | 3–5 key refs: 왜 with its basis (공식·정황·추정) + 결과 |
 | `## 공통 vs 차별` | delta C by axis: 기본기 · 선택지 · 차별점; include 다른 카테고리와 공유하는 축 |
 | `## 피할 것` | combinations in their context |

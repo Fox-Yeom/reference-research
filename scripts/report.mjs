@@ -4,8 +4,8 @@
  */
 import { promises as fs, readFileSync } from "node:fs";
 import * as path from "node:path";
-import { collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, freshWarnings, mustCollection, staleKeyClaims } from "./evidence.mjs";
-import { FILES, LIB, SOURCE_LED, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
+import { briefRows, channelCounts, collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, freshWarnings, mustCollection, staleKeyClaims } from "./evidence.mjs";
+import { FILES, LIB, SOURCE_LED, bad, coverageTypes, freshness, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { renderBoard, renderHome, splitSummary } from "./board.mjs";
 import { run } from "./capture.mjs";
@@ -51,7 +51,7 @@ export async function report(params) {
     .filter((m) => m.r)
     .sort((a, b) => String(a.r.product ?? "").localeCompare(String(b.r.product ?? "")) || a.r.id.localeCompare(b.r.id));
   // header fields (docs/BOARD-REDESIGN.md E1): explicit params win, stored on the collection
-  const HEAD = { goal: "goal", audience: "audience", question: "question", highlights: "highlights", open_questions: "openQuestions", next_steps: "nextSteps", view: "view" };
+  const HEAD = { goal: "goal", audience: "audience", question: "question", highlights: "highlights", open_questions: "openQuestions", next_steps: "nextSteps", view: "view", reader: "reader" };
   let touched = false;
   for (const [p, k] of Object.entries(HEAD))
     if (params[p] !== undefined) {
@@ -63,6 +63,7 @@ export async function report(params) {
         if (unknown.length) bad(`highlights: unknown claim id(s) ${unknown.join(", ")}`);
       }
       if (k === "view" && !["grid", "rows", "flow"].includes(v)) bad("view must be grid, rows or flow");
+      if (k === "reader" && !["decision", "practitioner", "archive"].includes(v)) bad("reader must be decision, practitioner or archive");
       col[k] = v;
       touched = true;
     }
@@ -255,6 +256,12 @@ async function boardData(col, members, refs, claims, summary, cite, cov, relp) {
     axes: { rows, products: axisProducts, facets: [...facetMap.values()], unmapped },
     claims: { own, related },
     staleKey: new Set(staleKeyClaims(col, claims, refs).map((c) => c.id)),
+    process: {
+      brief: briefRows(col.brief),
+      rounds: runs.filter((x) => x.rounds?.length).at(-1)?.rounds ?? [],
+      channels: channelCounts(col, refs, runs),
+      fresh: Object.fromEntries(["fresh", "stale", "unknown"].map((f) => [f, ms.filter((m) => freshness(m.r) === f).length])),
+    },
     runs: runRows,
     current,
     changes: ms.flatMap((m) => (m.r.changes ?? []).map((c) => ({ r: m.r, c }))),

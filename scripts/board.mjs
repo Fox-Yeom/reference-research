@@ -79,12 +79,15 @@ export function md(src, cite = (id) => `<a class="cite" href="#${id}">${id}</a>`
 // ---------- shared shell ----------
 
 const CSS = `
-:root{--bg:#fbfbfd;--mat:#eef1f8;--panel:#fff;--panel2:#f4f6fb;--text:#14161c;--muted:#5d6475;--faint:#9aa1b2;--line:#e4e7ef;--chip:#eef1f7;--chip-on:#2f5bea;--chip-on-text:#fff;
+:root{--bg:#eef1fa;--page:#eef1fa;--mat:#eef1fa;--panel:#fff;--panel2:#f5f7fd;--inner:#f5f7fd;--text:#14161c;--muted:#5d6475;--faint:#9aa1b2;--line:#e4e7ef;--chip:#eef1fa;--chip-on:var(--accent);--chip-on-text:#fff;--gray-soft:#eef1fa;
 --accent:#2f5bea;--accent-soft:#e6ecfd;--accent-2:#9db3f6;
---blue:#2f5bea;--blue-soft:#e6ecfd;--violet:#7c5ce6;--violet-soft:#efeafd;--teal:#0e9488;--teal-soft:#dff4f1;--amber:#d4870f;--amber-soft:#fcf0dc;--coral:#e0533d;--coral-soft:#fde7e3;--green:#1f9d55;--green-soft:#dff3e7;--gray-soft:#eef0f4;
---good:var(--green);--warn:var(--amber);--bad:var(--coral);--radius:10px}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1016;--mat:#1a1e29;--panel:#141821;--panel2:#181c26;--text:#e9ecf3;--muted:#98a0b3;--faint:#5d6578;--line:#252a36;--chip:#1d2230;--chip-on:#6f8ff5;--chip-on-text:#0e1016;--accent:#7d9bf7;--accent-soft:#1c2747;--accent-2:#3c5299;--blue:#7d9bf7;--blue-soft:#1c2747;--violet:#a68ff2;--violet-soft:#2a2246;--teal:#3cc3b4;--teal-soft:#123532;--amber:#f0b04e;--amber-soft:#3a2c14;--coral:#f2846f;--coral-soft:#3d1f1a;--green:#4fcb83;--green-soft:#163423;--gray-soft:#1d2230}}
-:root[data-theme=dark]{--bg:#0e1016;--mat:#1a1e29;--panel:#141821;--panel2:#181c26;--text:#e9ecf3;--muted:#98a0b3;--faint:#5d6578;--line:#252a36;--chip:#1d2230;--chip-on:#6f8ff5;--chip-on-text:#0e1016;--accent:#7d9bf7;--accent-soft:#1c2747;--accent-2:#3c5299;--blue:#7d9bf7;--blue-soft:#1c2747;--violet:#a68ff2;--violet-soft:#2a2246;--teal:#3cc3b4;--teal-soft:#123532;--amber:#f0b04e;--amber-soft:#3a2c14;--coral:#f2846f;--coral-soft:#3d1f1a;--green:#4fcb83;--green-soft:#163423;--gray-soft:#1d2230}
+--green:#1f9d55;--green-soft:#dff3e7;--amber:#d4870f;--amber-soft:#fcf0dc;--coral:#e0533d;--coral-soft:#fde7e3;
+--blue:var(--accent);--blue-soft:var(--accent-soft);--violet:var(--accent);--violet-soft:var(--accent-soft);--teal:var(--accent);--teal-soft:var(--accent-soft);
+--good:var(--green);--warn:var(--amber);--bad:var(--coral);--radius:10px;
+--side-bg:#191d3a;--side-text:#e8eaf6;--side-muted:#9aa0c3;--side-line:#2b3058;--hero-a:#2f45c8;--hero-b:#4338ca;--on-hero-good:#6fe3a5;--on-hero-warn:#ffd27a;--on-hero-bad:#ff9d8a;
+--v-bg:#0b0b0b;--v-panel:#111;--v-btn:#1a1a1a;--v-btn-hover:#262626;--v-line:#222;--v-text:#ececec;--v-muted:#8f8f8f;--v-soft:#c4c4c4;--v-accent:#7d9bf7}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b0d16;--page:#0b0d16;--mat:#1a1e29;--panel:#141821;--panel2:#171b27;--inner:#171b27;--text:#e9ecf3;--muted:#98a0b3;--faint:#5d6578;--line:#252a36;--chip:#1d2230;--chip-on-text:#0e1016;--gray-soft:#1d2230;--accent:#7d9bf7;--accent-soft:#1c2747;--accent-2:#3c5299;--green:#4fcb83;--green-soft:#163423;--amber:#f0b04e;--amber-soft:#3a2c14;--coral:#f2846f;--coral-soft:#3d1f1a}}
+:root[data-theme=dark]{--bg:#0b0d16;--page:#0b0d16;--mat:#1a1e29;--panel:#141821;--panel2:#171b27;--inner:#171b27;--text:#e9ecf3;--muted:#98a0b3;--faint:#5d6578;--line:#252a36;--chip:#1d2230;--chip-on-text:#0e1016;--gray-soft:#1d2230;--accent:#7d9bf7;--accent-soft:#1c2747;--accent-2:#3c5299;--green:#4fcb83;--green-soft:#163423;--amber:#f0b04e;--amber-soft:#3a2c14;--coral:#f2846f;--coral-soft:#3d1f1a}
 *{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth;scroll-padding-top:24px}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Inter",sans-serif;word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
 a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
@@ -128,7 +131,7 @@ tbody tr:last-child td{border-bottom:0}
 .conf{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:2px 9px 2px 8px;border-radius:999px;white-space:nowrap;background:var(--gray-soft);color:var(--muted)}.conf::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 .conf.high{background:var(--green-soft);color:var(--green)}.conf.medium{background:var(--amber-soft);color:var(--amber)}.conf.low{background:var(--coral-soft);color:var(--coral)}
 .note{background:var(--amber-soft);color:var(--amber);border-radius:8px;padding:10px 14px;font-size:14px;margin:12px 0}
-.role{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}.r-direct{background:var(--blue-soft);color:var(--blue)}.r-indirect{background:var(--amber-soft);color:var(--amber)}.r-analogous,.r-trend{background:var(--teal-soft);color:var(--teal)}.fr-fresh{background:var(--green-soft);color:var(--green)}.fr-stale{background:var(--gray-soft);color:var(--muted)}.fr-unknown{background:var(--amber-soft);color:var(--amber)}
+.role{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}.r-direct{background:var(--accent-soft);color:var(--accent)}.r-indirect{background:var(--gray-soft);color:var(--muted)}.r-analogous,.r-trend{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent-2)}.fr-fresh{background:var(--green-soft);color:var(--green)}.fr-stale{background:var(--gray-soft);color:var(--muted)}.fr-unknown{background:var(--amber-soft);color:var(--amber)}
 .kdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:2px;vertical-align:0}.k-pattern{background:var(--blue)}.k-benchmark{background:var(--violet)}.k-fact{background:var(--teal)}.k-gap{background:var(--amber)}.k-failure{background:var(--coral)}.k-opinion,.k-hypothesis{background:var(--faint)}
 .muted{color:var(--muted)}.small{font-size:13px}
 .prod{font:inherit;font-size:13.5px;font-weight:500;background:none;border:0;padding:0;color:var(--accent);cursor:zoom-in;text-align:left}.prod:hover{text-decoration:underline;text-underline-offset:3px}
@@ -235,30 +238,27 @@ footer{color:var(--faint);font-size:13px;padding:30px 0 0;border-top:1px solid v
 @media (max-width:860px){.axcards,.grid2{grid-template-columns:1fr}.rows .row{grid-template-columns:1fr}}
 @media (max-width:640px){h1{font-size:30px}.cards{grid-template-columns:1fr 1fr;gap:24px 14px}.how li{grid-template-columns:1fr;gap:2px}.claim{grid-template-columns:1fr}.claim .side2{flex-direction:row;align-items:center}.sechead{grid-template-columns:1fr}.sechead p{grid-column:1}}
 /* viewer */
-#viewer{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;z-index:100;display:none;background:#0b0b0b;color:#ececec}
+#viewer{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;z-index:100;display:none;background:var(--v-bg);color:var(--v-text)}
 #viewer.open{display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:1fr auto}
-#viewer header{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #222;flex-wrap:wrap}
-#viewer header .t{margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#viewer header .t small{color:#8f8f8f;margin-left:8px}
-#viewer button,#viewer header a{font:inherit;font-size:13px;color:#ececec;background:#1a1a1a;border:0;border-radius:999px;padding:6px 13px;cursor:pointer;text-decoration:none}
-#viewer button:hover,#viewer header a:hover{background:#262626}#viewer .modes button.on{background:#5b7ff0;color:#fff}#viewer button:disabled{opacity:.3;cursor:default}
+#viewer header{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--v-line);flex-wrap:wrap}
+#viewer header .t{margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#viewer header .t small{color:var(--v-muted);margin-left:8px}
+#viewer button,#viewer header a{font:inherit;font-size:13px;color:var(--v-text);background:var(--v-btn);border:0;border-radius:999px;padding:6px 13px;cursor:pointer;text-decoration:none}
+#viewer button:hover,#viewer header a:hover{background:var(--v-btn-hover)}#viewer .modes button.on{background:var(--v-accent);color:#fff}#viewer button:disabled{opacity:.3;cursor:default}
 #viewer .stage{position:relative;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:20px}
 #viewer .stage.fit{align-items:center}#viewer .stage.fit img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in}
 #viewer .stage.zoom img{max-width:none;max-height:none;cursor:zoom-out}
 #viewer .stage.scroll{flex-direction:column;align-items:center}#viewer .stage.scroll img{display:block;width:min(100%,1280px);height:auto}
 #viewer .nav{position:fixed;top:50%;transform:translateY(-50%);font-size:20px!important;width:44px;height:44px;padding:0!important;background:rgba(26,26,26,.9)!important}
 #viewer .nav.prev{left:16px}#viewer .nav.next{right:calc(16px + var(--side,0px))}
-#viewer .count{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;font-size:12px;color:#bdbdbd;background:rgba(0,0,0,.6);padding:3px 10px;border-radius:999px}
-#viewer .strip{grid-column:1;display:flex;gap:8px;overflow-x:auto;padding:10px 16px;border-top:1px solid #222}
-#viewer .strip img{height:64px;width:auto;border-radius:4px;opacity:.45;cursor:pointer;flex:none}#viewer .strip img.on{opacity:1;box-shadow:0 0 0 2px #5b7ff0}
-#viewer aside{grid-row:2/4;grid-column:2;width:min(400px,34vw);overflow:auto;border-left:1px solid #222;padding:18px 22px;background:#111;font-size:14px;line-height:1.65}
-#viewer aside[hidden]{display:none}#viewer aside h5{margin:0 0 8px;font-size:12px;font-weight:500;color:#8f8f8f}
-#viewer aside .facts{margin:0 0 16px;padding:0 0 14px;border-bottom:1px solid #222}#viewer aside .facts div{margin:2px 0;color:#c4c4c4}
-#viewer aside .chip{background:#1f1f1f;color:#c4c4c4}#viewer aside a{color:#ececec}#viewer aside .prose{color:#d6d6d6}#viewer aside .cite{background:#1f1f1f;color:#bdbdbd}
+#viewer .count{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;font-size:12px;color:var(--v-soft);background:rgba(0,0,0,.6);padding:3px 10px;border-radius:999px}
+#viewer .strip{grid-column:1;display:flex;gap:8px;overflow-x:auto;padding:10px 16px;border-top:1px solid var(--v-line)}
+#viewer .strip img{height:64px;width:auto;border-radius:4px;opacity:.45;cursor:pointer;flex:none}#viewer .strip img.on{opacity:1;box-shadow:0 0 0 2px var(--v-accent)}
+#viewer aside{grid-row:2/4;grid-column:2;width:min(400px,34vw);overflow:auto;border-left:1px solid var(--v-line);padding:18px 22px;background:var(--v-panel);font-size:14px;line-height:1.65}
+#viewer aside[hidden]{display:none}#viewer aside h5{margin:0 0 8px;font-size:12px;font-weight:500;color:var(--v-muted)}
+#viewer aside .facts{margin:0 0 16px;padding:0 0 14px;border-bottom:1px solid var(--v-line)}#viewer aside .facts div{margin:2px 0;color:var(--v-soft)}
+#viewer aside .chip{background:var(--v-btn);color:var(--v-soft)}#viewer aside a{color:var(--v-text)}#viewer aside .prose{color:var(--v-soft)}#viewer aside .cite{background:var(--v-btn);color:var(--v-soft)}
 
 /* ---- layout color (indigo theme): tinted page, dark sidebar, gradient hero, sections as cards ---- */
-:root{--bg:#eef1fa;--page:#eef1fa;--side-bg:#191d3a;--side-text:#e8eaf6;--side-muted:#9aa0c3;--side-line:#2b3058;--hero-a:#3348d6;--hero-b:#7a4fe0;--inner:#f5f7fd}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b0d16;--page:#0b0d16;--side-bg:#121530;--side-text:#e3e6f6;--side-muted:#8a90b5;--side-line:#23284a;--hero-a:#2a3aa8;--hero-b:#5b3bb0;--inner:#171b27}}
-:root[data-theme=dark]{--bg:#0b0d16;--page:#0b0d16;--side-bg:#121530;--side-text:#e3e6f6;--side-muted:#8a90b5;--side-line:#23284a;--hero-a:#2a3aa8;--hero-b:#5b3bb0;--inner:#171b27}
 body{background:var(--page)}
 .side{background:var(--side-bg);color:var(--side-text);border-right:0}
 .side .brand{color:#fff}.side .brand span{color:var(--side-muted)}
@@ -269,7 +269,7 @@ body{background:var(--page)}
 .side .search input:focus{background:rgba(255,255,255,.12);border-color:#7d9bf7;box-shadow:0 0 0 3px rgba(125,155,247,.25)}
 .side .search kbd{background:transparent;border-color:var(--side-line);color:var(--side-muted)}
 .content{padding:28px 40px 80px}
-.hero{max-width:none;margin:0 0 24px;padding:40px 44px 36px;border-radius:20px;color:#fff;background:radial-gradient(1200px 400px at 100% 0%,rgba(255,255,255,.14),transparent 60%),linear-gradient(120deg,var(--hero-a),var(--hero-b))}
+.hero{max-width:none;margin:0 0 20px;padding:26px 36px 22px;border-radius:20px;color:#fff;background:radial-gradient(1200px 400px at 100% 0%,rgba(255,255,255,.14),transparent 60%),linear-gradient(120deg,var(--hero-a),var(--hero-b))}
 .hero .eyebrow{color:rgba(255,255,255,.75)}.hero h1{color:#fff}.hero .lead{color:rgba(255,255,255,.85);max-width:880px}
 .hero .stats{color:rgba(255,255,255,.85);max-width:920px}.hero .stats b{color:#fff;background:linear-gradient(transparent 62%,rgba(255,255,255,.22) 62%)}
 .hero .collage .thumb{background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
@@ -281,25 +281,48 @@ section .panel{background:var(--inner);border-color:transparent}
 .searchinfo{border-radius:12px;padding:12px 16px;margin-bottom:16px;border:1px solid var(--line);color:var(--accent);font-weight:500}
 .band{border-top:0;border-bottom:0;gap:10px;grid-template-columns:repeat(5,minmax(0,1fr))}
 .band div{margin:0;border:0;border-radius:12px;padding:16px 18px}
-.band div:nth-child(1){background:var(--blue-soft)}.band div:nth-child(2){background:var(--violet-soft)}.band div:nth-child(3){background:var(--teal-soft)}.band div:nth-child(4){background:var(--amber-soft)}.band div:nth-child(5){background:var(--green-soft)}
-.band div:nth-child(1) b{color:var(--blue)}.band div:nth-child(2) b{color:var(--violet)}.band div:nth-child(3) b{color:var(--teal)}.band div:nth-child(4) b{color:var(--amber)}.band div:nth-child(5) b{color:var(--green)}
+.band div{background:var(--accent-soft)}
+.band div b{color:var(--accent)}
 .topics{border-top:0}.topics .thead{background:var(--inner);border-radius:8px;padding:8px 12px;border-bottom:0}
 .thumb{background:var(--mat)}
 footer{border-top:0;text-align:center}
 @media (max-width:1100px){.topbar{background:var(--side-bg)!important;border-bottom:0!important}.topbar .brand{color:#fff}.topbar .search input{background:rgba(255,255,255,.1);border-color:transparent;color:#fff}.content{padding:18px 14px 60px}.hero{padding:28px 22px;border-radius:16px}section{padding:24px 18px;border-radius:14px}}
 body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
-@media (max-width:760px){#viewer.open{grid-template-columns:1fr}#viewer aside{grid-column:1;grid-row:auto;width:auto;max-height:38vh;border-left:0;border-top:1px solid #222}#viewer .nav.next{right:16px}#viewer .count{bottom:auto;top:58px}}
+@media (max-width:760px){#viewer.open{grid-template-columns:1fr}#viewer aside{grid-column:1;grid-row:auto;width:auto;max-height:38vh;border-left:0;border-top:1px solid var(--v-line)}#viewer .nav.next{right:16px}#viewer .count{bottom:auto;top:58px}}
 /* ---- readability pass (docs/BOARD-REDESIGN.md, phase 1): goal block, stat tiles, 3-line claim cards, limited lists, copyable ids, scrollspy ---- */
 .hero .goal{margin:18px 0 0;padding:16px 20px;border-radius:14px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);max-width:72ch}
 .hero .goal .lbl{display:block;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.75);margin-bottom:4px}
 .hero .goal p{margin:0;font-size:17px;line-height:1.55;color:#fff;font-weight:500}.hero .goal p .cite{background:rgba(255,255,255,.2);color:#fff}
 .hero .goal .aud{margin-top:6px;font-size:14px;font-weight:400;color:rgba(255,255,255,.82)}
+.hero.answer h1{font-size:18px;font-weight:600;letter-spacing:0;margin:6px 0 14px;color:rgba(255,255,255,.88)}
+.concl{display:grid;grid-template-columns:40px minmax(0,1fr);gap:6px 12px;margin:0;max-width:82ch}
+.concl dt{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.72);padding-top:.25em}
+.concl dd{margin:0;font-size:15px;line-height:1.5;color:rgba(255,255,255,.92)}
+.concl dd.ans{font-size:23px;line-height:1.36;font-weight:600;color:#fff;letter-spacing:-.01em}
+.concl dt.ans{padding-top:.5em}.concl .cite{background:rgba(255,255,255,.2);color:#fff}
+.hmeta{margin:14px 0 0;font-size:13px;color:rgba(255,255,255,.76)}
+#key{padding-top:20px;padding-bottom:20px}#key h3{margin:0 0 6px;font-size:15px}
+.evrow{border-top:1px solid var(--line)}.evrow:first-of-type{border-top:0}
+.evrow summary{display:flex;align-items:baseline;gap:10px;padding:9px 0;cursor:pointer;list-style:none;font-size:15px}.evrow summary::-webkit-details-marker{display:none}
+.evrow summary::before{content:"▸";color:var(--accent);flex:none}.evrow[open] summary::before{content:"▾"}.evrow summary .t{flex:1;min-width:0}.evrow .conf{flex:none}
+.evrow .evbody{padding:0 0 12px 22px;font-size:14px;color:var(--muted)}.evrow .evbody p{margin:0 0 8px}.evrow div.plain{padding:9px 0;font-size:15px}
+.counter{margin:10px 0 0;padding:9px 14px;border-left:3px solid var(--amber);background:var(--amber-soft);color:var(--text);border-radius:0 8px 8px 0;font-size:14px;line-height:1.55}.counter b{color:var(--amber);margin-right:6px}
+.whycards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.whycard{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;padding:16px;border-radius:var(--radius);background:var(--inner)}.whycard.noimg{grid-template-columns:minmax(0,1fr)}
+.whycard .thumb{aspect-ratio:4/3;padding:0;align-self:start;overflow:hidden;border-radius:6px}.whycard .thumb img{width:100%;height:100%;object-fit:cover;object-position:top}
+.whycard h4{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:14.5px}.whycard p{margin:4px 0 0;font-size:14px;line-height:1.55}.whycard p b{color:var(--muted);font-weight:600;margin-right:6px}
+.basis{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}.basis-official{background:var(--green-soft);color:var(--green)}.basis-signal{background:var(--amber-soft);color:var(--amber)}.basis-guess{background:var(--gray-soft);color:var(--muted)}
+.axwhy{margin:0 0 10px;font-size:13px;line-height:1.5;color:var(--muted)}.axwhy .basis{margin-right:6px}
+.vwhy{margin:0 0 16px;padding:12px 14px;border-radius:8px;background:var(--v-btn);font-size:13px;line-height:1.55;color:var(--v-soft)}.vwhy h5{margin:0 0 6px}.vwhy p{margin:4px 0 0}.vwhy b{color:var(--v-muted);font-weight:600;margin-right:6px}
+.proc summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:600;padding:4px 0}.proc[open] summary{margin-bottom:12px}
+.procgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:0 0 16px;align-items:start}.procgrid h4{margin:0 0 8px;font-size:14px}.procgrid table{width:100%;font-size:13.5px}
+.seg{max-width:100%;flex-wrap:wrap}.procfresh{display:flex;flex-wrap:wrap;gap:8px}.proc .tiles{margin:0 0 16px}.proc .tiles div{background:var(--inner);box-shadow:none}.proc .tiles b{color:var(--text)}.proc .tiles span{color:var(--muted)}
 .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:22px 0 0}
 .tiles div{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);border-radius:12px;padding:14px 16px;min-width:0}
 .tiles b{display:block;font-size:30px;line-height:1.1;font-weight:500;letter-spacing:-.02em;color:#fff}
 .tiles span{display:block;margin-top:5px;font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.78)}
 .tiles .mbar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-top:9px;background:rgba(255,255,255,.18)}
-.tiles .mbar i{display:block;height:100%}.tiles .mbar .h{background:#6fe3a5}.tiles .mbar .m{background:#ffd27a}.tiles .mbar .l{background:#ff9d8a}
+.tiles .mbar i{display:block;height:100%}.tiles .mbar .h{background:var(--on-hero-good)}.tiles .mbar .m{background:var(--on-hero-warn)}.tiles .mbar .l{background:var(--on-hero-bad)}
 .hero .lead,.sechead p{max-width:72ch}
 .side nav a{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.side nav a small{font-size:11.5px;opacity:.7;font-variant-numeric:tabular-nums}.side nav a.on{color:#fff;background:rgba(255,255,255,.1)}
 /* claims: title / body / meta */
@@ -349,8 +372,8 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .hero .pprev summary{color:rgba(255,255,255,.8)}.hero .pprev pre{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}.hero .pprev .muted{color:rgba(255,255,255,.7)}.hero .pact:has(.pprev){flex-basis:100%}
 .oqact{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:flex-start;margin:4px 0 6px 18px}.oqact > a{padding-top:4px}.oqact a{white-space:nowrap}
 .seg.tabs button{display:inline-flex;align-items:center;gap:6px}.seg.tabs button small{font-size:11px;opacity:.75;font-variant-numeric:tabular-nums}.seg.tabs .kdot{width:8px;height:8px;margin:0}
-#viewer aside .vtabs{display:flex;gap:6px;margin:0 0 10px}#viewer aside .vtabs button{padding:4px 11px;font-size:12.5px}#viewer aside .vtabs button.on{background:#5b7ff0;color:#fff}
-#viewer aside .vcl{list-style:none;margin:0;padding:0}#viewer aside .vcl li{padding:9px 0;border-top:1px solid #222;color:#d6d6d6;font-size:13.5px}#viewer aside .vcl li:first-child{border-top:0}#viewer aside .vcl a{color:#9db3f6;font-weight:600;margin-right:8px}#viewer aside .vcl .conf{font-size:11px;padding:1px 7px 1px 6px}
+#viewer aside .vtabs{display:flex;gap:6px;margin:0 0 10px}#viewer aside .vtabs button{padding:4px 11px;font-size:12.5px}#viewer aside .vtabs button.on{background:var(--v-accent);color:#fff}
+#viewer aside .vcl{list-style:none;margin:0;padding:0}#viewer aside .vcl li{padding:9px 0;border-top:1px solid var(--v-line);color:var(--v-soft);font-size:13.5px}#viewer aside .vcl li:first-child{border-top:0}#viewer aside .vcl a{color:#9db3f6;font-weight:600;margin-right:8px}#viewer aside .vcl .conf{font-size:11px;padding:1px 7px 1px 6px}
 /* phase 3: folded summary, research chips, verdicts, run timeline, structured notes */
 .sumtoc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.sumtoc a{font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--chip);color:var(--muted)}.sumtoc a:hover{color:var(--accent);text-decoration:none}
 .sumsec{border-top:1px solid var(--line);padding:6px 0}.sumsec:first-child{border-top:0}.sumsec summary{cursor:pointer;font-size:15.5px;font-weight:600;padding:8px 0;list-style:none;display:flex;gap:8px;align-items:baseline}.sumsec summary::before{content:"▸";color:var(--accent);font-size:12px}.sumsec[open] summary::before{content:"▾"}.sumsec summary .cite{font-weight:600}
@@ -362,7 +385,7 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .runs .rh{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.runs .rd{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}.runs .rg{font-size:15px;line-height:1.5;max-width:72ch}.runs .rr{grid-column:2;color:var(--muted);font-size:14px;padding-left:14px;border-left:2px solid var(--line)}.runs .rc{grid-column:2}.runs .cur .rg{font-weight:500}
 .nf{margin:8px 0;display:grid;grid-template-columns:72px 1fr;gap:6px 12px}.nf dt{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;padding-top:2px}.nf dd{margin:0;font-size:14px}
 .nl{display:block;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;margin:8px 0 2px}
-#viewer aside .nf dt,#viewer aside .nl{color:#8f8f8f}#viewer aside .nf dd{color:#d6d6d6}
+#viewer aside .nf dt,#viewer aside .nl{color:var(--v-muted)}#viewer aside .nf dd{color:var(--v-soft)}
 /* home */
 .hero .prompts{max-width:none;display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center}.hero .prompts .lbl{width:100%;margin:0}.hero .prompts .pbtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff}.hero .prompts .pbtn.big{margin:0}.hero .prompts .asks{display:flex;flex-wrap:wrap;gap:6px}.hero .prompts .aud{width:100%;margin:2px 0 0;font-size:12.5px}.hero .prompts code{background:rgba(255,255,255,.18);color:#fff}
 .catcard .concl{display:block;margin-top:8px;font-size:15px;font-weight:600;line-height:1.45;color:var(--text)}.catcard .concl .cite{margin-left:4px;vertical-align:2px}.catcard .concl.muted{font-weight:400}
@@ -514,8 +537,8 @@ function load(m,i){
   V.querySelector('.modes').innerHTML=avail.length>1?avail.map(k=>'<button data-m="'+k+'"'+(k===mode?' class="on"':'')+'>'+MODES[k]+'</button>').join(' '):'';
   const facts=card.querySelector('template.facts-src'),notes=card.querySelector('template.notes-src'),cls=card.querySelector('template.claims-src');
   side.querySelector('.facts').innerHTML=facts?facts.innerHTML:'';
-  side.querySelector('.prose').innerHTML=notes&&notes.innerHTML.trim()?notes.innerHTML:'<p style="color:#a3a097">노트 없음</p>';
-  side.querySelector('.vclaims').innerHTML=cls&&cls.innerHTML.trim()?cls.innerHTML:'<p style="color:#a3a097">이 화면을 근거로 쓴 발견이 아직 없습니다</p>';
+  side.querySelector('.prose').innerHTML=notes&&notes.innerHTML.trim()?notes.innerHTML:'<p style="color:var(--v-muted)">노트 없음</p>';
+  side.querySelector('.vclaims').innerHTML=cls&&cls.innerHTML.trim()?cls.innerHTML:'<p style="color:var(--v-muted)">이 화면을 근거로 쓴 발견이 아직 없습니다</p>';
   const nc=+(card.dataset.claims||0);side.querySelector('[data-t=claims]').textContent='이 화면을 근거로 쓴 발견'+(nc?' '+nc:'');
   tab(side.dataset.tab||(notes&&notes.innerHTML.trim()?'notes':nc?'claims':'notes'));
   side.hidden=!showNotes;sideWidth();
@@ -616,7 +639,7 @@ const splitTitle = (c) => {
 };
 /**
  * SUMMARY.md section contract (docs/BOARD-REDESIGN.md E6): headings "## 목표 · 이번 실행에서 바뀐 것 · 핵심 발견 · 공통 vs 차별 · 추천 · 열린 질문"
- * (also "**제목**" / "**제목:** text" lines). Returns { goal, changed, key, common, recommend, open } → body markdown, unknown headings ignored.
+ * + 왜 이렇게 만들었나 · 피할 것 · 조사 과정 (also "**제목**" / "**제목:** text" lines). Returns { goal, changed, key, why, common, avoid, recommend, open, process } → body markdown, unknown headings ignored.
  */
 const SUMMARY_KEYS = [
   ["goal", /목표|목적|goal/i],
@@ -625,6 +648,9 @@ const SUMMARY_KEYS = [
   ["common", /공통|차별|common/i],
   ["recommend", /추천|다음 (할 일|단계)|권장|recommend|next/i],
   ["open", /열린|미해결|질문|open question/i],
+  ["why", /왜 이렇게|^왜|rationale/i],
+  ["avoid", /피할|avoid/i],
+  ["process", /조사 과정|process/i],
 ];
 export function splitSummary(src) {
   const out = {};
@@ -669,6 +695,30 @@ const noteHtml = (x, cite) => {
   if (x.fields && Object.keys(x.fields).length) return `<dl class="nf">${Object.entries(x.fields).filter(([k]) => k !== "why_basis").map(([k, v]) => `<dt>${esc(NOTE_FIELDS_KO[k] ?? k)}</dt><dd>${k === "why" && WHY_BASIS_KO[x.fields.why_basis] ? `<b>${WHY_BASIS_KO[x.fields.why_basis]}</b> ` : ""}${inline(String(v), cite)}</dd>`).join("")}</dl>`;
   return md(x.text, cite).replace(/<strong>([^<]{1,20})<\/strong>\s*[:：]\s*/g, '<span class="nl">$1</span>');
 };
+const WHY_RANK = { official: 0, signal: 1, guess: 2 };
+const NOTE_PARTS = { 맥락: "context", 왜: "why", 대안: "alternatives", 결과: "result", 시사점: "implication" };
+const BASIS_KEY = { 공식: "official", 정황: "signal", 추정: "guess" };
+const basisChip = (b) => (WHY_BASIS_KO[b] ? `<span class="basis basis-${b}">${WHY_BASIS_KO[b]}</span>` : "");
+/** a note's why-trace: from fields, or the **라벨**: lines of a markdown note */
+function rationaleOf(x) {
+  const parts = { ...x.fields };
+  if (!parts.why) for (const m of String(x.text ?? "").matchAll(/^\*\*(맥락|왜|대안|결과|시사점)\*\*\s*[:：]\s*(.+)$/gm)) parts[NOTE_PARTS[m[1]]] = m[2];
+  if (!parts.why) return null;
+  const lead = parts.why.match(/^(공식|정황|추정)\s*[—:-]\s*/);
+  return { ...parts, why: lead ? parts.why.slice(lead[0].length) : parts.why, basis: parts.why_basis ?? BASIS_KEY[lead?.[1]] ?? null };
+}
+const CONCLUSION_LABELS = [["question", /질문/], ["answer", /^(답|결론)/], ["decision", /^(제안|추천|결정)/], ["counter", /반대/], ["evidence", /^근거/]];
+/** labelled bullets of the summary's 핵심 결론 → { question, answer, decision, counter, evidence[] } */
+function conclusionOf(block) {
+  const out = { evidence: [] };
+  for (const item of listItems(block)) {
+    const m = item.replace(/\*\*/g, "").match(/^([^:：]{1,14})\s*[:：]\s*(.+)$/);
+    const k = m && CONCLUSION_LABELS.find(([, re]) => re.test(m[1]))?.[0];
+    if (k === "evidence") out.evidence.push(m[2]);
+    else if (k) out[k] ??= m[2];
+  }
+  return out;
+}
 /** "- a" / "1. a" lines of a markdown block (one level), else non-empty lines */
 const listItems = (block) => {
   const lines = String(block ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
@@ -704,9 +754,20 @@ export function renderBoard(d) {
   const citedBy = new Map();
   for (const c of [...d.claims.own, ...d.claims.related]) if (c.status === "active") for (const s of c.sources) citedBy.set(s, (citedBy.get(s) ?? 0) + 1);
   const runGoal = (id) => d.runs.find((r) => r.id === id)?.goal ?? "";
+  // a claim's evidence: thumbnails of its sources
+  const evidence = (ids) =>
+    ids
+      .map((id) => {
+        const m = byRef.get(id);
+        const label = esc(m ? `${m.r.product ?? ""}${m.r.page ? " · " + m.r.page : ""}` : d.titleOf(id));
+        return m?.thumb ? `<button class="ev" data-open-ref="${id}" title="${label}"><img src="${esc(m.thumb)}" alt="">${id}</button>` : `<a class="ev noimg" href="${memberIds.has(id) ? `#${id}` : `#src-${id}`}" title="${label}">${id}</a>`;
+      })
+      .join("");
+  // a finding reads top-down: title → text (2 lines, then 더 보기) → meta (strength · run · date · source mix · id) → evidence → earlier versions
   const otherCats = [...new Set(d.members.flatMap((m) => (m.r.categories ?? []).filter((c) => c !== col.name)))];
-  let sec = 0;
-  const next = () => String(++sec).padStart(2, "0");
+  const NUM = "\u0000num\u0000";
+  const next = () => NUM;
+  const reader = ["decision", "practitioner", "archive"].includes(col.reader) ? col.reader : "practitioner";
 
   // key takeaways: collection.highlights → claims marked key → summary "핵심 발견" list → strongest claims
   const sum = splitSummary(d.summary);
@@ -728,36 +789,42 @@ export function renderBoard(d) {
   const nextS = col.nextSteps?.length ? col.nextSteps : sum.recommend ? listItems(sum.recommend) : [];
   const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
   const continuePrompt = `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})를 이어서 해줘.${openQ.length ? ` 열린 질문: ${openQ.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}${nextS.length ? ` 다음 할 일: ${nextS.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
-  const keyItem = (c) => {
-    const [t, b] = splitTitle(c);
-    return `<li><div><span class="kt"><a href="#${c.id}">${esc(t)}</a></span>${b ? `<div class="kb">${esc(short(b, 140))}</div>` : ""}<div class="cmeta">${confBadge(c.confidence)}${idBtn(c.id)}${c.asOf ? `<span class="sep">·</span><span>기준 ${esc(c.asOf)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}</span></div></div></li>`;
+  const concl = conclusionOf(sum.key);
+  const answer = concl.answer ?? keyClaims[0]?.text ?? keyLines[0];
+  const lineItem = (line) => ({ line, c: claimById.get(line.match(/\[(C\d+)/)?.[1]) });
+  // an older summary has no labelled 답: its first key line becomes the answer, so it is not repeated as evidence
+  const evItems = (concl.evidence.length ? concl.evidence.map(lineItem) : keyClaims.length ? keyClaims.map((c) => ({ c })) : keyLines.map(lineItem)).filter((x) => concl.answer || (x.line ?? x.c?.text) !== answer);
+  const evRow = ({ line, c }) => {
+    const head = line ? inline(line, cite) : esc(splitTitle(c)[0]);
+    if (!c) return `<div class="evrow"><div class="plain">${head}</div></div>`;
+    return `<details class="evrow"><summary><span class="t">${head}</span>${confBadge(c.confidence)}</summary><div class="evbody"><p>${esc(c.text)}</p>${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}<div class="cmeta" style="margin-top:8px">${idBtn(c.id)}${c.asOf ? `<span class="sep">·</span><span>기준 ${esc(c.asOf)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}</span></div></div></details>`;
   };
   const keySection =
-    keyClaims.length || keyLines.length || openQ.length || nextS.length
-      ? `<section id="key">${sectionHead(next(), "핵심 결론", `이 조사에서 가장 중요한 것 ${keyClaims.length || keyLines.length}가지와 아직 답하지 못한 것. ${{ highlights: "결론은 <code>ref report</code>의 <code>highlights</code>로 고른 것", key: "결론은 <code>key</code>로 표시한 발견", auto: "결론은 근거가 강하고 출처가 많은 발견을 자동으로 고른 것 — <code>highlights</code>나 <code>key</code>로 바꿀 수 있습니다", "": "" }[keySource]}${keyLines.length ? "결론은 요약의 '핵심 발견' 항목" : ""}.`)}
-<div class="keygrid"><div class="panel">${
-          keyClaims.length ? `<ol class="keylist">${keyClaims.map(keyItem).join("")}</ol>` : keyLines.length ? `<ol class="keylist">${keyLines.map((l) => `<li><div><span class="kt">${inline(l, cite)}</span></div></li>`).join("")}</ol>` : `<p class="muted">아직 발견이 없습니다.</p>`
-        }</div>
-<div class="panel openq">${openQ.length ? `<h4>열린 질문</h4><ul data-limit="5" data-items="li">${openQ.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4><ul data-limit="5" data-items="li">${nextS.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
+    evItems.length || concl.counter
+      ? `<section id="key"><h3>근거 ${evItems.slice(0, 3).length}개</h3>${evItems.slice(0, 3).map(evRow).join("")}${concl.counter ? `<p class="counter"><b>반대 근거</b>${inline(concl.counter, cite)}</p>` : ""}</section>`
+      : "";
+  const openSection =
+    openQ.length || nextS.length
+      ? `<section id="open">${sectionHead(next(), "열린 질문과 다음 할 일", "아직 답하지 못한 것과 이어서 할 일. 버튼을 누르면 이어서 조사할 프롬프트가 복사됩니다.")}<div class="panel openq">${openQ.length ? `<h4>열린 질문</h4><ul data-limit="5" data-items="li">${openQ.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4><ul data-limit="5" data-items="li">${nextS.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
           !openQ.length && !nextS.length ? `<p class="muted small">요약에 <code>## 열린 질문</code> · <code>## 추천</code> 절을 쓰거나 <code>ref report</code>에 <code>open_questions</code> · <code>next_steps</code>를 넘기면 여기에 표시됩니다.</p>` : ""
-        }${promptAction("이 조사 이어서 하기", continuePrompt, { preview: true, big: true, hint: "열린 질문과 다음 할 일을 담은 프롬프트를 복사합니다" })}</div></div></section>`
+        }${promptAction("이 조사 이어서 하기", continuePrompt, { preview: true, big: true, hint: "열린 질문과 다음 할 일을 담은 프롬프트를 복사합니다" })}</div></section>`
+      : "";
+  const avoidSection = sum.avoid ? `<section id="avoid">${sectionHead(next(), "피할 것", "맥락과 함께 적은, 따라 하면 안 되는 조합.")}<div class="panel prose">${md(sum.avoid, cite)}</div></section>` : "";
+
+  // why-traces: one per reference, the best-evidenced first; they also feed the viewer and the pattern cards
+  const traces = d.members
+    .map((m) => ({ m, w: (m.r.notes ?? []).filter((x) => !x.collection || x.collection === col.name).map(rationaleOf).find(Boolean) }))
+    .filter((x) => x.w)
+    .sort((a, b) => (WHY_RANK[a.w.basis] ?? 3) - (WHY_RANK[b.w.basis] ?? 3) || (citedBy.get(b.m.r.id) ?? 0) - (citedBy.get(a.m.r.id) ?? 0));
+  const traceById = new Map(traces.map((x) => [x.m.r.id, x.w]));
+  const axisWhy = new Map();
+  for (const { m, w } of traces) for (const a of m.axes) if (!axisWhy.has(a)) axisWhy.set(a, w);
+  const whyCard = ({ m, w }) => `<article class="whycard${m.thumb ? "" : " noimg"}">${m.thumb ? `<button class="thumb" data-open-ref="${m.r.id}" title="${esc(m.r.label ?? m.r.id)} 크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt=""></button>` : ""}<div><h4>${esc(m.r.product ?? m.r.label ?? m.r.id)}${basisChip(w.basis)}</h4><p>${inline(w.why, cite)}</p>${w.result ? `<p><b>결과</b>${inline(w.result, cite)}</p>` : ""}${w.implication ? `<p><b>시사점</b>${inline(w.implication, cite)}</p>` : ""}</div></article>`;
+  const whySection =
+    traces.length || sum.why
+      ? `<section id="why">${sectionHead(next(), "왜 이렇게 만들었나", "무엇이 보이는가에서 멈추지 않고 이유를 따라간 기록. 초록은 회사가 직접 밝힌 것, 주황은 정황, 회색은 추정입니다.")}${traces.length ? `<div class="whycards">${traces.slice(0, 5).map(whyCard).join("")}</div>` : `<div class="panel prose">${md(sum.why, cite)}</div>`}</section>`
       : "";
 
-  const navItems = [
-    ...(keySection ? [["key", "핵심 결론", keyClaims.length || keyLines.length]] : []),
-    ["summary", "한눈에 보기", ""],
-    ...(d.curriculum ? [["curriculum", "커리큘럼 비교", d.curriculum.n]] : []),
-    ...(d.axes.rows.length ? [["axes", "패턴 비교", d.axes.rows.length]] : []),
-    ["refs", "레퍼런스", d.members.length],
-    ["claims", "발견과 근거", active.length],
-    ["changes", "조사 기록", d.runs.length],
-    ["sources", "출처", d.sources.filter((r) => citedBy.has(r.id)).length],
-  ];
-  const side = `<a class="brand" href="../index.html">References <span>/ 라이브러리</span></a>
-<div class="about"><strong>${esc(col.title ?? col.name)}</strong><br>${esc(col.description ?? "")}</div>
-${searchBox("레퍼런스·발견·패턴 검색")}
-<nav>${navItems.map(([h, t, n]) => `<a href="#${h}">${t}${n ? `<small>${n}</small>` : ""}</a>`).join("")}</nav>
-<div class="foot">${productCount}개 ${unit} · ${d.members.length}개 레퍼런스 · ${active.length}개 발견<br>${lastRun ? `마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>`;
   const topbar = `<a class="brand" href="../index.html">References</a>${searchBox("검색")}`;
 
   // why this research exists — collection goal, else the last run's goal, else the summary's 목표 line
@@ -773,19 +840,15 @@ ${searchBox("레퍼런스·발견·패턴 검색")}
 <div><b>${d.axes.rows.length}</b><span>패턴${shared ? ` · 다른 조사와 공유 ${shared}` : ""}</span></div>
 <div><b>${d.runs.length}</b><span>조사 회차${lastRun ? ` · 마지막 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</span></div>
 </div>`;
-  const hero = `<header class="hero">
+  const question = concl.question ?? col.question ?? goal;
+  const decision = concl.decision ?? null;
+  const hero = `<header class="hero${answer ? " answer" : ""}">
 <div class="eyebrow">${esc(KIND_KO[col.kind] ?? col.kind ?? "")} · ${esc(DOMAIN_KO[col.domain] ?? col.domain)}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>
 <h1>${esc(col.title ?? col.name)}</h1>
-${col.description ? `<p class="lead">${esc(col.description)}</p>` : ""}
-${goalBlock}${tiles}
+${answer ? `<dl class="concl">${question ? `<dt>질문</dt><dd>${inline(question, cite)}</dd>` : ""}<dt class="ans">답</dt><dd class="ans">${inline(answer, cite)}</dd>${decision ? `<dt>제안</dt><dd>${inline(decision, cite)}</dd>` : ""}</dl>` : `${col.description ? `<p class="lead">${esc(col.description)}</p>` : ""}${goalBlock}`}
+<p class="hmeta">${productCount}개 ${esc(unit)} · 레퍼런스 ${d.members.length}개 · 발견 ${active.length}개 · ${d.runs.length}회차</p>
 </header>`;
 
-  const picks = [];
-  for (const p of d.products) {
-    const m = p.members.find((x) => x.thumb);
-    if (m && picks.length < 8) picks.push(m);
-  }
-  const collage = picks.length >= 3 ? `<div class="collage">${picks.map((m) => `<button class="thumb" data-open-ref="${m.r.id}" title="${esc(m.r.product ?? m.r.id)}"><img loading="lazy" src="${esc(m.thumb)}" alt=""></button>`).join("")}</div>` : "";
   // long summaries fold: every heading becomes a section, the first two stay open, a mini TOC jumps and opens
   const secs = sectionsOf(d.summary);
   const titled = secs.filter((x) => x.title !== null);
@@ -798,10 +861,10 @@ ${goalBlock}${tiles}
           .map((x, i) => {
             if (x.title === null) return md(x.body, cite);
             const n = titled.indexOf(x);
-            return `<details class="sumsec" id="sum-${n}"${n < 2 ? " open" : ""}><summary>${inline(x.title, cite)}<span class="muted small">${x.body.length > 0 ? ` · ${Math.max(1, Math.round(x.body.length / 350))}분` : ""}</span></summary><div class="sumbody">${md(x.body, cite)}</div></details>`;
+            return `<details class="sumsec" id="sum-${n}"${reader === "archive" || (reader === "practitioner" && n < 2) ? " open" : ""}><summary>${inline(x.title, cite)}<span class="muted small">${x.body.length > 0 ? ` · ${Math.max(1, Math.round(x.body.length / 350))}분` : ""}</span></summary><div class="sumbody">${md(x.body, cite)}</div></details>`;
           })
           .join("")}</div>`;
-  const summary = `<section id="summary">${sectionHead(next(), "한눈에 보기", `조사 결과 요약. 문장 끝의 번호(C·S)를 누르면 해당 발견이나 레퍼런스로 이동합니다.${titled.length >= 3 && d.summary.length >= 2500 ? " 긴 요약은 절마다 접혀 있고, 제목을 누르면 펼쳐집니다." : ""}`)}${summaryBody}${d.citeWarn ? `<div class="note">${esc(d.citeWarn)}</div>` : ""}</section>`;
+  const summary = `<section id="summary">${sectionHead(next(), "전체 요약", `조사 결과 전문. 문장 끝의 번호(C·S)를 누르면 해당 발견이나 레퍼런스로 이동합니다.${titled.length >= 3 && d.summary.length >= 2500 ? " 긴 요약은 절마다 접혀 있고, 제목을 누르면 펼쳐집니다." : ""}`)}${summaryBody}${d.citeWarn ? `<div class="note">${esc(d.citeWarn)}</div>` : ""}</section>`;
 
   const curriculum = d.curriculum ? renderCurriculum(d.curriculum, cite, next()) : "";
 
@@ -813,6 +876,7 @@ ${goalBlock}${tiles}
   <header><strong>${esc(r.label)}</strong><span class="count"><b>${r.products.length}</b> / ${n} ${esc(unit)}</span></header>
   ${r.question ? `<p class="q">${esc(r.question)}</p>` : ""}
   ${r.verdict ? `<p class="verdict">${inline(r.verdict, cite)}</p>` : ""}
+  ${axisWhy.has(r.id) ? `<p class="axwhy">${basisChip(axisWhy.get(r.id).basis)}왜: ${inline(short(axisWhy.get(r.id).why, 90), cite)}</p>` : ""}
   ${
     compact
       ? `<div class="schips">${r.products.map((p) => { const m = byRef.get(r.refBy[p]); const g = m?.r.credibility ?? ""; return `<a class="schip g-${esc(g)}" href="#${esc(r.refBy[p])}" title="${esc(p)} — ${esc(r.how[p].join(" · "))}"><b>${esc(g)}</b>${esc(short(p, 18))}</a>`; }).join("")}</div>`
@@ -829,7 +893,7 @@ ${goalBlock}${tiles}
     ? `<section id="axes">${sectionHead(
         next(),
         "패턴 비교",
-        "여러 제품이 <strong>같은 문제</strong>를 각자 어떻게 풀었는지 묶어 봅니다. 제품 이름을 누르면 그 화면이 열립니다. <span style='color:var(--violet);font-weight:600'>보라색 상자</span>는 다른 조사에서도 같은 패턴이 나왔다는 뜻이고, 카드 위 선 색은 <span style='color:var(--green);font-weight:600'>공통</span> · <span style='color:var(--accent);font-weight:600'>일부</span> · <span style='color:var(--amber);font-weight:600'>한 제품만</span>을 나타냅니다.",
+        "여러 제품이 <strong>같은 문제</strong>를 각자 어떻게 풀었는지 묶어 봅니다. 제품 이름을 누르면 그 화면이 열립니다. <span style='color:var(--accent);font-weight:600'>파란 상자</span>는 다른 조사에서도 같은 패턴이 나왔다는 뜻이고, 카드 위 선 색은 <span style='color:var(--green);font-weight:600'>공통</span> · <span style='color:var(--accent);font-weight:600'>일부</span> · <span style='color:var(--amber);font-weight:600'>한 제품만</span>을 나타냅니다.",
       )}${groups.map(([t, sub, rows, g]) => `<div class="sgroup ${g}"><div class="groupcap"><i class="gdot"></i><h3>${t}</h3><span>${sub} · ${rows.length}개</span></div><div class="axcards">${rows.map(axCard).join("")}</div></div>`).join("")}${
         d.axes.facets.length ? `<div class="groupcap"><h3>시장 · 플랫폼 · 포지셔닝</h3><span>패턴이 아니라 제품의 속성</span></div><div class="panel"><ul style="margin:0;padding-left:20px">${d.axes.facets.map((f) => `<li><strong>${esc(f.label)}</strong> — ${f.products.map(esc).join(", ")}</li>`).join("")}</ul></div>` : ""
       }${d.axes.unmapped ? `<div class="note">아직 패턴으로 묶이지 않은 태그 ${d.axes.unmapped}개 — <code>ref axes suggest ${esc(col.name)}</code></div>` : ""}</section>`
@@ -848,8 +912,8 @@ ${goalBlock}${tiles}
 ${snap ? `<div>캡처 ${r.snapshots.length}회 · 최신 ${esc(snap.at.slice(0, 10))}${r.changes?.length ? ` · 변화 기록 ${r.changes.length}` : ""}</div>` : ""}
 ${other.length ? `<div>다른 조사에도 포함: ${other.map((c) => `<a href="../${esc(c)}/index.html#${r.id}">${esc(d.catTitle(c))}</a>`).join(", ")}</div>` : ""}
 <div style="margin-top:8px">${[...(r.screens ?? []), ...m.axes.map(axisLabel)].map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>
-${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc(c.at.slice(0, 10))}: ${esc(c.lines.join(" · ") || "변화 없음")}`).join("<br>")}</div>` : ""}`;
-    const notesHtml = notes.map((x) => `${x.collection && x.collection !== col.name ? `<p style="color:#f0ad4e;font-size:12px;margin:12px 0 0">‹${esc(d.catTitle(x.collection))}› 조사에서 쓴 노트</p>` : ""}${noteHtml(x, cite)}`).join("<hr>");
+${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc(c.at.slice(0, 10))}: ${esc(c.lines.join(" · ") || "변화 없음")}`).join("<br>")}</div>` : ""}${traceById.has(r.id) ? `<div class="vwhy"><h5>왜 이렇게 만들었나</h5>${basisChip(traceById.get(r.id).basis)}<p>${inline(traceById.get(r.id).why, cite)}</p>${traceById.get(r.id).result ? `<p><b>결과</b>${inline(traceById.get(r.id).result, cite)}</p>` : ""}${traceById.get(r.id).implication ? `<p><b>시사점</b>${inline(traceById.get(r.id).implication, cite)}</p>` : ""}</div>` : ""}`;
+    const notesHtml = notes.map((x) => `${x.collection && x.collection !== col.name ? `<p style="color:var(--amber);font-size:12px;margin:12px 0 0">‹${esc(d.catTitle(x.collection))}› 조사에서 쓴 노트</p>` : ""}${noteHtml(x, cite)}`).join("<hr>");
     return `<article class="card" id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-name="${esc(r.product ?? r.label ?? r.id)}" data-date="${esc(snap?.at ?? "")}" data-claims="${citedBy.get(r.id) ?? 0}" data-viewer="${esc(JSON.stringify(viewer))}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
   <button class="thumb" data-view="" title="크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt="${esc(r.label ?? r.id)}">${pics ? `<span class="count">${m.frames.length ? `${m.frames.length}화면` : `${m.screens.length}장`}</span>` : ""}<span class="go" aria-hidden="true">↗</span></button>
   <div class="cap"><div class="t"><div class="p">${esc(r.product ?? r.label ?? r.id)}</div><div class="s">${esc(r.page ?? r.title ?? "")}</div></div><div class="r">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span><br>` : ""}${other.length ? `다른 조사 ${other.length} · ` : ""}${idBtn(r.id)}</div></div>
@@ -930,15 +994,6 @@ ${
 ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</section>`;
 
   // claims, grouped by kind, each with its evidence
-  const evidence = (ids) =>
-    ids
-      .map((id) => {
-        const m = byRef.get(id);
-        const label = esc(m ? `${m.r.product ?? ""}${m.r.page ? " · " + m.r.page : ""}` : d.titleOf(id));
-        return m?.thumb ? `<button class="ev" data-open-ref="${id}" title="${label}"><img src="${esc(m.thumb)}" alt="">${id}</button>` : `<a class="ev noimg" href="${memberIds.has(id) ? `#${id}` : `#src-${id}`}" title="${label}">${id}</a>`;
-      })
-      .join("");
-  // a finding reads top-down: title → text (2 lines, then 더 보기) → meta (strength · run · date · source mix · id) → evidence → earlier versions
   const prevOf = new Map();
   for (const o of d.claims.own) if (o.status !== "active" && o.replacedBy) prevOf.set(o.replacedBy, [...(prevOf.get(o.replacedBy) ?? []), o]);
   const claimRow = (c, { inline: inl = false } = {}) => {
@@ -983,7 +1038,12 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
   // research log
   const cur = d.current;
   const li = (tag, c, extra = "") => `<li><strong>${tag}</strong> ${c.subject ? `${esc(c.subject)} — ` : ""}${esc(c.text)} ${c.sources.map(cite).join("")}${extra}</li>`;
-  const changes = `<section id="changes">${sectionHead(next(), "조사 기록", "언제 무엇을 조사했고, 그때 무엇이 새로 나오거나 바뀌었는지.")}
+  const p = d.process;
+  const procBody = `<div class="procgrid">${p.brief.length ? `<div class="panel"><h4>개요</h4><table><tbody>${p.brief.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(k === "범위" ? v.replace(/\b(direct|indirect|trend)\b/g, (x) => ROLE_KO[x]) : v)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+${p.rounds.length ? `<div class="panel"><h4>바퀴 기록</h4><table><thead><tr><th>바퀴</th><th class="n">질의</th><th class="n">후보</th><th>새 패턴</th></tr></thead><tbody>${p.rounds.map((r) => `<tr><td>${r.n}바퀴</td><td class="n">${r.queries.length}</td><td class="n">${r.candidates.length}</td><td>${esc(r.newAxes.join(", ") || "없음")}${r.stopped ? ` <span class="muted small">(멈춤: ${esc(r.stopped)})</span>` : ""}</td></tr>`).join("")}</tbody></table></div>` : ""}
+<div class="panel"><h4>채널</h4><table><thead><tr><th>채널</th><th class="n">레퍼런스</th><th class="n">국내</th></tr></thead><tbody>${p.channels.rows.map((r) => `<tr><td>${esc(r.label)}</td><td class="n">${r.count}</td><td class="n">${r.korean}</td></tr>`).join("")}</tbody></table>${p.channels.missing.length ? `<p class="small" style="color:var(--amber);margin:8px 0 0">없는 채널: ${esc(p.channels.missing.join(", "))}</p>` : ""}</div>
+<div class="panel"><h4>신선도</h4><div class="procfresh">${Object.entries(p.fresh).map(([k, n]) => `<span class="role fr-${k}">${FRESH_KO[k]} ${n}</span>`).join("")}</div></div></div>${tiles}`;
+  const changes = `<section id="changes">${sectionHead(next(), "조사 과정", "개요, 바퀴 기록, 채널, 신선도와 회차별 기록. 결론을 어떻게 얻었는지 확인할 때 펼칩니다.")}<details class="proc"${reader === "archive" ? " open" : ""}><summary>조사 과정 펼치기</summary>${procBody}
 ${
     d.runs.length
       ? `<ol class="runs">${d.runs
@@ -1006,7 +1066,7 @@ ${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>�
     d.changes.length
       ? `<div class="panel prose"><ul>${d.changes.map(({ r, c }) => `<li><a href="#${r.id}">${r.id} ${esc(r.label ?? "")}</a> — ${esc(c.at.slice(0, 10))} (이전 ${esc(c.from.slice(0, 10))}): ${esc(c.lines.join(" · ") || "변화 없음")}</li>`).join("")}</ul></div>`
       : `<p class="muted small">다시 캡처해서 확인된 변화는 아직 없습니다. 30일이 지난 레퍼런스는 다음 캡처 때 자동으로 다시 찍어 이전과 비교합니다.</p>`
-  }${d.stale.length ? `<div class="note">90일 넘게 다시 확인하지 않은 레퍼런스: ${d.stale.map((r) => r.id).join(", ")}</div>` : ""}</section>`;
+  }${d.stale.length ? `<div class="note">90일 넘게 다시 확인하지 않은 레퍼런스: ${d.stale.map((r) => r.id).join(", ")}</div>` : ""}</details></section>`;
 
   // sources: the citation index — cited-only by default, filter by grade / type, 20 rows at a time
   const grades = [...new Set(d.sources.map((r) => r.credibility))].sort();
@@ -1021,7 +1081,22 @@ ${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>�
     .join("")}</tbody></table></div><button class="morebtn" type="button" hidden></button></section>`;
 
   const foot = `<footer>${esc(col.name)} · 생성 ${esc(new Date().toLocaleString("ko-KR"))} · <code>ref report</code>로 다시 만들 수 있습니다</footer>`;
-  return shell(`${col.title ?? col.name} — 레퍼런스 보드`, side, topbar, hero.replace("</header>", collage + "</header>") + keySection + summary + curriculum + axes + refs + claims + changes + sources + foot);
+  const blocks = { key: keySection, why: whySection, curriculum, axes, avoid: avoidSection, open: openSection, refs, claims, summary, changes, sources };
+  const ORDER = {
+    decision: ["key", "why", "avoid", "open", "axes", "curriculum", "summary", "claims", "refs", "changes", "sources"],
+    practitioner: ["key", "why", "axes", "curriculum", "avoid", "open", "refs", "claims", "summary", "changes", "sources"],
+    archive: ["key", "summary", "why", "axes", "curriculum", "avoid", "open", "claims", "refs", "changes", "sources"],
+  };
+  const NAV = { key: ["핵심 결론", evItems.slice(0, 3).length], why: ["왜 이렇게 만들었나", traces.slice(0, 5).length], curriculum: ["커리큘럼 비교", d.curriculum?.n], axes: ["패턴 비교", d.axes.rows.length], avoid: ["피할 것", ""], open: ["열린 질문", openQ.length], refs: ["레퍼런스", d.members.length], claims: ["발견과 근거", active.length], summary: ["전체 요약", ""], changes: ["조사 과정", d.runs.length], sources: ["출처", d.sources.filter((r) => citedBy.has(r.id)).length] };
+  const order = ORDER[reader].filter((k) => blocks[k]);
+  const side = `<a class="brand" href="../index.html">References <span>/ 라이브러리</span></a>
+<div class="about"><strong>${esc(col.title ?? col.name)}</strong><br>${esc(col.description ?? "")}</div>
+${searchBox("레퍼런스·발견·패턴 검색")}
+<nav>${order.map((k) => `<a href="#${k}">${NAV[k][0]}${NAV[k][1] ? `<small>${NAV[k][1]}</small>` : ""}</a>`).join("")}</nav>
+<div class="foot">${productCount}개 ${unit} · ${d.members.length}개 레퍼런스 · ${active.length}개 발견<br>${lastRun ? `마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>`;
+  let sec = 0;
+  const body = (hero + order.map((k) => blocks[k]).join("") + foot).replaceAll(NUM, () => String(++sec).padStart(2, "0"));
+  return shell(`${col.title ?? col.name} — 레퍼런스 보드`, side, topbar, body);
 }
 
 // ---------- curriculum section ----------
@@ -1108,7 +1183,7 @@ function renderCurriculum(c, cite, num) {
   return `<section id="curriculum">${head}${band}${overview}${topics}
 <div class="grid2"><div class="sgroup"><h3>강의들의 평균 순서</h3><p class="muted small" style="margin-top:-6px">두 개 이상 강의가 다루는 주제를 평균 위치 순으로 — 학습 순서 설계의 출발점</p>${order}</div>
 <div class="sgroup"><h3>빈틈</h3><p class="muted small" style="margin-top:-6px">근거 자료에는 있는데 강의들이 잘 다루지 않는 주제</p>${gaps}</div></div>
-<div class="sgroup"><h3>강의별 흐름</h3><p class="muted small" style="margin-top:-6px">막대 길이 = 모듈 시간, <span style="color:var(--teal);font-weight:600">청록 칸</span> = 실습 모듈</p><div class="flows">${flows}</div></div>
+<div class="sgroup"><h3>강의별 흐름</h3><p class="muted small" style="margin-top:-6px">막대 길이 = 모듈 시간, <span style="color:var(--accent);font-weight:600">진한 칸</span> = 실습 모듈</p><div class="flows">${flows}</div></div>
 ${c.missing.length ? `<div class="note">강의 구조가 기록되지 않은 강의 페이지: ${c.missing.join(", ")} — <code>ref course set</code></div>` : ""}
 </section>`;
 }

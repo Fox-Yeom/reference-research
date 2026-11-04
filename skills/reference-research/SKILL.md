@@ -115,7 +115,7 @@ Confidence is computed: **high** ≥2 independent publishers and score ≥4 (A=3
 ## 1. Question loop, then start
 Ask before searching. Models are weak at noticing a vague request on their own, and a request copied straight into the goal makes a run drift. The brief below is a hypothesis: §2 rechecks it after round 0.
 
-**Round 1 — always, minus what the request already answers.** Use **AskUserQuestion** (≤ 4 questions, 2–4 options each; "Other" is automatic) and write the options as concrete guesses from the request. Without that tool, ask the same questions in text.
+**Round 1 — always, minus what the request already answers.** Use **AskUserQuestion** (≤ 4 questions, 2–4 options each; "Other" is automatic) and write the options as concrete guesses from the request. Without that tool, ask the same questions in text, still ≤ 4 per round.
 | slot | question |
 |---|---|
 | 문제 | 지금 무엇이 안 되고 있어서 이 조사를 하나요? |
@@ -137,7 +137,7 @@ Ask before searching. Models are weak at noticing a vague request on their own, 
 | 간접 (`indirect`) | 같은 문제를 다른 방식으로, 또는 같은 방식으로 다른 고객을. 다른 업종이지만 구조가 같은 것도 여기 넣는다 |
 | 트렌드 (`trend`) | 해외·최신 흐름. 이 분야가 어디로 가는지 |
 
-**Brief**: show the answers as a table (목적 · 대상 · 문제 · 성공 기준 · 가치 유형 · 범위 · 고정할 것 · 뺄 것 · 가정), then start.
+**Brief**: before the first search, show the answers as a table in your reply (목적 · 대상 · 문제 · 성공 기준 · 가치 유형 · 범위 · 고정할 것 · 뺄 것 · 가정), even when you asked nothing.
 - The user says "알아서", in the request or as an answer → ask nothing further, fill the blanks yourself and mark them **가정**.
 - The request already states 문제, 목표 and 가치 유형 → ask nothing; just show the brief.
 - Questions skipped and scope unknown → all three scopes, marked 가정.

@@ -689,18 +689,18 @@ const sectionsOf = (src) => {
   return out.map((x) => ({ ...x, body: x.body.join("\n").trim() }));
 };
 const NOTE_FIELDS_KO = { feature: "기능", structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", context: "맥락", why: "왜", alternatives: "대안", result: "결과", implication: "시사점", adopt: "차용할 점", avoid: "피할 점" };
-const WHY_BASIS_KO = { official: "공식", signal: "정황", guess: "추정" };
+export const WHY_BASIS_KO = { official: "공식", signal: "정황", guess: "추정" };
 /** a note → html: structured fields as a definition list, else markdown with "**라벨**:" lines styled as labels */
 const noteHtml = (x, cite) => {
   if (x.fields && Object.keys(x.fields).length) return `<dl class="nf">${Object.entries(x.fields).filter(([k]) => k !== "why_basis").map(([k, v]) => `<dt>${esc(NOTE_FIELDS_KO[k] ?? k)}</dt><dd>${k === "why" && WHY_BASIS_KO[x.fields.why_basis] ? `<b>${WHY_BASIS_KO[x.fields.why_basis]}</b> ` : ""}${inline(String(v), cite)}</dd>`).join("")}</dl>`;
   return md(x.text, cite).replace(/<strong>([^<]{1,20})<\/strong>\s*[:：]\s*/g, '<span class="nl">$1</span>');
 };
-const WHY_RANK = { official: 0, signal: 1, guess: 2 };
+export const WHY_RANK = { official: 0, signal: 1, guess: 2 };
 const NOTE_PARTS = { 맥락: "context", 왜: "why", 대안: "alternatives", 결과: "result", 시사점: "implication" };
 const BASIS_KEY = { 공식: "official", 정황: "signal", 추정: "guess" };
 const basisChip = (b) => (WHY_BASIS_KO[b] ? `<span class="basis basis-${b}">${WHY_BASIS_KO[b]}</span>` : "");
 /** a note's why-trace: from fields, or the **라벨**: lines of a markdown note */
-function rationaleOf(x) {
+export function rationaleOf(x) {
   const parts = { ...x.fields };
   if (!parts.why) for (const m of String(x.text ?? "").matchAll(/^\*\*(맥락|왜|대안|결과|시사점)\*\*\s*[:：]\s*(.+)$/gm)) parts[NOTE_PARTS[m[1]]] = m[2];
   if (!parts.why) return null;
@@ -718,6 +718,33 @@ function conclusionOf(block) {
     else if (k) out[k] ??= m[2];
   }
   return out;
+}
+/** What a board leads with, shared with the MCP server. Key claims: collection.highlights → claims marked key → summary list → strongest claims. */
+export function conclusionData(col, claims, summary) {
+  const active = claims.own.filter((c) => c.status === "active");
+  const sum = splitSummary(summary);
+  const claimById = new Map([...claims.own, ...claims.related].map((c) => [c.id, c]));
+  const CONF_RANK = { high: 0, medium: 1, low: 2, hypothesis: 3 };
+  const KIND_RANK = { pattern: 0, benchmark: 1, fact: 2, failure: 3, gap: 4, opinion: 5, hypothesis: 6 };
+  let keyClaims = (col.highlights ?? []).map((id) => claimById.get(id)).filter((c) => c && c.status === "active");
+  let keySource = keyClaims.length ? "highlights" : "";
+  if (!keyClaims.length) {
+    keyClaims = active.filter((c) => c.key);
+    keySource = keyClaims.length ? "key" : "";
+  }
+  const keyLines = !keyClaims.length && sum.key ? listItems(sum.key).slice(0, 3) : [];
+  if (!keyClaims.length && !keyLines.length) {
+    keyClaims = active.slice().sort((a, b) => (CONF_RANK[a.confidence] ?? 9) - (CONF_RANK[b.confidence] ?? 9) || b.sources.length - a.sources.length || (KIND_RANK[a.kind] ?? 9) - (KIND_RANK[b.kind] ?? 9)).slice(0, 3);
+    keySource = keyClaims.length ? "auto" : "";
+  }
+  const openQ = col.openQuestions?.length ? col.openQuestions : sum.open ? listItems(sum.open) : [];
+  const nextS = col.nextSteps?.length ? col.nextSteps : sum.recommend ? listItems(sum.recommend) : [];
+  const concl = conclusionOf(sum.key);
+  const answer = concl.answer ?? keyClaims[0]?.text ?? keyLines[0];
+  const lineItem = (line) => ({ line, c: claimById.get(line.match(/\[(C\d+)/)?.[1]) });
+  // an older summary has no labelled 답: its first key line becomes the answer, so it is not repeated as evidence
+  const evItems = (concl.evidence.length ? concl.evidence.map(lineItem) : keyClaims.length ? keyClaims.map((c) => ({ c })) : keyLines.map(lineItem)).filter((x) => concl.answer || (x.line ?? x.c?.text) !== answer);
+  return { sum, claimById, keyClaims, keySource, keyLines, openQ, nextS, concl, answer, evItems };
 }
 /** "- a" / "1. a" lines of a markdown block (one level), else non-empty lines */
 const listItems = (block) => {
@@ -769,31 +796,9 @@ export function renderBoard(d) {
   const next = () => NUM;
   const reader = ["decision", "practitioner", "archive"].includes(col.reader) ? col.reader : "practitioner";
 
-  // key takeaways: collection.highlights → claims marked key → summary "핵심 발견" list → strongest claims
-  const sum = splitSummary(d.summary);
-  const claimById = new Map([...d.claims.own, ...d.claims.related].map((c) => [c.id, c]));
-  const CONF_RANK = { high: 0, medium: 1, low: 2, hypothesis: 3 };
-  const KIND_RANK = { pattern: 0, benchmark: 1, fact: 2, failure: 3, gap: 4, opinion: 5, hypothesis: 6 };
-  let keyClaims = (col.highlights ?? []).map((id) => claimById.get(id)).filter((c) => c && c.status === "active");
-  let keySource = keyClaims.length ? "highlights" : "";
-  if (!keyClaims.length) {
-    keyClaims = active.filter((c) => c.key);
-    keySource = keyClaims.length ? "key" : "";
-  }
-  const keyLines = !keyClaims.length && sum.key ? listItems(sum.key).slice(0, 3) : [];
-  if (!keyClaims.length && !keyLines.length) {
-    keyClaims = active.slice().sort((a, b) => (CONF_RANK[a.confidence] ?? 9) - (CONF_RANK[b.confidence] ?? 9) || b.sources.length - a.sources.length || (KIND_RANK[a.kind] ?? 9) - (KIND_RANK[b.kind] ?? 9)).slice(0, 3);
-    keySource = keyClaims.length ? "auto" : "";
-  }
-  const openQ = col.openQuestions?.length ? col.openQuestions : sum.open ? listItems(sum.open) : [];
-  const nextS = col.nextSteps?.length ? col.nextSteps : sum.recommend ? listItems(sum.recommend) : [];
+  const { sum, claimById, keyClaims, keySource, keyLines, openQ, nextS, concl, answer, evItems } = conclusionData(col, d.claims, d.summary);
   const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
   const continuePrompt = `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})를 이어서 해줘.${openQ.length ? ` 열린 질문: ${openQ.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}${nextS.length ? ` 다음 할 일: ${nextS.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
-  const concl = conclusionOf(sum.key);
-  const answer = concl.answer ?? keyClaims[0]?.text ?? keyLines[0];
-  const lineItem = (line) => ({ line, c: claimById.get(line.match(/\[(C\d+)/)?.[1]) });
-  // an older summary has no labelled 답: its first key line becomes the answer, so it is not repeated as evidence
-  const evItems = (concl.evidence.length ? concl.evidence.map(lineItem) : keyClaims.length ? keyClaims.map((c) => ({ c })) : keyLines.map(lineItem)).filter((x) => concl.answer || (x.line ?? x.c?.text) !== answer);
   const evRow = ({ line, c }) => {
     const head = line ? inline(line, cite) : esc(splitTitle(c)[0]);
     if (!c) return `<div class="evrow"><div class="plain">${head}</div></div>`;

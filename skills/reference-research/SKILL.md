@@ -316,7 +316,8 @@ For references that feed a course or curriculum design ("AI 교육 커리큘럼 
 
 ## 10. Agents read the library over MCP
 `scripts/mcp.mjs` is a **read-only** MCP server, started by the plugin as `reference-library`.
-Tools: `list_collections` · `search_references` (semantic + keyword, returns preview image paths) · `get_reference` (notes from every collection, snapshot images, changes, citing findings) · `search_findings` (claims with evidence + confidence) · `get_patterns` (axis → how each product solves it, across collections) · `get_board` (summary + findings).
+Tools: `list_collections` · `search_references` (semantic + keyword, returns preview image paths) · `get_reference` (notes from every collection, snapshot images, changes, citing findings) · `search_findings` (claims with evidence + confidence) · `get_patterns` (axis → how each product solves it, across collections) · `get_board` (summary + findings) · `get_brief` (purpose, assumptions, changes) · `get_conclusion` (question, answer, decision, evidence, counter-evidence, open questions) · `get_rationale` (why-traces by topic, pattern or ref, with basis 공식 · 정황 · 추정).
+`search_references` and `search_findings` take `since` (YYYY-MM-DD) and `fresh_only`: undated sources never pass, and a finding passes when at least one source does.
 - Before starting new research, an agent can call `search_references` / `get_patterns` to reuse what the library already knows (complements `ref run start`).
 - Outside a research session (planning, design, writing), use these tools to ground answers in prior references; open returned image paths with Read.
 - Writing stays in the `ref` CLI — the server never changes the library.

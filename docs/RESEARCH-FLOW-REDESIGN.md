@@ -1,7 +1,7 @@
 # 조사 흐름 개편 기획안 (v2 · 2026-11-04)
 
 대상: `skills/reference-research/SKILL.md` + `scripts/` (store · capture · evidence · report · board · mcp · ref)
-상태: 결정 3건 반영 (2026-11-04, 8절). 1단계 완료, 2a·2b·2c 구현, 2d 착수 전.
+상태: 결정 3건 반영 (2026-11-04, 8절). 1단계 완료, 2a~2d 구현, 2e 착수 전.
 배경: 실사용 포스트모템 (2026-10-30, 발표 자료 디자인 양식 조사)과 관리자 보정 5방향. 보드 개편(`BOARD-REDESIGN.md`)과 홈 개편(`HOME-REDESIGN.md`)의 원칙·부품을 이어 쓴다.
 
 ## 0. 결론

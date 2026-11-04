@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readAxes, tagIndex } from "./axes.mjs";
 import {
-  CHANNELS, FILES, ROLES, SCREEN_TYPES, TYPE_CRED, abs, addMember, bad, daysSince, ensureCollection, findRef, latestSnapshot,
+  CHANNELS, FILES, ROLES, announce, looksLikeArticle, SCREEN_TYPES, TYPE_CRED, abs, addMember, bad, daysSince, ensureCollection, findRef, latestSnapshot,
   nextId, normUrl, readRefs, refSlug, rel, saveRefs, splitLabel, stamp, writeCollection,
 } from "./store.mjs";
 
@@ -73,10 +73,10 @@ export function captureScript(url, waitMs, frames, scroll, hideOverlays, maxFram
   // Hide (never click) cookie/consent overlays and modal popups so the user's real consent state is untouched.
   const hide = hideOverlays
     ? `__out.hiddenOverlays = (__out.hiddenOverlays || 0) + await __p.evaluate(() => {
-    const re = /cookie|consent|onetrust|gdpr|didomi|truste|usercentrics|cookiebot|\\uCFE0\\uD0A4|\\uAC1C\\uC778\\uC815\\uBCF4|\\uB3D9\\uC758 \\uBC30\\uB108/i;
+    const re = /cookie|consent|onetrust|gdpr|didomi|truste|usercentrics|cookiebot|transcend|\\uCFE0\\uD0A4|\\uAC1C\\uC778\\uC815\\uBCF4|\\uB3D9\\uC758 \\uBC30\\uB108/i;
     let n = 0;
     const hideEl = (el) => { if (el.style.getPropertyValue('display') === 'none') return; el.style.setProperty('display', 'none', 'important'); n++; };
-    for (const sel of ['#onetrust-consent-sdk', '#CybotCookiebotDialog', '#usercentrics-root', '#didomi-host', '.osano-cm-window', '.fc-consent-root', '#truste-consent-track', '#cookie-law-info-bar']) {
+    for (const sel of ['#transcend-consent-manager', '#onetrust-consent-sdk', '#CybotCookiebotDialog', '#usercentrics-root', '#didomi-host', '.osano-cm-window', '.fc-consent-root', '#truste-consent-track', '#cookie-law-info-bar']) {
       document.querySelectorAll(sel).forEach(hideEl);
     }
     for (const el of document.querySelectorAll('body *')) {
@@ -327,6 +327,7 @@ function inferType(url, screens) {
   const h = new URL(url).host;
   if (screens.includes("store") || /apps\.apple\.com|play\.google\.com/.test(h)) return "store";
   if (h.endsWith("github.com")) return "repo";
+  if (looksLikeArticle(url)) return "blog";
   if (screens.includes("help")) return "docs";
   if (screens.some((t) => ["landing", "features", "pricing", "syllabus", "sample-lesson", "project", "assessment"].includes(t))) return "official";
   if (screens.includes("reviews")) return "community";
@@ -441,6 +442,7 @@ export async function capture(params) {
   const failures = [];
   const notes = [];
   const images = [];
+  const counts = {};
   const attempt = async (via, script) => {
     const r = via === "aside" ? await run("aside", ["repl", script], REPL_TIMEOUT_MS) : await chromeRun(script).catch((e) => ({ code: 1, stdout: "", stderr: String(e?.message ?? e) }));
     const line = (r.stdout + "\n" + r.stderr).split("\n").find((l) => l.includes(MARK));
@@ -530,6 +532,7 @@ export async function capture(params) {
     await fs.writeFile(path.join(dir, "meta.json"), JSON.stringify({ ref: ref.id, ...snap }, null, 2));
     const delta = addSnapshot(ref, snap, ctx);
     applyDates(ref, out.meta?.dates, at);
+    counts[via] = (counts[via] ?? 0) + 1;
     const added = addMember(col, ref, item.role ?? splitTags(item.tags).role, ctx.run);
     touched.set(ref.id, ref);
     const m = meta;
@@ -559,6 +562,7 @@ export async function capture(params) {
   const unmapped = [...new Set(params.urls.flatMap((u) => splitTags(u.tags).other))].filter((t) => !idx.has(t) && !["macos", "ios"].includes(t));
   if (unmapped.length) lines.push(`\n⚠ tags not on any axis yet: ${unmapped.join(", ")} — \`ref axes suggest ${col.name}\``);
   await closeBrowser();
+  await announce(`캡처: ${Object.entries(counts).map(([b, n]) => `${{ aside: "Aside", chrome: "헤드리스 Chrome" }[b] ?? b} ${n}건`).join(" · ") || "새로 찍은 화면 없음"}${failures.length ? ` · 실패 ${failures.length}건` : ""}`);
   return {
     text: [`Collection: ${col.name}`, `Capture backend: ${backend}${backend === "chrome" ? " (headless local Chrome — no logged-in sessions)" : ""}`, `Processed: ${touched.size}/${params.urls.length}`, "", ...lines, notes.length ? `\nNotes:\n${notes.map((f) => `- ${f}`).join("\n")}` : "", failures.length ? `\nFailures:\n${failures.map((f) => "- " + f).join("\n")}` : ""].join("\n"),
     images,

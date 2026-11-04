@@ -11,6 +11,7 @@ rsync -a --delete --exclude node_modules "$ROOT/scripts/" "$L/bin/"
 rm -f "$L/bin/ref" "$L/bin/run-mcp.sh" "$L/bin/session-start.sh" "$L/bin/ensure-deps.sh"
 sed -e 's|^- CLI: `ref` = .*|- CLI: `node ~/.claude/skills/reference-research/bin/ref.mjs <command> …` (below: `ref`; `ref help` lists everything)|' \
     -e 's|^ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }|ref() { node "$HOME/.claude/skills/reference-research/bin/ref.mjs" "$@"; }|' \
+    -e 's|$HOME/.reference-research/plugin/scripts/show-progress.sh|$HOME/.claude/skills/reference-research/bin/show-progress.sh|' \
     -e '/^# if that link is missing (hook did not run)/d' \
     -e 's|`scripts/|`bin/|g' \
     -e 's|started by the plugin as `reference-library`|registered at user scope as `reference-library` (`claude mcp add reference-library -s user -- node ~/.claude/skills/reference-research/bin/mcp.mjs`)|' \

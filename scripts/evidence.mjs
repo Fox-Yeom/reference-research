@@ -11,7 +11,7 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { axisOf, readAxes, tagIndex } from "./axes.mjs";
 import {
-  CHANNELS, CLAIM_KINDS, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
+  CHANNELS, CLAIM_KINDS, announce, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
   FRESH_KO, channelOf, confidence, daysSince, freshness, ensureCollection, findRef, latestSnapshot, nextId, normUrl, readClaims, readCollection, readRefs,
   readRuns, recomputeConfidence, refSlug, saveClaims, saveRefs, saveRuns, splitLabel, writeCollection,
 } from "./store.mjs";
@@ -42,10 +42,10 @@ export function collectionClaims(col, claims) {
 // ---------- brief ----------
 
 export const BRIEF_FIELDS = { purpose: "목적", audience: "대상", problem: "문제", success: "성공 기준", value_types: "가치 유형", scope: "범위", fixed: "고정할 것", exclude: "뺄 것", assumptions: "가정" };
-const SHOW_BRIEF = "Show this table to the user as is; a prose summary does not count.";
 
 const briefCell = (v) => String((Array.isArray(v) ? v.join(" · ") : v) || "—").replace(/\|/g, "\\|").replace(/\n/g, " ");
 export const briefRows = (b) => (b ? Object.entries(BRIEF_FIELDS).filter(([k]) => b[k]?.length).map(([k, label]) => [label, briefCell(b[k]).replace(/\\\|/g, "|")]) : []);
+const briefLines = (b) => Object.entries(BRIEF_FIELDS).filter(([k]) => b?.[k]?.length).map(([k, label]) => `${label}: ${briefCell(b[k])}`).join("\n");
 const briefTable = (b) => ["| 칸 | 내용 |", "|---|---|", ...Object.entries(BRIEF_FIELDS).map(([k, label]) => `| ${label} | ${briefCell(b?.[k])} |`)].join("\n");
 
 /** Merge into collection.brief; a change to an existing brief goes on briefHistory, because the brief is a hypothesis (SKILL §1). */
@@ -68,7 +68,8 @@ export async function setBrief(params) {
   if (!params.brief || typeof params.brief !== "object") bad("brief set needs collection and brief {purpose, audience, problem, success, value_types, scope, fixed, exclude, assumptions}");
   mergeBrief(col, params.brief, params.reason);
   await writeCollection(col);
-  return [briefTable(col.brief), "", SHOW_BRIEF].join("\n");
+  await announce(`개요\n${briefLines(col.brief)}`);
+  return briefTable(col.brief);
 }
 
 export async function showBrief(name) {
@@ -131,13 +132,13 @@ export async function addRound(params) {
   const all = [...rounds, round];
   await saveRuns([{ ...run, rounds: all }]);
   const totals = roundTotals(all);
+  const line = `${n}바퀴 끝: 질의 ${queries.length}개 · 후보 ${candidates.length}개 · 새 패턴 ${newAxes.length}개 → ${stopped ? `멈춤: ${stopped}` : "다음 바퀴"}`;
+  await announce(line);
   return [
-    `${n}바퀴 끝: 질의 ${queries.length}개 · 후보 ${candidates.length}개 · 새 패턴 ${newAxes.length}개 → ${stopped ? `멈춤: ${stopped}` : "다음 바퀴"}`,
+    line,
     totals.line,
     ...(stopped && totals.short.length ? [`⚠ 최소 기준 미달: ${totals.short.join(" · ")}`] : []),
-    "",
-    "Copy the first line into the chat as is.",
-    ...(n === 0 && !stopped ? ["Next: recheck the direction with the user (SKILL §2)."] : []),
+    ...(n === 0 && !stopped ? ["", "Next: recheck the direction with the user (SKILL §2)."] : []),
   ].join("\n");
 }
 
@@ -166,6 +167,7 @@ export async function startRun(params, findRelated) {
   const runs = await readRuns();
   const run = { id: nextId("R", runs), collection: col.name, goal: params.goal ?? params.brief?.purpose ?? null, domain: col.domain, kind: col.kind ?? null, startedAt: new Date().toISOString(), ...(col.brief ? { brief: col.brief } : {}) };
   await saveRuns([run]);
+  if (col.brief) await announce(`개요\n${briefLines(col.brief)}`);
   col.currentRun = run.id;
   // the category's own purpose (board header): first run's goal unless set explicitly; audience/question when given
   if (params.goal && !col.goal) col.goal = params.goal;
@@ -181,7 +183,7 @@ export async function startRun(params, findRelated) {
   const lines = [
     `Started ${run.id} (${col.domain}) for ${col.name}: ${run.goal ?? ""}`,
     `Baseline: ${col.members.length} refs · ${active.length} active claims here · ${relClaims.length} claims from other categories citing these refs`,
-    ...(col.brief ? ["", briefTable(col.brief), "", SHOW_BRIEF] : ["", "⚠ no brief on this category: run the question loop (SKILL §1), then `ref brief set`"]),
+    ...(col.brief ? ["", briefTable(col.brief)] : ["", "⚠ no brief on this category: run the question loop (SKILL §1), then `ref brief set`"]),
   ];
   if (active.length) lines.push("", "Claims (confirm / revise / refute instead of re-adding):", ...active.map(claimLine));
   if (relClaims.length) lines.push("", "From other categories (same refs):", ...relClaims.map((c) => `${claimLine(c)}  ‹${(c.collections ?? []).join(", ")}›`));

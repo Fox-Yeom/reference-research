@@ -55,6 +55,19 @@ const TYPE_CHANNEL = {
   store: "reaction", community: "reaction", survey: "reaction", "job-posting": "rationale",
 };
 export const channelOf = (r) => r.channel ?? TYPE_CHANNEL[r.type] ?? null;
+
+// A screen tag says what a page shows, not who vouches for it: a post on a vendor's blog is not a primary source.
+const ARTICLE_PATH = /\/(blogs?|articles?|posts?|news|insights|resources|stories|magazine|guides?)(\/|$)/i;
+const ARTICLE_HOST = /(^|\.)(medium\.com|substack\.com|dev\.to|tistory\.com|velog\.io|brunch\.co\.kr|wordpress\.com|blogspot\.com|hashnode\.dev)$/;
+const DOCS_HOST = /^(docs|help|support|developers?)\./;
+export function looksLikeArticle(url) {
+  try {
+    const u = new URL(url);
+    return ARTICLE_HOST.test(u.hostname) || (ARTICLE_PATH.test(u.pathname) && !DOCS_HOST.test(u.hostname));
+  } catch {
+    return false;
+  }
+}
 export const CLAIM_KINDS = ["fact", "pattern", "benchmark", "failure", "gap", "opinion", "hypothesis"];
 export const POSITIONS = ["table-stakes", "duplicate", "below-bar", "differentiator", "gap", "validates", "contradicts"];
 
@@ -110,6 +123,12 @@ export function splitLabel(label) {
 export const rel = (p) => (p ? path.relative(LIB, p) : p);
 export const abs = (p) => (p ? (path.isAbsolute(p) ? p : path.join(LIB, p)) : p);
 export const daysSince = (iso) => (iso ? (Date.now() - Date.parse(iso)) / 864e5 : Infinity);
+
+/** A line the user should see. Agents do not reliably repeat tool output, so the skill's PostToolUse hook shows these itself (scripts/show-progress.sh). */
+export async function announce(text) {
+  await fs.mkdir(REF_HOME, { recursive: true });
+  await fs.appendFile(path.join(REF_HOME, "announce.log"), `${Date.now()}\t${text.replace(/\n/g, "\\n")}\n`);
+}
 
 /** freshness rule (SKILL §2): 12 months from the newest date a source states */
 const FRESH_DAYS = 365;

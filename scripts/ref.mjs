@@ -37,6 +37,7 @@
  *   ref learn read | add <source|search|capture|pattern|process> "<lesson>"
  *   ref migrate [--dry-run] [--plan name]     one-time v1 → v2
  *   ref migrate roles [--dry-run]     analogous → indirect, keeps roleWas
+ *   ref migrate grades [--dry-run]    captured articles typed official/docs → blog (grade C), keeps typeWas
  *   ref compact                       rewrite JSONL files without superseded lines
  *
  * "-" reads JSON from stdin. Images worth looking at are printed after "IMAGES:" — open them with the Read tool.
@@ -48,7 +49,7 @@ import { fileURLToPath } from "node:url";
 import { archiveDates, capture, storeScreens } from "./capture.mjs";
 import * as ev from "./evidence.mjs";
 import { report, coverage } from "./report.mjs";
-import { migrate, migrateRoles } from "./migrate.mjs";
+import { migrate, migrateGrades, migrateRoles } from "./migrate.mjs";
 import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate } from "./store.mjs";
 import { spawnSync } from "node:child_process";
 
@@ -429,6 +430,7 @@ try {
     case "migrate": {
       const dryRun = bool(args, "--dry-run");
       if (args[0] === "roles") print(await migrateRoles({ dryRun }));
+      else if (args[0] === "grades") print(await migrateGrades({ dryRun }));
       else print(await migrate({ dryRun, plan: flag(args, "--plan") }));
       break;
     }

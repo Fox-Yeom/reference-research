@@ -18,6 +18,7 @@ step "flow"
 "$R" brief set '{"collection":"smoke","brief":{"purpose":"smoke test"}}' | grep -q '목적'
 "$R" run round '{"collection":"smoke","queries":["스모크 2026","smoke 2026"],"candidates":[{"url":"https://example.com","published":"2026-01-02"}],"new_axes":["a"]}' | grep '바퀴 끝'
 "$R" migrate roles --dry-run
+"$R" migrate grades --dry-run
 "$R" fresh smoke | head -1
 "$R" channels smoke | head -1
 step "report";   "$R" report '{"collection":"smoke","open":false}' | grep -c index.html

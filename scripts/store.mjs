@@ -57,7 +57,7 @@ const TYPE_CHANNEL = {
 export const channelOf = (r) => r.channel ?? TYPE_CHANNEL[r.type] ?? null;
 
 // A screen tag says what a page shows, not who vouches for it: a post on a vendor's blog is not a primary source.
-const ARTICLE_PATH = /\/(blogs?|articles?|posts?|news|insights|resources|stories|magazine|guides?)(\/|$)/i;
+const ARTICLE_PATH = /\/(blogs?|articles?|posts?|news|insights|resources|stories|magazine)(\/|$)/i;
 const ARTICLE_HOST = /(^|\.)(medium\.com|substack\.com|dev\.to|tistory\.com|velog\.io|brunch\.co\.kr|wordpress\.com|blogspot\.com|hashnode\.dev)$/;
 const DOCS_HOST = /^(docs|help|support|developers?)\./;
 export function looksLikeArticle(url) {

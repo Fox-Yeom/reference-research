@@ -37,7 +37,7 @@
  *   ref learn read | add <source|search|capture|pattern|process> "<lesson>"
  *   ref migrate [--dry-run] [--plan name]     one-time v1 → v2
  *   ref migrate roles [--dry-run]     analogous → indirect, keeps roleWas
- *   ref migrate grades [--dry-run]    captured articles typed official/docs → blog (grade C), keeps typeWas
+ *   ref migrate grades [--dry-run] [--keep S1,S2]   captured articles typed official/docs → blog (grade C), keeps typeWas; --keep pins a company's own announcements
  *   ref compact                       rewrite JSONL files without superseded lines
  *
  * "-" reads JSON from stdin. Images worth looking at are printed after "IMAGES:" — open them with the Read tool.
@@ -430,7 +430,7 @@ try {
     case "migrate": {
       const dryRun = bool(args, "--dry-run");
       if (args[0] === "roles") print(await migrateRoles({ dryRun }));
-      else if (args[0] === "grades") print(await migrateGrades({ dryRun }));
+      else if (args[0] === "grades") print(await migrateGrades({ dryRun, keep: (flag(args, "--keep") ?? "").split(",").filter(Boolean) }));
       else print(await migrate({ dryRun, plan: flag(args, "--plan") }));
       break;
     }

@@ -31,10 +31,12 @@ export async function migrateRoles({ dryRun = false } = {}) {
   return [`${dryRun ? "would move" : "moved"} analogous → indirect:`, ...log.map((l) => `- ${l}`), ...(dryRun ? [] : ["Re-run `ref report` per collection to refresh the boards."])].join("\n");
 }
 
-/** Captures whose tag made an article official or docs: move them to blog (grade C), keep typeWas, re-evaluate confidence. Safe to run twice. */
-export async function migrateGrades({ dryRun = false } = {}) {
+/** Captures whose tag made an article official or docs: move them to blog (grade C), keep typeWas, re-evaluate confidence. `keep` = a company's own announcements: their grade is pinned. Safe to run twice. */
+export async function migrateGrades({ dryRun = false, keep = [] } = {}) {
   const refs = await readRefs();
-  const moved = refs.filter((r) => ["official", "docs"].includes(r.type) && r.snapshots?.length && !r.credibilitySet && looksLikeArticle(r.url)).map((r) => ({ ...r, typeWas: r.type, type: "blog", credibility: TYPE_CRED.blog }));
+  const hits = refs.filter((r) => ["official", "docs"].includes(r.type) && r.snapshots?.length && !r.credibilitySet && looksLikeArticle(r.url));
+  const kept = hits.filter((r) => keep.includes(r.id)).map((r) => ({ ...r, credibilitySet: true }));
+  const moved = hits.filter((r) => !keep.includes(r.id)).map((r) => ({ ...r, typeWas: r.type, type: "blog", credibility: TYPE_CRED.blog }));
   if (!moved.length) return "nothing to move";
   const byId = new Map([...refs, ...moved].map((r) => [r.id, r]));
   const shifts = {};
@@ -46,10 +48,10 @@ export async function migrateGrades({ dryRun = false } = {}) {
   for (const r of moved) hosts[new URL(r.url).hostname] = (hosts[new URL(r.url).hostname] ?? 0) + 1;
   const top = Object.entries(hosts).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([h, n]) => `${h} ${n}`);
   if (!dryRun) {
-    await saveRefs(moved);
+    await saveRefs([...moved, ...kept]);
     await recomputeConfidence();
   }
-  return [`${dryRun ? "would move" : "moved"} ${moved.length} refs of ${refs.filter((r) => ["official", "docs"].includes(r.type)).length} official/docs → blog (grade C)`, `hosts: ${top.join(" · ")}`, `claim confidence: ${Object.entries(shifts).map(([k, n]) => `${k} ${n}`).join(" · ") || "no change"}`].join("\n");
+  return [`${dryRun ? "would move" : "moved"} ${moved.length} refs${kept.length ? ` (kept ${kept.length})` : ""} of ${refs.filter((r) => ["official", "docs"].includes(r.type)).length} official/docs → blog (grade C)`, `hosts: ${top.join(" · ")}`, `claim confidence: ${Object.entries(shifts).map(([k, n]) => `${k} ${n}`).join(" · ") || "no change"}`].join("\n");
 }
 
 export async function migrate({ dryRun = false, plan = null } = {}) {

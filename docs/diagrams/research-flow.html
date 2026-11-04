@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>조사 흐름 v2 · Swimlane</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:  #fbfbfd;
+      --color-ink:    #14161c;
+      --color-muted:  #5d6475;
+      --font-sans:    'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      --font-serif:   'Instrument Serif', 'Noto Serif KR', serif;
+      --font-mono:    'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1280px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+    }
+    .scroll { overflow-x: auto; }
+    svg { width: 100%; min-width: 1280px; display: block; }
+    .n { font-family: 'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-size: 17px; font-weight: 600; fill: #14161c; text-anchor: middle; }
+    .s { font-family: 'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-size: 13px; fill: #5d6475; text-anchor: middle; }
+    .m { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; fill: #5d6475; text-anchor: middle; }
+    .t { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10px; font-weight: 600; text-anchor: middle; }
+    .l { font-family: 'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-size: 13px; font-weight: 500; fill: #5d6475; }
+    .ml { font-family: 'Geist Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; fill: #5d6475; }
+    .lane { font-family: 'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-size: 14px; font-weight: 600; fill: #5d6475; }
+    .leg { font-family: 'Geist', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; font-size: 13px; fill: #5d6475; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Swimlane · reference-research</p>
+    <h1>조사 흐름 v2: 요청에서 보드까지</h1>
+    <div class="scroll">
+      <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="research-flow-title research-flow-desc">
+        <title id="research-flow-title">조사 흐름 v2: 요청에서 보드까지</title>
+        <desc id="research-flow-desc">사용자의 요청이 질문, 개요 확인, 0바퀴 검색, 방향 확인, 순환 검색, 캡처, 분석을 거쳐 결론 먼저 보드가 되는 과정을 사용자·에이전트·라이브러리 세 레인으로 보여 준다.</desc>
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.9" fill="rgba(20,22,28,0.10)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#5d6475"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#fbfbfd"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+        <!-- Lane dividers -->
+        <line x1="24" y1="24" x2="1256" y2="24" stroke="rgba(20,22,28,0.22)" stroke-width="1"/>
+        <line x1="24" y1="224" x2="1256" y2="224" stroke="rgba(20,22,28,0.10)" stroke-width="1"/>
+        <line x1="24" y1="424" x2="1256" y2="424" stroke="rgba(20,22,28,0.10)" stroke-width="1"/>
+        <line x1="24" y1="624" x2="1256" y2="624" stroke="rgba(20,22,28,0.22)" stroke-width="1"/>
+        <line x1="108" y1="24" x2="108" y2="624" stroke="rgba(20,22,28,0.22)" stroke-width="1"/>
+
+        <!-- Lane labels -->
+        <text class="lane" x="36" y="129">사용자</text>
+        <text class="lane" x="36" y="329">에이전트</text>
+        <text class="lane" x="36" y="529">라이브러리</text>
+
+        <!-- Arrows (drawn first) -->
+        <line x1="192" y1="160" x2="192" y2="288" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <path d="M 260,336 H 372 Q 380,336 380,328 V 161" fill="none" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <path d="M 332,160 V 304 Q 332,312 324,312 H 261" fill="none" stroke="#5d6475" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <path d="M 424,124 H 512 Q 520,124 520,132 V 287" fill="none" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <path d="M 588,324 H 676 Q 684,324 684,316 V 161" fill="none" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <path d="M 752,124 H 840 Q 848,124 848,132 V 287" fill="none" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <path d="M 916,312 H 932 Q 940,312 940,320 V 328 Q 940,336 932,336 H 917" fill="none" stroke="#5d6475" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <line x1="848" y1="360" x2="848" y2="487" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <path d="M 916,524 H 1024 Q 1032,524 1032,516 V 361" fill="none" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <path d="M 1100,324 H 1172 Q 1180,324 1180,332 V 487" fill="none" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+        <!-- Arrow labels -->
+        <rect x="388" y="232" width="48" height="20" rx="2" fill="#fbfbfd"/>
+        <text class="l" x="392" y="247">답변</text>
+        <rect x="236" y="232" width="88" height="20" rx="2" fill="#fbfbfd"/>
+        <text class="l" x="320" y="247" text-anchor="end">고칠 곳 있음</text>
+        <rect x="528" y="196" width="84" height="20" rx="2" fill="#fbfbfd"/>
+        <text class="ml" x="532" y="210">RUN START</text>
+        <rect x="856" y="196" width="68" height="20" rx="2" fill="#fbfbfd"/>
+        <text class="l" x="860" y="211">방향 반영</text>
+        <rect x="928" y="256" width="132" height="20" rx="2" fill="#fbfbfd"/>
+        <text class="l" x="932" y="271">새 패턴 있으면 반복</text>
+        <rect x="856" y="392" width="148" height="20" rx="2" fill="#fbfbfd"/>
+        <text class="l" x="860" y="407">새 패턴 0 · 최대 3바퀴</text>
+
+        <!-- Steps -->
+        <g>
+          <rect x="124" y="88" width="136" height="72" rx="6" fill="#fbfbfd"/>
+          <rect x="124" y="88" width="136" height="72" rx="6" fill="rgba(93,100,117,0.10)" stroke="#666d7e" stroke-width="1"/>
+          <text class="t" x="136" y="103" fill="#5d6475">1</text>
+          <text class="n" x="192" y="125">요청</text>
+          <text class="s" x="192" y="146">복잡해 보이지 않게</text>
+        </g>
+        <g>
+          <rect x="124" y="288" width="136" height="72" rx="6" fill="#ffffff" stroke="#14161c" stroke-width="1"/>
+          <text class="t" x="136" y="303" fill="#5d6475">2</text>
+          <text class="n" x="192" y="325">질문 4문항</text>
+          <text class="m" x="192" y="346">AskUserQuestion</text>
+        </g>
+        <g>
+          <rect x="288" y="88" width="136" height="72" rx="6" fill="#fbfbfd"/>
+          <rect x="288" y="88" width="136" height="72" rx="6" fill="rgba(47,91,234,0.08)" stroke="#2f5bea" stroke-width="1.6"/>
+          <text class="t" x="300" y="103" fill="#2f5bea">3</text>
+          <text class="n" x="356" y="125">개요 확인</text>
+          <text class="s" x="356" y="146">이대로 시작할까요?</text>
+        </g>
+        <g>
+          <rect x="452" y="288" width="136" height="72" rx="6" fill="#ffffff" stroke="#14161c" stroke-width="1"/>
+          <text class="t" x="464" y="303" fill="#5d6475">4</text>
+          <text class="n" x="520" y="325">0바퀴 검색</text>
+          <text class="s" x="520" y="346">연도 질의 · 최신순</text>
+        </g>
+        <g>
+          <rect x="616" y="88" width="136" height="72" rx="6" fill="#fbfbfd"/>
+          <rect x="616" y="88" width="136" height="72" rx="6" fill="rgba(47,91,234,0.08)" stroke="#2f5bea" stroke-width="1.6"/>
+          <text class="t" x="628" y="103" fill="#2f5bea">5</text>
+          <text class="n" x="684" y="125">방향 확인</text>
+          <text class="s" x="684" y="146">X 쪽이 맞나요?</text>
+        </g>
+        <g>
+          <rect x="780" y="288" width="136" height="72" rx="6" fill="#ffffff" stroke="#14161c" stroke-width="1"/>
+          <text class="t" x="792" y="303" fill="#5d6475">6</text>
+          <text class="n" x="848" y="325">1~2바퀴 검색</text>
+          <text class="s" x="848" y="346">단서로 질의 재작성</text>
+        </g>
+        <g>
+          <rect x="780" y="488" width="136" height="72" rx="6" fill="#fbfbfd"/>
+          <rect x="780" y="488" width="136" height="72" rx="6" fill="rgba(20,22,28,0.05)" stroke="#5d6475" stroke-width="1"/>
+          <text class="t" x="792" y="503" fill="#5d6475">7</text>
+          <text class="n" x="848" y="525">캡처 · 저장</text>
+          <text class="m" x="848" y="546">ref capture</text>
+        </g>
+        <g>
+          <rect x="964" y="288" width="136" height="72" rx="6" fill="#ffffff" stroke="#14161c" stroke-width="1"/>
+          <text class="t" x="976" y="303" fill="#5d6475">8</text>
+          <text class="n" x="1032" y="325">6칸 분석</text>
+          <text class="m" x="1032" y="346">ref note · claim</text>
+        </g>
+        <g>
+          <rect x="1112" y="488" width="136" height="72" rx="6" fill="#fbfbfd"/>
+          <rect x="1112" y="488" width="136" height="72" rx="6" fill="rgba(20,22,28,0.05)" stroke="#5d6475" stroke-width="1"/>
+          <text class="t" x="1124" y="503" fill="#5d6475">9</text>
+          <text class="n" x="1180" y="525">결론 먼저 보드</text>
+          <text class="m" x="1180" y="546">ref report</text>
+        </g>
+
+        <!-- Legend -->
+        <rect x="24" y="664" width="20" height="14" rx="2" fill="rgba(47,91,234,0.08)" stroke="#2f5bea" stroke-width="1.6"/>
+        <text class="leg" x="52" y="676">멈추고 사용자 확인</text>
+        <rect x="204" y="664" width="20" height="14" rx="2" fill="rgba(93,100,117,0.10)" stroke="#666d7e" stroke-width="1"/>
+        <text class="leg" x="232" y="676">사용자 입력</text>
+        <rect x="336" y="664" width="20" height="14" rx="2" fill="#ffffff" stroke="#14161c" stroke-width="1"/>
+        <text class="leg" x="364" y="676">에이전트 단계</text>
+        <rect x="484" y="664" width="20" height="14" rx="2" fill="rgba(20,22,28,0.05)" stroke="#5d6475" stroke-width="1"/>
+        <text class="leg" x="512" y="676">기록과 출력</text>
+        <line x1="612" y1="671" x2="644" y2="671" stroke="#5d6475" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <text class="leg" x="652" y="676">진행</text>
+        <line x1="704" y1="671" x2="736" y2="671" stroke="#5d6475" stroke-width="1.4" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <text class="leg" x="744" y="676">되돌아감 · 반복</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

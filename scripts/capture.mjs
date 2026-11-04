@@ -39,12 +39,12 @@ const httpGet = (url) => fetch(url, { headers: { "user-agent": UA }, redirect: "
 /** JS executed inside `aside repl` for one URL. Prints MARK + JSON. */
 export function captureScript(url, waitMs, frames, scroll, hideOverlays, maxFrames = 16, frameWaitMs = 800) {
   const u = JSON.stringify(url);
-  // Hide (never click) cookie/consent overlays so the user's real consent state is untouched.
+  // Hide (never click) cookie/consent overlays and modal popups so the user's real consent state is untouched.
   const hide = hideOverlays
     ? `__out.hiddenOverlays = (__out.hiddenOverlays || 0) + await __p.evaluate(() => {
     const re = /cookie|consent|onetrust|gdpr|didomi|truste|usercentrics|cookiebot|\\uCFE0\\uD0A4|\\uAC1C\\uC778\\uC815\\uBCF4|\\uB3D9\\uC758 \\uBC30\\uB108/i;
     let n = 0;
-    const hideEl = (el) => { el.style.setProperty('display', 'none', 'important'); n++; };
+    const hideEl = (el) => { if (el.style.getPropertyValue('display') === 'none') return; el.style.setProperty('display', 'none', 'important'); n++; };
     for (const sel of ['#onetrust-consent-sdk', '#CybotCookiebotDialog', '#usercentrics-root', '#didomi-host', '.osano-cm-window', '.fc-consent-root', '#truste-consent-track', '#cookie-law-info-bar']) {
       document.querySelectorAll(sel).forEach(hideEl);
     }
@@ -54,6 +54,21 @@ export function captureScript(url, waitMs, frames, scroll, hideOverlays, maxFram
       if (s.display === 'none' || (s.position !== 'fixed' && s.position !== 'sticky')) continue;
       const sig = el.id + ' ' + (typeof el.className === 'string' ? el.className : '') + ' ' + (el.getAttribute('aria-label') || '') + ' ' + (el.innerText || '').slice(0, 400);
       if (re.test(sig)) hideEl(el);
+    }
+    // modal popups (newsletter, ad, promo): corner widgets and top/bottom bars never cover the viewport centre; text length spares fixed app panes
+    const overCentre = (r) => r.left <= innerWidth / 2 && r.right >= innerWidth / 2 && r.top <= innerHeight / 2 && r.bottom >= innerHeight / 2;
+    for (const el of document.querySelectorAll('dialog[open], [role=dialog], [role=alertdialog], [aria-modal=true]')) {
+      if (overCentre(el.getBoundingClientRect())) hideEl(el);
+    }
+    for (const el of document.querySelectorAll('body *')) {
+      const s = getComputedStyle(el);
+      if (s.position !== 'fixed' || s.display === 'none' || s.visibility === 'hidden' || +s.opacity === 0 || !(+s.zIndex >= 1)) continue;
+      const r = el.getBoundingClientRect();
+      if (!overCentre(r)) continue;
+      const full = r.width >= innerWidth * 0.9 && r.height >= innerHeight * 0.9;
+      const alpha = +(s.backgroundColor.match(/[\\d.]+/g) || [])[3];
+      const text = (el.innerText || '').length;
+      if (full ? (alpha > 0 && alpha < 1) || text < 600 : text < 1500) hideEl(el);
     }
     for (const e of [document.documentElement, document.body]) {
       if (getComputedStyle(e).overflow === 'hidden') e.style.setProperty('overflow', 'visible', 'important');
@@ -145,6 +160,7 @@ try {
     }, y);
     if (i > 0 && actual === __out.frameYs[__out.frameYs.length - 1]) break;
     await sleep(${frameWaitMs});
+    ${hide}
     const f = './artifacts/' + __id + '-f' + String(i).padStart(2, '0') + '.png';
     await __p.screenshot({ path: f });
     __out.frames.push(path.resolve(f)); __out.frameYs.push(actual);
@@ -369,6 +385,7 @@ export async function capture(params) {
   const touched = new Map();
   const lines = [];
   const failures = [];
+  const notes = [];
   const images = [];
 
   for (const [i, item] of params.urls.entries()) {
@@ -434,7 +451,7 @@ export async function capture(params) {
         } catch {
           failures.push(`${item.url}: stitch failed ${st.stderr.slice(-200)}`);
         }
-      } else if (!out.contiguous) failures.push(`${item.url}: page too long for ${o.maxFrames} frames — sampled, no stitched full page`);
+      } else if (!out.contiguous) notes.push(`${item.url}: page too long for ${o.maxFrames} frames — sampled, no stitched full page`);
     }
     for (const p of [out.fold, ...(out.frames ?? [])]) if (p && p.startsWith(os.tmpdir())) await fs.rm(p, { force: true });
 
@@ -474,7 +491,7 @@ export async function capture(params) {
   if (unmapped.length) lines.push(`\n⚠ tags not on any axis yet: ${unmapped.join(", ")} — \`ref axes suggest ${col.name}\``);
   await closeBrowser();
   return {
-    text: [`Collection: ${col.name}`, `Capture backend: ${backend}${backend === "chrome" ? " (headless local Chrome — no logged-in sessions)" : ""}`, `Processed: ${touched.size}/${params.urls.length}`, "", ...lines, failures.length ? `\nFailures:\n${failures.map((f) => "- " + f).join("\n")}` : ""].join("\n"),
+    text: [`Collection: ${col.name}`, `Capture backend: ${backend}${backend === "chrome" ? " (headless local Chrome — no logged-in sessions)" : ""}`, `Processed: ${touched.size}/${params.urls.length}`, "", ...lines, notes.length ? `\nNotes:\n${notes.map((f) => `- ${f}`).join("\n")}` : "", failures.length ? `\nFailures:\n${failures.map((f) => "- " + f).join("\n")}` : ""].join("\n"),
     images,
     ok: touched.size > 0,
   };

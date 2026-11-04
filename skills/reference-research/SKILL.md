@@ -152,6 +152,8 @@ Ask before searching. Models are weak at noticing a vague request on their own, 
   - **related refs from other categories** → open the promising ones (`ref show S#`, look at the preview), `ref collect` those on the same axis with a one-line reason
 
 ## 2. Discover candidates (WebSearch → WebFetch) — newest first, in rounds
+**Gate: no WebSearch until the brief table is in your reply and saved as the `brief` note (§1).**
+
 Read newest first and let the newest sources rewrite the next queries. WebSearch has no date sort or filter, so dates come from the queries and from the pages you open.
 
 ### Freshness rule (12 months back from today)

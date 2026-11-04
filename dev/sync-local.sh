@@ -25,4 +25,6 @@ fs.writeFileSync(dst, JSON.stringify(out,null,2)+"\n");' "$ROOT/package.json" "$
 grep -n 'reference-research/plugin\|CLAUDE_PLUGIN_ROOT' "$L/SKILL.md" && { echo "plugin-only paths left in local SKILL.md" >&2; exit 1; }
 node "$L/bin/ref.mjs" doctor | sed -n '1,12p'
 git -C "$L" add -A
-git -C "$L" commit -q -m "sync from plugin repo $(git -C "$ROOT" rev-parse --short HEAD)" && echo "local skill synced + committed ($(git -C "$L" rev-parse --short HEAD))" || echo "local skill already up to date"
+if git -C "$L" diff --cached --quiet; then echo "local skill already up to date"; exit 0; fi
+git -C "$L" commit -q -m "chore(sync): 플러그인 저장소 $(git -C "$ROOT" rev-parse --short HEAD) 동기화"
+echo "local skill synced + committed ($(git -C "$L" rev-parse --short HEAD))"

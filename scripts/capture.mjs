@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readAxes, tagIndex } from "./axes.mjs";
 import {
-  FILES, ROLES, SCREEN_TYPES, TYPE_CRED, abs, addMember, bad, daysSince, ensureCollection, findRef, latestSnapshot,
+  CHANNELS, FILES, ROLES, SCREEN_TYPES, TYPE_CRED, abs, addMember, bad, daysSince, ensureCollection, findRef, latestSnapshot,
   nextId, normUrl, readRefs, refSlug, rel, saveRefs, splitLabel, stamp, writeCollection,
 } from "./store.mjs";
 
@@ -22,7 +22,38 @@ const REPL_TIMEOUT_MS = 115_000;
 const MARK = "__REF_RESULT__";
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
-const META_KEEP = ["title", "description", "ogImage", "lang", "headings", "nav", "ctas", "fonts", "topColors", "viewport", "pageHeight", "innerScroller"];
+const META_KEEP = ["title", "description", "ogImage", "lang", "headings", "nav", "ctas", "fonts", "topColors", "viewport", "pageHeight", "innerScroller", "dates"];
+
+// A bot check clears by itself in a real browser or never does: wait a little, never click it. A title match needs a short page, so an article about CAPTCHAs is not one.
+const BOT_WAIT = `const __wall = () => __p.evaluate(() => {
+    const title = document.title || '';
+    if (document.querySelector('#challenge-form, #challenge-running, #cf-challenge-running, #challenge-stage, .cf-browser-verification, #px-captcha')) return title || 'challenge page';
+    const re = /just a moment|\\uC7A0\\uC2DC\\uB9CC \\uAE30\\uB2E4\\uB9AC\\uC2ED\\uC2DC\\uC624|attention required|checking your browser|verify you are human|are you a robot|access denied|security check|captcha|\\uBCF4\\uC548 \\uD655\\uC778|\\uC0AC\\uB78C\\uC778\\uC9C0/i;
+    return re.test(title) && (document.body?.innerText || '').length < 2000 ? title : null;
+  }).catch(() => 'navigating');
+  __out.blocked = await __wall();
+  const __waited = !!__out.blocked;
+  for (let i = 0; i < 8 && __out.blocked; i++) { await sleep(2000); __out.blocked = await __wall(); }
+  if (__out.blocked) throw new Error('bot check: ' + __out.blocked);`;
+
+// Publication date, most trustworthy first: article meta tags, JSON-LD, <time>, Last-Modified.
+const PAGE_DATES = `__out.meta.dates = await __p.evaluate(async () => {
+    const pick = (...sels) => { for (const s of sels) { const e = document.querySelector(s); const v = e && (e.content || e.getAttribute('datetime')); if (v) return v; } return null; };
+    let published = pick('meta[property="article:published_time"]', 'meta[name="article:published_time"]', 'meta[property="og:published_time"]', 'meta[itemprop="datePublished"]', 'meta[name="date"]', 'meta[name="pubdate"]', 'meta[name="publish-date"]');
+    let modified = pick('meta[property="article:modified_time"]', 'meta[name="article:modified_time"]', 'meta[property="og:updated_time"]', 'meta[itemprop="dateModified"]');
+    let from = published ? 'meta' : null;
+    const walk = (o, d = 0) => {
+      if (!o || typeof o !== 'object' || d > 6) return;
+      if (Array.isArray(o)) return o.forEach((x) => walk(x, d + 1));
+      if (!published && o.datePublished) { published = String(o.datePublished); from = 'jsonld'; }
+      if (!modified && o.dateModified) modified = String(o.dateModified);
+      Object.values(o).forEach((v) => walk(v, d + 1));
+    };
+    for (const s of document.querySelectorAll('script[type="application/ld+json"]')) { try { walk(JSON.parse(s.textContent)); } catch {} }
+    if (!published) { const t = document.querySelector('article time[datetime], main time[datetime], time[datetime]'); if (t) { published = t.getAttribute('datetime'); from = 'time'; } }
+    if (!published) { try { const lm = (await fetch(location.href, { method: 'HEAD' })).headers.get('last-modified'); if (lm) { published = lm; from = 'last-modified'; } } catch {} }
+    return { published, modified, from };
+  });`;
 
 export function run(cmd, args, timeout) {
   return new Promise((resolve) => {
@@ -82,6 +113,8 @@ const __out = { ok: false, url: ${u} };
 try {
   __p = await openTab(${u});
   await sleep(${Math.max(0, Math.min(waitMs, 15000))});
+  ${BOT_WAIT}
+  if (__waited) await sleep(${Math.max(0, Math.min(waitMs, 15000))});
   await fs.mkdir('./artifacts', { recursive: true });
   const __id = Date.now().toString(36);
   ${hide}
@@ -136,6 +169,7 @@ try {
       })(),
     };
   });
+  ${PAGE_DATES}
   __out.finalUrl = __p.url();
   ${hide}
   ${
@@ -346,6 +380,7 @@ function upsertRef(refs, url, finalUrl, item, ctx) {
   ref.tags = [...new Set([...ref.tags, ...other])];
   if (item.label && !ref.label) Object.assign(ref, { label: item.label, product, page });
   ref.lastSeen = ctx.now;
+  if (item.channel) ref.channel = item.channel;
   return { ref, isNew };
 }
 
@@ -362,6 +397,25 @@ function addSnapshot(ref, snap, ctx) {
 }
 
 const preview = (snap) => (snap?.files?.preview ? abs(snap.files.preview) : null);
+
+/** "YYYY-MM-DD", or null for anything else: a bare year or month would invent the rest of the date */
+export function isoDate(v, now = Date.now()) {
+  const s = String(v ?? "").trim();
+  if (!s || /^\d{4}(-\d{1,2})?$/.test(s)) return null;
+  const m = s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+  const d = m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : new Date(s);
+  if (Number.isNaN(d.getTime()) || d.getUTCFullYear() < 1990 || d.getTime() > now + 864e5) return null;
+  return d.toISOString().slice(0, 10);
+}
+
+function applyDates(ref, dates, at) {
+  const published = isoDate(dates?.published);
+  const modified = isoDate(dates?.modified);
+  // a dynamic page reports the moment it was served as Last-Modified
+  const served = dates?.from === "last-modified" && published && Math.abs(Date.parse(at) - Date.parse(published)) < 2 * 864e5;
+  if (published && !served && !ref.published) Object.assign(ref, { published, publishedFrom: dates.from });
+  if (modified) ref.updated = modified;
+}
 
 // ---------- capture ----------
 
@@ -387,8 +441,18 @@ export async function capture(params) {
   const failures = [];
   const notes = [];
   const images = [];
+  const attempt = async (via, script) => {
+    const r = via === "aside" ? await run("aside", ["repl", script], REPL_TIMEOUT_MS) : await chromeRun(script).catch((e) => ({ code: 1, stdout: "", stderr: String(e?.message ?? e) }));
+    const line = (r.stdout + "\n" + r.stderr).split("\n").find((l) => l.includes(MARK));
+    try {
+      return { r, out: line ? JSON.parse(line.slice(line.indexOf(MARK) + MARK.length)) : null };
+    } catch {
+      return { r, out: null };
+    }
+  };
 
   for (const [i, item] of params.urls.entries()) {
+    if (item.channel && !CHANNELS.includes(item.channel)) bad(`channel must be one of ${CHANNELS.join(", ")}`);
     if (!/^https?:\/\//i.test(item.url)) {
       failures.push(`${item.url}: not an http(s) URL`);
       continue;
@@ -407,16 +471,19 @@ export async function capture(params) {
     }
     console.error(`[${i + 1}/${params.urls.length}] capturing ${item.url} ...`);
     const script = captureScript(item.url, o.wait, o.full, o.scroll, o.hide, o.maxFrames, o.frameWait);
-    const r = backend === "aside" ? await run("aside", ["repl", script], REPL_TIMEOUT_MS) : await chromeRun(script).catch((e) => ({ code: 1, stdout: "", stderr: String(e?.message ?? e) }));
-    const line = (r.stdout + "\n" + r.stderr).split("\n").find((l) => l.includes(MARK));
-    let out;
-    try {
-      out = line ? JSON.parse(line.slice(line.indexOf(MARK) + MARK.length)) : null;
-    } catch {
-      out = null;
+    let via = backend;
+    let { r, out } = await attempt(via, script);
+    if (out?.blocked && via === "chrome" && (await run("aside", ["--version"], 15_000)).code === 0) {
+      via = "aside";
+      ({ r, out } = await attempt(via, script));
+      if (out?.ok) notes.push(`${item.url}: bot check on chrome — captured through Aside`);
+    }
+    if (out?.blocked) {
+      failures.push(`${item.url}: bot check not passed ("${out.blocked}"), nothing saved. Do not solve it: ask the user to open the page, or record it with \`ref source add\``);
+      continue;
     }
     if (!out) {
-      failures.push(`${item.url}: ${backend} capture failed (exit ${r.code}) ${(r.stderr || r.stdout).slice(-400)}`);
+      failures.push(`${item.url}: ${via} capture failed (exit ${r.code}) ${(r.stderr || r.stdout).slice(-400)}`);
       continue;
     }
     if (!out.ok) {
@@ -462,6 +529,7 @@ export async function capture(params) {
     const snap = { at, dir: rel(dir), files: relFiles, url: item.url, finalUrl: out.finalUrl, run: ctx.run, collection: col.name, meta };
     await fs.writeFile(path.join(dir, "meta.json"), JSON.stringify({ ref: ref.id, ...snap }, null, 2));
     const delta = addSnapshot(ref, snap, ctx);
+    applyDates(ref, out.meta?.dates, at);
     const added = addMember(col, ref, item.role ?? splitTags(item.tags).role, ctx.run);
     touched.set(ref.id, ref);
     const m = meta;
@@ -469,6 +537,7 @@ export async function capture(params) {
       [
         `- ${ref.id} ${isNew ? "NEW" : "REFRESHED"} ${ref.label ?? ""} — ${ref.title ?? ""}`,
         `  url: ${out.finalUrl ?? item.url}`,
+        `  published: ${ref.published ?? "unknown"}${ref.publishedFrom ? ` (${ref.publishedFrom})` : ""}${ref.updated ? ` · updated ${ref.updated}` : ""}`,
         `  categories: ${ref.categories.join(", ")}${added && !isNew ? `  (+${col.name})` : ""}`,
         !isNew ? `  changes since ${ref.changes.at(-1).from.slice(0, 10)}: ${delta.length ? "\n    " + delta.join("\n    ") : "none visible"}` : "",
         m.description ? `  description: ${m.description}` : "",
@@ -495,6 +564,37 @@ export async function capture(params) {
     images,
     ok: touched.size > 0,
   };
+}
+
+// ---------- web archive ----------
+
+/** First Wayback snapshot of a ref or URL (the lower bound when its date is unknown); `at` (YYYY-MM[-DD]) also finds the snapshot closest to that date. */
+export async function archiveDates(target, at) {
+  if (at && !/^\d{4}-\d{2}(-\d{2})?$/.test(at)) bad("--at must be YYYY-MM or YYYY-MM-DD");
+  const refs = await readRefs();
+  const ref = /^S\d+$/.test(target) ? refs.find((r) => r.id === target) : findRef(refs, target);
+  if (!ref && !/^https?:\/\//i.test(target)) bad(`unknown reference: ${target}`);
+  const url = ref?.url ?? target;
+  const q = new URLSearchParams({ url, output: "json", limit: "1", fl: "timestamp", filter: "statuscode:200" });
+  const res = await httpGet(`https://web.archive.org/cdx/search/cdx?${q}`);
+  if (!res.ok) bad(`web archive: HTTP ${res.status}`);
+  const ts = JSON.parse((await res.text()) || "[]")[1]?.[0];
+  const lines = [`${ref?.id ?? url}: ${ref?.label ?? url}`];
+  if (!ts) lines.push("no snapshot in the web archive");
+  else {
+    const first = `${ts.slice(0, 4)}-${ts.slice(4, 6)}-${ts.slice(6, 8)}`;
+    lines.push(`first archived: ${first} (published no later than this) https://web.archive.org/web/${ts}/${url}`);
+    if (ref) {
+      ref.firstArchived = first;
+      await saveRefs([ref]);
+    }
+  }
+  if (at) {
+    const near = await httpGet(`https://archive.org/wayback/available?${new URLSearchParams({ url, timestamp: at.replaceAll("-", "") })}`);
+    const closest = near.ok ? (await near.json()).archived_snapshots?.closest : null;
+    lines.push(closest?.available ? `closest to ${at}: ${closest.timestamp.slice(0, 8)} ${closest.url}` : `no snapshot near ${at}`);
+  }
+  return lines.join("\n");
 }
 
 // ---------- App Store ----------

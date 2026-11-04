@@ -8,17 +8,20 @@
  *   ref source add '<json>'           text-only refs (articles, docs, papers, threads)
  *   ref collect '<json>'              add existing refs to a collection (= add a category)
  *   ref uncollect <collection> <S#>
- *   ref note '<json>'                 note on a ref (attributed to the collection) or on the collection; "fields":{structure,copy,visual,ui,adopt,avoid}
+ *   ref note '<json>'                 note on a ref (attributed to the collection) or on the collection; "fields":{feature,structure,copy,visual,ui,context,why,why_basis,alternatives,result,implication,adopt,avoid}
  * Look
  *   ref list [collection] [--query "a b"]     collections / members + coverage / global text search
  *   ref show <S#|url>                 one ref: categories, snapshots, changes, notes from every category, citing claims
+ *   ref date <S#|url> [--at YYYY-MM[-DD]]   first web-archive snapshot (lower bound of an unknown date), closest snapshot to a date
  *   ref similar <S#|C#|"text"> [--scope refs|claims|all] [--k 8]   local-embedding neighbours
  *   ref categories                    category vectors: nearest categories + shared refs
  *   ref embed [--rebuild]             update local embeddings (.vectors/, git-ignored)
  *   ref axes show [collection] | suggest [collection] | set '<json>'   tag normalization → axes.json
  *   ref course set '<json>' | show <collection>   course structure (curriculum mode): modules, topics, hours
  * Evidence
- *   ref run start '<json>'            {collection, goal, domain, kind} → R#, baseline + related refs from other categories
+ *   ref brief set '<json>' | show <collection>   {collection, brief:{purpose,audience,problem,success,value_types,scope,fixed,exclude,assumptions}, reason}
+ *   ref run start '<json>'            {collection, brief, goal, domain, kind} → R#, baseline + related refs from other categories
+ *   ref run round '<json>' | show <collection>   {collection, queries:[{q,lang}], candidates:[{url,title,published}], new_axes:[], dropped:[]} → round line, stop rule
  *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope; {update:"C#"} edits that metadata)
  *   ref delta <collection> [--run R#] run / category / time delta → DELTA.md
  *   ref cite <collection> [--file f]  every finding line cites known, active [S#]/[C#]
@@ -31,6 +34,7 @@
  * Maintenance
  *   ref learn read | add <source|search|capture|pattern|process> "<lesson>"
  *   ref migrate [--dry-run] [--plan name]     one-time v1 → v2
+ *   ref migrate roles [--dry-run]     analogous → indirect, keeps roleWas
  *   ref compact                       rewrite JSONL files without superseded lines
  *
  * "-" reads JSON from stdin. Images worth looking at are printed after "IMAGES:" — open them with the Read tool.
@@ -39,10 +43,10 @@
 import { promises as fs, existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import { capture, storeScreens } from "./capture.mjs";
+import { archiveDates, capture, storeScreens } from "./capture.mjs";
 import * as ev from "./evidence.mjs";
 import { report, coverage } from "./report.mjs";
-import { migrate } from "./migrate.mjs";
+import { migrate, migrateRoles } from "./migrate.mjs";
 import { FILES, LIB, REF_HOME, RefError, collectionName, compactAll, latestSnapshot, listCollections, readClaims, readRefs } from "./store.mjs";
 import { spawnSync } from "node:child_process";
 
@@ -314,10 +318,32 @@ try {
       break;
     }
     case "run": {
-      if (args.shift() !== "start") fail("usage: ref run start '<json>'");
+      const sub = args.shift();
+      if (sub === "round") {
+        print(await ev.addRound(await jsonArg(args[0])));
+        break;
+      }
+      if (sub === "show") {
+        print(await ev.showRun(args[0]));
+        break;
+      }
+      if (sub !== "start") fail("usage: ref run start '<json>' | round '<json>' | show <collection>");
       const p = await jsonArg(args[0]);
       const findRelated = p.related === false ? null : async (col, goal) => (await embed()).relatedOutside(col, goal);
       print(await ev.startRun(p, findRelated));
+      break;
+    }
+    case "brief": {
+      const sub = args.shift();
+      if (sub === "set") print(await ev.setBrief(await jsonArg(args[0])));
+      else if (sub === "show") print(await ev.showBrief(args[0]));
+      else fail("usage: ref brief set '<json>' | show <collection>");
+      break;
+    }
+    case "date": {
+      const at = flag(args, "--at");
+      if (!args[0]) fail("usage: ref date <S#|url> [--at YYYY-MM[-DD]]");
+      print(await archiveDates(args[0], at));
       break;
     }
     case "claim": {
@@ -390,7 +416,8 @@ try {
       break;
     case "migrate": {
       const dryRun = bool(args, "--dry-run");
-      print(await migrate({ dryRun, plan: flag(args, "--plan") }));
+      if (args[0] === "roles") print(await migrateRoles({ dryRun }));
+      else print(await migrate({ dryRun, plan: flag(args, "--plan") }));
       break;
     }
     case "compact":

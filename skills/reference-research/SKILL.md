@@ -44,7 +44,10 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | `ref show <S#\|url>` | one ref: categories, snapshots, changes, notes from every category, citing claims |
 | `ref similar <S#\|C#\|"text"> [--scope refs\|claims\|all] [--k 8]` | semantic neighbours across the whole library |
 | `ref categories` | category vectors: nearest categories + number of shared refs |
-| `ref run start '<json>'` | start a run → baseline (claims here + claims from other categories on the same refs + stale members + related refs from other categories) |
+| `ref brief set '<json>'` / `ref brief show <collection>` | the category's confirmed brief; a later change needs a `reason` and goes on its history |
+| `ref run start '<json>'` | start a run with its `brief` → baseline (claims here + claims from other categories on the same refs + stale members + related refs from other categories) |
+| `ref run round '<json>'` / `ref run show <collection>` | record one search round; the CLI counts what is new and decides the stop · rounds, totals and the longlist newest first |
+| `ref date <S#\|url> [--at YYYY-MM[-DD]]` | first web-archive snapshot (lower bound of an unknown date) · closest snapshot to a date (유지 여부) |
 | `ref capture '<json>'` / `ref store '<json>'` | capture pages / App Store screens (reuse · refresh · new) |
 | `ref source add '<json>'` | text-only refs (articles, docs, papers, threads read via WebFetch) |
 | `ref collect '<json>'` / `ref uncollect <collection> <S#>` | add / remove existing refs in a category |
@@ -60,9 +63,15 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 
 ### JSON params
 ```jsonc
-// run start — domain: design | dev | research ("related": false skips the embedding search)
-// goal/audience/question also land on the category (board header: 목적 · 대상). The first run's goal becomes the category goal.
-{"collection":"…","goal":"which decision this run supports","audience":"who the result is for","question":"one-line question","domain":"design","kind":"category","description":"…"}
+// run start — domain: design | dev | strategy | voice | travel | research | curriculum ("related": false skips the embedding search)
+// brief = the confirmed table (§1): keys purpose, audience, problem, success, value_types, scope, fixed, exclude, assumptions. purpose and audience also land on the category (board header: 목적 · 대상); "goal" overrides the run's goal
+{"collection":"…","brief":{"purpose":"which decision this run supports","audience":"who the result is for","problem":"…","success":"…","value_types":["디자인·UX"],"scope":["direct","trend"],"fixed":"…","exclude":"…","assumptions":["…"]},"question":"one-line question","domain":"design","kind":"category","description":"…"}
+
+// brief set — a change after round 0; reason goes on the history
+{"collection":"…","brief":{"scope":["direct"]},"reason":"0바퀴 뒤 직접 경쟁으로 좁힘"}
+
+// run round — after every round. lang is inferred when omitted; published only as a full date from the page; new_axes = patterns seen this round, repeats are dropped by the CLI
+{"collection":"…","queries":[{"q":"…","lang":"ko"}],"candidates":[{"url":"…","title":"…","published":"2026-09-30"}],"new_axes":["무료 한도"],"dropped":[{"channel":"G2","ref":"S41","reason":"화면 의견 없음"}]}
 
 // capture (≤ 6 URLs per call; each new capture ~10–40 s; Bash timeout 600000)
 {"collection":"…","urls":[{"url":"https://…","label":"Warp — landing","tags":["landing","direct","vertical-tabs"]},
@@ -73,15 +82,16 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 {"collection":"…","app":"Toss","country":"kr","label":"토스 — App Store","tags":["direct"],"max_screens":10}
 
 // source add — type: official|docs|store|repo|paper|report|press|community|blog|listicle|other ; credibility A–D (default from type)
-// published = YYYY-MM-DD, whenever the page states one. capture does not record a date → after capturing, set it on the same URL: {"sources":[{"url":"…","published":"2026-09-30"}]}
+// channel: primary|interpretation|reaction|rationale (default from type) · published = a full YYYY-MM-DD the page states, else leave it out
+// capture reads the date from the page and prints `published:`. If it prints unknown, set it on the same URL: {"sources":[{"url":"…","published":"2026-09-30"}]}
 {"collection":"…","sources":[{"url":"…","label":"VoiceMode — GitHub README","type":"repo","publisher":"VoiceMode","published":"2026-05-01","summary":"one-line 요지 (board 자료 목록)","note":"…","role":"trend"}]}
 
 // collect
 {"collection":"…","refs":["S5","S18"],"role":"indirect","note":"why it belongs here"}
 
 // note — "ref" omitted = category note; tags = pattern names, they feed the category delta
-// analysis = "note" markdown with one **라벨**: line per part (§5); the viewer styles them as labels. Older "fields" still work, but the viewer shows only fields when both are sent → send "note" alone
-{"collection":"…","ref":"S12","note":"**기능**: …\n**맥락**: …\n**왜**: 공식 — … [S3]\n**대안**: … [S7]\n**결과**: …\n**시사점**: 차용 — … (조건: …)","tags":["limit-gauge-pace"]}
+// analysis = "fields", one key per part of §5; the viewer renders them as labels. why needs why_basis: official|signal|guess. Send fields or note, not both
+{"collection":"…","ref":"S12","fields":{"feature":"…","context":"…","why":"… [S3]","why_basis":"official","alternatives":"… [S7]","result":"…","implication":"차용 — … (조건: …)"},"tags":["limit-gauge-pace"]}
 
 // claim add — kind: fact|pattern|benchmark|failure|gap|opinion|hypothesis
 // subject = 5–12 char title the board shows (always give one) · key = headline finding (board 핵심 결론) · asOf = date a price/number was true · scope = where it applies; "원리" = a principle about human cognition or theory (freshness rule, §2)
@@ -144,15 +154,15 @@ Ask before searching. Models are weak at noticing a vague request on their own, 
 
 **Start**
 - **kind**: *category* ("X 앱 만들기 전", or a topic → similar products, `<category>-category`) or *service* ("Y 서비스 분석" → one service + rivals, `<service>-service`).
-- **domain**: `design` (디자인·UX — sections 2–7) · `curriculum` (교육과정 — **§9**) · `dev` (기술·개발: 아키텍처·라이브러리·안티패턴 — planned; meanwhile use sources/claims with WebFetch, skip screen coverage) · `research` (전략·비즈니스, 사용자 반응·시장, 여행·동선, 연구/논문 — source-led: skip screen coverage, capture only pages that are evidence themselves; record papers as `type:"paper"` sources).
-- `ref run start`, after the brief is confirmed, with `goal` = the decision from the brief (not the request's wording), `audience`, `question` = the one question the decision hinges on. Then `ref note` the brief table as a category note tagged `brief`. Read the whole baseline:
+- **domain**: `design` (디자인·UX — sections 2–7) · `curriculum` (교육과정 — **§9**) · `dev` (기술·개발: 아키텍처·라이브러리·안티패턴 — planned; meanwhile use sources/claims with WebFetch, skip screen coverage) · `strategy` (전략·비즈니스) · `voice` (사용자 반응·시장) · `travel` (여행·동선) · `research` (연구/논문; record papers as `type:"paper"` sources). The last four are source-led: skip screen coverage, capture only pages that are evidence themselves.
+- `ref run start`, after the brief is confirmed, with `purpose` = the decision (not the request's wording), `brief`, `question` = the one question the decision hinges on. Read the whole baseline:
   - claims already here → confirm / revise / refute them, don't re-add
   - claims from other categories on the same refs → reuse what applies
   - stale members → re-capture with `"force":true` if they matter for this goal
   - **related refs from other categories** → open the promising ones (`ref show S#`, look at the preview), `ref collect` those on the same axis with a one-line reason
 
 ## 2. Discover candidates (WebSearch → WebFetch) — newest first, in rounds
-**Gate: no WebSearch until the brief is confirmed or printed as a full table and saved as the `brief` note (§1).**
+**Gate: no WebSearch until the brief is confirmed or printed as a full table, and `ref run start` has stored it (§1).**
 
 Read newest first and let the newest sources rewrite the next queries. WebSearch has no date sort or filter, so dates come from the queries and from the pages you open.
 
@@ -162,7 +172,7 @@ Read newest first and let the newest sources rewrite the next queries. WebSearch
 | 신선 | published or updated within 12 months | anything: exemplars, key claims |
 | 지난 자료 | older, or date unknown | only a principle (human cognition, theory) or a before/after comparison |
 
-Date unknown → look for it on the page before giving up. Never invent a month or day: a year alone counts as unknown.
+Date unknown → look for it on the page, then `ref date <S#>` for a lower bound. Never invent a month or day: a year alone counts as unknown.
 
 ### Channels by value type — choose before round 0
 | 가치 유형 | 1차 (사실·실물) | 해석 | 반응 | 이유 근거 | 편향 주의 | 남길 것 |
@@ -180,12 +190,12 @@ Date unknown → look for it on the page before giving up. Never invent a month 
 
 ### Rounds — widen → read → narrow, at most 3 rounds including round 0
 1. **Round 0**: queries carrying this year and last year, `latest`, `changelog`, `release notes`, recent announcements. Note each candidate's published date; sort the longlist newest first.
-2. **Recheck, after round 0 only**: AskUserQuestion (or one line of text), "최신 자료를 보니 X 쪽으로 좁혀집니다. 맞나요?". Update the `brief` note if the answer changes it. If the user said "알아서", state the narrowing as 가정 and continue.
+2. **Recheck, after round 0 only**: AskUserQuestion (or one line of text), "최신 자료를 보니 X 쪽으로 좁혀집니다. 맞나요?". Record a changed answer with `ref brief set` and a `reason`. If the user said "알아서", state the narrowing as 가정 and continue.
 3. **Clues**: from the newest 5–10 candidates, pull repeated names, terms and patterns → the next round's queries.
 4. **Branch**: follow good sources backward (what they reference) and forward (what came after, what copied them).
-5. **Stop**: a round that adds no new pattern ends the search.
+5. **Stop**: `ref run round` says 멈춤 when a round adds no new pattern, or at round 3.
 
-End every round, round 1 included, with exactly this chat line, so the loop is visible: `N바퀴 끝: 질의 X개 · 후보 Y개 · 새 패턴 Z개 → 다음: <queries or why it stops>`. Do not rephrase it or drop the round label.
+End every round, round 1 included, with `ref run round` and copy the first line it prints into the chat as is, so the loop is visible.
 
 ### Minimums, across all rounds
 - **≥ 8 WebSearch queries**, **≥ 3 Korean and ≥ 3 English**, covering all 5 angles: listicle/best-of · alternatives/vs · community (reddit, `site:news.ycombinator.com`, 긱뉴스, velog/디스콰이엇) · open source (`github`, `awesome …`) · KR market/local players
@@ -194,7 +204,7 @@ End every round, round 1 included, with exactly this chat line, so the loop is v
 - Capture only URLs seen in search or fetch results; never guess one
 - WebFetch refused or blocked (403, bot check) → `ref capture` that URL before settling for a secondary source
 - **Longlist before shortlist**: every candidate **with its URL** (name · type · URL · published date or 미상 · source query · one line), newest first, aim for ≥ 12; then select 3–5 direct, 1–2 indirect, 1–2 trend with reasons. Exemplars must be 신선. Candidates you will cite but not capture → `ref source add` (so they are refs, not just names)
-- **Search log**: each round's queries and new patterns, the longlist, the selection and dropped channels, as a category note tagged `search-log`. The final answer states query count (KR/EN), rounds and longlist size
+- **Search log**: `ref run round` keeps queries, candidates, new patterns and dropped channels. Note the selection with its reasons as a category note tagged `search-log`. Take every count in the final answer from `ref run show <collection>`: query count (KR/EN), rounds and longlist size
 
 ## 3. Screen coverage — do NOT stop at landing pages
 | tag | what | how |
@@ -210,19 +220,20 @@ Same product name before " — " in labels (`Warp — landing`). `ref list <coll
 - Output per URL: `NEW` (new ref), `REUSED` (already in library — category added, preview printed; read its earlier notes with `ref show`), `REFRESHED` (re-captured; read the printed changes).
 - Defaults: wait_ms 1500, max_frames 16, frame_wait_ms 800. Heavy SPAs: wait_ms 3000–5000; scroll-animated: frame_wait_ms 1200; long READMEs: max_frames ≥ 20.
 - Opens tabs in the user's **Aside** browser (logged-in sessions). Read-only: never submit forms, sign up, pay, post, or click consent buttons (cookie banners and modal popups are hidden, not clicked; `"hide_overlays":false` keeps them).
+- `bot check not passed` = nothing was saved. A Chrome capture already retried through Aside. Never solve a check: ask the user to open the page, or record it with `ref source add`.
 - Keep the `Capture backend:` line when filtering the output, and say it in chat (`캡처: Aside 4건`). `Notes:` lines are warnings, not failures: the page was captured.
 - Retry failures once separately with higher wait_ms; record a lesson if a site keeps failing. Desktop viewport only — mobile UI comes from `store`.
 
 ## 5. Analyze — look at the images, then trace why
-Read every printed image. Do not stop at what is on screen: trace why it was built this way, with evidence. For each new or refreshed ref, `ref note` (with `ref`, as `note` markdown with `**라벨**:` lines):
-| part | asks | evidence rule |
+Read every printed image. Do not stop at what is on screen: trace why it was built this way, with evidence. For each new or refreshed ref, `ref note` (with `ref`, as `fields`):
+| part (key) | asks | evidence rule |
 |---|---|---|
-| 기능 | what is visible, as is: 구조 · 카피/CTA · 비주얼 (`colors:`, `fonts:`) · UI 패턴 | capture S# and screen number required |
-| 맥락 | for whom, under what constraints (고객 · 시장 · 시기 · 플랫폼) | S# if sourced, else 추정 |
-| 왜 | why it was built this way | start with the basis: **공식** (the company said so: blog, changelog, talk, interview) / **정황** (job ads, price changes, repetition across products) / **추정** (hypothesis) |
-| 대안 | how others solved the same problem | ≥ 1 other S# |
-| 결과 | did it work | official numbers, user reaction, 유지 여부 (still there a year later: re-capture changes, web archive), spread (did others copy it) |
-| 시사점 | what it means for the brief's goal | one of 차용 · 변형 · 회피, plus its condition |
+| 기능 (`feature`, or `structure` `copy` `visual` `ui`) | what is visible, as is: 구조 · 카피/CTA · 비주얼 (`colors:`, `fonts:`) · UI 패턴 | capture S# and screen number required |
+| 맥락 (`context`) | for whom, under what constraints (고객 · 시장 · 시기 · 플랫폼) | S# if sourced, else 추정 |
+| 왜 (`why`, `why_basis`) | why it was built this way | required basis: `official` 공식 (the company said so: blog, changelog, talk, interview) / `signal` 정황 (job ads, price changes, repetition across products) / `guess` 추정 (hypothesis) |
+| 대안 (`alternatives`) | how others solved the same problem | ≥ 1 other S# |
+| 결과 (`result`) | did it work | official numbers, user reaction, 유지 여부 (still there a year later: re-capture changes, web archive), spread (did others copy it) |
+| 시사점 (`implication`) | what it means for the brief's goal | one of 차용 · 변형 · 회피, plus its condition |
 All six parts only for the 3–5 key refs; the rest get 기능 + 시사점. Write 회피 for a combination in its context, never as a blanket ban on one element.
 Give the note **pattern tags** — through their axes they drive the category delta (common vs. one-product) and cross-category links. Reuse existing tag names (`ref axes show`).
 For a REUSED ref, add only what is new for this category's angle. Only state what is visible; mark guesses 추정.
@@ -312,4 +323,4 @@ Tools: `list_collections` · `search_references` (semantic + keyword, returns pr
 - Requirements: Node 20+, `python3` with Pillow, and a capture backend — `aside` CLI (logged in; captures with the user's logins) or Google Chrome / Chromium / Edge (headless, no logins; `REF_CHROME=<path>` for other locations, `REF_CAPTURE=aside|chrome|none` to force). Core npm deps install themselves on first `ref`. Embeddings are optional: `ref setup --embeddings` (~700 MB into `~/.reference-research`); model `Xenova/multilingual-e5-small` downloads once (~120 MB). Scores cluster 0.75–0.9 — compare ranks, not absolute values.
 - Without Aside, captures run in headless Chrome: logged-in pages and some bot-protected sites fail or show a login wall — note it in the report and record them with `ref source add`. With no backend at all: WebFetch text + `ref source add` only (no screenshots); say so in the report.
 - Login-only flows the user explicitly wants explored (Aside only): `aside exec "<task>"`; never perform irreversible actions.
-- Library layout and record formats: header comment of `scripts/store.mjs`. v1 libraries: `ref migrate` (commit first).
+- Library layout and record formats: header comment of `scripts/store.mjs`. v1 libraries: `ref migrate` (commit first). Members still marked `analogous`: `ref migrate roles --dry-run`, then without the flag (commit first).

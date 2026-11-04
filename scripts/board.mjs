@@ -7,6 +7,8 @@
  * [C46], editorial tone [C49], no popups/ads [C48].
  */
 
+import { SOURCE_LED } from "./store.mjs";
+
 export const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 // ---------- minimal markdown (headings, lists, tables, quotes, bold, code, strike, links, [S#]/[C#] citations) ----------
@@ -575,9 +577,9 @@ const ROLE_KO = { direct: "직접 경쟁", indirect: "간접 경쟁", trend: "�
 const KIND = { pattern: ["패턴", "여러 곳에서 반복되는 해법"], benchmark: ["기준치", "수치로 본 수준"], fact: ["사실", "확인된 정보"], gap: ["빈틈", "아무도(거의) 하지 않는 것"], failure: ["실패 사례", "불만·문제·피할 점"], opinion: ["의견", "평가·리뷰"], hypothesis: ["가설", "근거 없이 세운 추정"] };
 const sectionHead = (n, title, desc, extra = "") => `<div class="sechead"><span class="n">${n}</span><h2>${title}</h2>${extra}${desc ? `<p>${desc}</p>` : ""}</div>`;
 const searchText = (...parts) => esc(parts.flat().filter(Boolean).join(" ").toLowerCase());
-const DOMAIN_KO = { design: "디자인·기획", curriculum: "커리큘럼", dev: "개발", research: "연구" };
+const DOMAIN_KO = { design: "디자인·기획", curriculum: "커리큘럼", dev: "개발", research: "연구", strategy: "전략·비즈니스", voice: "사용자 반응", travel: "여행·동선" };
 const KIND_KO = { category: "카테고리 조사", service: "서비스 분석" };
-const UNIT = { design: "제품", dev: "제품", curriculum: "강의", research: "출처" };
+const UNIT = { design: "제품", dev: "제품", curriculum: "강의", research: "출처", strategy: "출처", voice: "출처", travel: "출처" };
 const TYPE_KO = { official: "공식", docs: "문서", store: "스토어", repo: "저장소", paper: "논문", report: "보고서", press: "언론", framework: "기준", survey: "설문", "job-posting": "채용 공고", community: "커뮤니티", blog: "블로그", listicle: "목록글", capture: "캡처", other: "기타" };
 const short = (s, n) => ((s = String(s ?? "")), s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
 /** copyable id chip — one click puts S#/C#/R# on the clipboard to hand to Claude */
@@ -660,10 +662,11 @@ const sectionsOf = (src) => {
   if (cur.title !== null || cur.body.join("").trim()) out.push(cur);
   return out.map((x) => ({ ...x, body: x.body.join("\n").trim() }));
 };
-const NOTE_FIELDS_KO = { structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", adopt: "차용할 점", avoid: "피할 점" };
+const NOTE_FIELDS_KO = { feature: "기능", structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", context: "맥락", why: "왜", alternatives: "대안", result: "결과", implication: "시사점", adopt: "차용할 점", avoid: "피할 점" };
+const WHY_BASIS_KO = { official: "공식", signal: "정황", guess: "추정" };
 /** a note → html: structured fields as a definition list, else markdown with "**라벨**:" lines styled as labels */
 const noteHtml = (x, cite) => {
-  if (x.fields && Object.keys(x.fields).length) return `<dl class="nf">${Object.entries(x.fields).map(([k, v]) => `<dt>${esc(NOTE_FIELDS_KO[k] ?? k)}</dt><dd>${inline(String(v), cite)}</dd>`).join("")}</dl>`;
+  if (x.fields && Object.keys(x.fields).length) return `<dl class="nf">${Object.entries(x.fields).filter(([k]) => k !== "why_basis").map(([k, v]) => `<dt>${esc(NOTE_FIELDS_KO[k] ?? k)}</dt><dd>${k === "why" && WHY_BASIS_KO[x.fields.why_basis] ? `<b>${WHY_BASIS_KO[x.fields.why_basis]}</b> ` : ""}${inline(String(v), cite)}</dd>`).join("")}</dl>`;
   return md(x.text, cite).replace(/<strong>([^<]{1,20})<\/strong>\s*[:：]\s*/g, '<span class="nl">$1</span>');
 };
 /** "- a" / "1. a" lines of a markdown block (one level), else non-empty lines */
@@ -762,7 +765,7 @@ ${searchBox("레퍼런스·발견·패턴 검색")}
   const goalBlock = goal
     ? `<div class="goal"><span class="lbl">목적</span><p>${inline(goal, cite)}</p>${col.audience ? `<p class="aud">대상: ${esc(col.audience)}</p>` : ""}${otherCats.length ? `<p class="aud">같은 레퍼런스를 쓰는 다른 조사: ${otherCats.map((c) => `<a href="../${esc(c)}/index.html" style="color:#fff;text-decoration:underline">${esc(d.catTitle(c))}</a>`).join(", ")}</p>` : ""}</div>`
     : "";
-  const unitSub = col.domain === "research" ? `${unit} · ${typeMix(d.members.map((m) => m.r.id), typeOf, 2)}` : `${unit}${basisCount ? ` · 근거 자료 ${basisCount}` : ""}`;
+  const unitSub = SOURCE_LED.includes(col.domain) ? `${unit} · ${typeMix(d.members.map((m) => m.r.id), typeOf, 2)}` : `${unit}${basisCount ? ` · 근거 자료 ${basisCount}` : ""}`;
   const tiles = `<div class="tiles">
 <div><b>${productCount}</b><span>${esc(unitSub)}</span></div>
 <div><b>${d.members.length}</b><span>레퍼런스 · 캡처 ${captured} · 글 자료 ${d.members.length - captured}</span></div>
@@ -805,7 +808,7 @@ ${goalBlock}${tiles}
   // patterns
   const n = d.axes.products.length;
   const common = (r) => r.products.length >= Math.max(2, Math.ceil(n * 0.3));
-  const compact = col.domain === "research"; // research boards: sources as grade chips, not thumbnail rows
+  const compact = SOURCE_LED.includes(col.domain); // research boards: sources as grade chips, not thumbnail rows
   const axCard = (r) => `<article class="axcard" id="axis-${esc(r.id)}" data-search="${searchText(r.label, r.question, r.verdict, r.products, Object.values(r.how))}">
   <header><strong>${esc(r.label)}</strong><span class="count"><b>${r.products.length}</b> / ${n} ${esc(unit)}</span></header>
   ${r.question ? `<p class="q">${esc(r.question)}</p>` : ""}
@@ -902,7 +905,7 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
   const runSelect = d.runs.length > 1 ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${d.runs.map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(short(r.goal ?? r.startedAt.slice(0, 10), 28))}</option>`).join("")}</select>` : "";
   const more = `<button class="morebtn" type="button" hidden></button>`;
   const shotProducts = d.products.filter((p) => p.members.some((m) => m.thumb)).length;
-  const view0 = ["grid", "rows", "flow"].includes(col.view) ? col.view : col.domain !== "research" && shotProducts >= 10 && rows ? "rows" : "grid";
+  const view0 = ["grid", "rows", "flow"].includes(col.view) ? col.view : !SOURCE_LED.includes(col.domain) && shotProducts >= 10 && rows ? "rows" : "grid";
   const refs = `<section id="refs">${sectionHead(next(), "레퍼런스", `캡처한 화면은 <b>격자</b>(한 장씩) · <b>제품별</b>(제품 하나에 여러 페이지) · <b>흐름</b>(한 페이지의 화면을 순서대로)으로 봅니다. 이미지를 누르면 뷰어가 열립니다: <kbd>←</kbd><kbd>→</kbd> 화면 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 다른 레퍼런스 · <kbd>N</kbd> 정보 · <kbd>Esc</kbd> 닫기. 글로 읽은 자료(논문·기사·문서)는 아래 <b>자료 목록</b>에 있습니다.`)}
 <div id="gallery">
 <div class="toolbar">
@@ -1119,7 +1122,7 @@ ${c.missing.length ? `<div class="note">강의 구조가 기록되지 않은 강
 export function renderHome(h) {
   const titleOf = new Map(h.cats.map((c) => [c.name, c.title ?? c.name]));
   const hcite = (id) => `<span class="cite" title="${esc(id)}">${esc(id)}</span>`; // ids on the home have no single board to link to
-  const domains = ["design", "research", "dev", "curriculum"].map((dm) => [dm, h.cats.filter((c) => (c.domain ?? "design") === dm).length]).filter(([, n]) => n);
+  const domains = ["design", "strategy", "voice", "travel", "research", "dev", "curriculum"].map((dm) => [dm, h.cats.filter((c) => (c.domain ?? "design") === dm).length]).filter(([, n]) => n);
   const patternAxes = h.axes.filter((a) => a.facet === "pattern");
   const shared = patternAxes.filter((a) => Object.keys(a.cats).length > 1).sort((a, b) => Object.keys(b.cats).length - Object.keys(a.cats).length || Object.values(b.cats).reduce((x, y) => x + y, 0) - Object.values(a.cats).reduce((x, y) => x + y, 0) || a.label.localeCompare(b.label));
   const otherFacets = h.axes.filter((a) => a.facet !== "pattern" && Object.keys(a.cats).length > 1);

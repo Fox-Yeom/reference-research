@@ -11,8 +11,8 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { axisOf, readAxes, tagIndex } from "./axes.mjs";
 import {
-  CLAIM_KINDS, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
-  confidence, daysSince, ensureCollection, findRef, latestSnapshot, nextId, normUrl, readClaims, readCollection, readRefs,
+  CHANNELS, CLAIM_KINDS, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
+  channelOf, confidence, daysSince, ensureCollection, findRef, latestSnapshot, nextId, normUrl, readClaims, readCollection, readRefs,
   readRuns, recomputeConfidence, refSlug, saveClaims, saveRefs, saveRuns, splitLabel, writeCollection,
 } from "./store.mjs";
 
@@ -39,12 +39,131 @@ export function collectionClaims(col, claims) {
   return { own, related };
 }
 
+// ---------- brief ----------
+
+export const BRIEF_FIELDS = { purpose: "목적", audience: "대상", problem: "문제", success: "성공 기준", value_types: "가치 유형", scope: "범위", fixed: "고정할 것", exclude: "뺄 것", assumptions: "가정" };
+const SHOW_BRIEF = "Show this table to the user as is; a prose summary does not count.";
+
+const briefCell = (v) => String((Array.isArray(v) ? v.join(" · ") : v) || "—").replace(/\|/g, "\\|").replace(/\n/g, " ");
+const briefTable = (b) => ["| 칸 | 내용 |", "|---|---|", ...Object.entries(BRIEF_FIELDS).map(([k, label]) => `| ${label} | ${briefCell(b?.[k])} |`)].join("\n");
+
+/** Merge into collection.brief; a change to an existing brief goes on briefHistory, because the brief is a hypothesis (SKILL §1). */
+function mergeBrief(col, brief, reason) {
+  const unknown = Object.keys(brief).filter((k) => !BRIEF_FIELDS[k]);
+  if (unknown.length) bad(`brief: unknown key(s) ${unknown.join(", ")} — use ${Object.keys(BRIEF_FIELDS).join(", ")}`);
+  const changes = Object.fromEntries(
+    Object.entries(brief)
+      .filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(col.brief?.[k]))
+      .map(([k, v]) => [k, { from: col.brief?.[k] ?? null, to: v }]),
+  );
+  if (col.brief && Object.keys(changes).length) col.briefHistory = [...(col.briefHistory ?? []), { at: new Date().toISOString(), run: col.currentRun ?? null, changes, reason: reason ?? null }];
+  col.brief = { ...col.brief, ...brief };
+  if (col.brief.purpose && !col.goal) col.goal = col.brief.purpose;
+  if (col.brief.audience) col.audience = briefCell(col.brief.audience);
+}
+
+export async function setBrief(params) {
+  const col = await mustCollection(params.collection);
+  if (!params.brief || typeof params.brief !== "object") bad("brief set needs collection and brief {purpose, audience, problem, success, value_types, scope, fixed, exclude, assumptions}");
+  mergeBrief(col, params.brief, params.reason);
+  await writeCollection(col);
+  return [briefTable(col.brief), "", SHOW_BRIEF].join("\n");
+}
+
+export async function showBrief(name) {
+  const col = await mustCollection(name);
+  if (!col.brief) return `no brief on ${col.name} — \`ref brief set\``;
+  const history = (col.briefHistory ?? []).map((h) => `- ${h.at.slice(0, 10)} ${h.run ?? ""} ${Object.keys(h.changes).map((k) => BRIEF_FIELDS[k]).join(" · ")}${h.reason ? `: ${h.reason}` : ""}`);
+  return [briefTable(col.brief), ...(history.length ? ["", "Changes:", ...history] : [])].join("\n");
+}
+
 // ---------- runs ----------
+
+const MAX_ROUNDS = 3;
+const MIN_LONGLIST = 12;
+const patternKey = (s) => String(s).toLowerCase().replace(/[\s_-]+/g, "");
+const newestFirst = (a, b) => String(b.published ?? "").localeCompare(String(a.published ?? ""));
+
+async function currentRun(col) {
+  const run = (await readRuns()).find((r) => r.id === col.currentRun);
+  if (!run) bad("no current run on this collection — start one with `ref run start`");
+  return run;
+}
+
+/** Totals across a run's rounds, and what is still short of the minimums in SKILL §2 */
+function roundTotals(rounds) {
+  const queries = rounds.flatMap((r) => r.queries);
+  const candidates = rounds.flatMap((r) => r.candidates);
+  const ko = queries.filter((q) => q.lang === "ko").length;
+  const en = queries.filter((q) => q.lang === "en").length;
+  const short = [queries.length < 8 && `질의 ${queries.length}개 (최소 8)`, ko < 3 && `한국어 ${ko}개 (최소 3)`, en < 3 && `영어 ${en}개 (최소 3)`, candidates.length < MIN_LONGLIST && `후보 ${candidates.length}개 (최소 ${MIN_LONGLIST})`].filter(Boolean);
+  return { queries, candidates, ko, en, short, line: `누적: 질의 ${queries.length}개 (한국어 ${ko} · 영어 ${en}) · 후보 ${candidates.length}개 (날짜 미상 ${candidates.filter((c) => !c.published).length}개)` };
+}
+
+/** One search round: the CLI, not the agent, counts what is new and decides whether the loop stops. */
+export async function addRound(params) {
+  const col = await mustCollection(params.collection);
+  const run = await currentRun(col);
+  const rounds = run.rounds ?? [];
+  if (rounds.at(-1)?.stopped) bad(`${run.id} already stopped: ${rounds.at(-1).stopped}`);
+  const queries = (params.queries ?? []).map((q) => (typeof q === "string" ? { q } : q)).map((q) => ({ q: q.q, lang: q.lang ?? (/[가-힣]/.test(q.q) ? "ko" : "en") }));
+  if (!queries.length || queries.some((q) => !q.q)) bad("run round needs queries [{q, lang}]");
+  const seenUrls = new Set(rounds.flatMap((r) => r.candidates.map((c) => normUrl(c.url))));
+  const candidates = [];
+  for (const c of params.candidates ?? []) {
+    if (!c.url) bad("each candidate needs url");
+    if (c.published && !/^\d{4}-\d{2}-\d{2}/.test(c.published)) bad(`candidate published must be YYYY-MM-DD, got "${c.published}"; leave it out when only the year or month is known`);
+    if (seenUrls.has(normUrl(c.url))) continue;
+    seenUrls.add(normUrl(c.url));
+    candidates.push({ url: c.url, title: c.title ?? null, published: c.published ?? null });
+  }
+  const seenPatterns = new Set(rounds.flatMap((r) => r.newAxes.map(patternKey)));
+  const newAxes = [];
+  for (const a of params.new_axes ?? []) {
+    if (seenPatterns.has(patternKey(a))) continue;
+    seenPatterns.add(patternKey(a));
+    newAxes.push(a);
+  }
+  const n = rounds.length;
+  const stopped = !newAxes.length ? "새 패턴 없음" : n + 1 >= MAX_ROUNDS ? `${MAX_ROUNDS}바퀴 상한` : null;
+  const round = { n, at: new Date().toISOString(), queries, candidates, newAxes, dropped: params.dropped ?? [], stopped };
+  const all = [...rounds, round];
+  await saveRuns([{ ...run, rounds: all }]);
+  const totals = roundTotals(all);
+  return [
+    `${n}바퀴 끝: 질의 ${queries.length}개 · 후보 ${candidates.length}개 · 새 패턴 ${newAxes.length}개 → ${stopped ? `멈춤: ${stopped}` : "다음 바퀴"}`,
+    totals.line,
+    ...(stopped && totals.short.length ? [`⚠ 최소 기준 미달: ${totals.short.join(" · ")}`] : []),
+    "",
+    "Copy the first line into the chat as is.",
+    ...(n === 0 && !stopped ? ["Next: recheck the direction with the user (SKILL §2)."] : []),
+  ].join("\n");
+}
+
+/** Rounds and the longlist, newest first: the source of the counts in the final answer. */
+export async function showRun(name) {
+  const col = await mustCollection(name);
+  const run = await currentRun(col);
+  const rounds = run.rounds ?? [];
+  if (!rounds.length) return `${run.id}: no rounds yet — \`ref run round\``;
+  const totals = roundTotals(rounds);
+  return [
+    `${run.id} · ${run.goal ?? ""}`,
+    ...rounds.map((r) => `- ${r.n}바퀴: 질의 ${r.queries.length} · 후보 ${r.candidates.length} · 새 패턴 ${r.newAxes.length}${r.newAxes.length ? ` (${r.newAxes.join(", ")})` : ""}${r.stopped ? ` · 멈춤: ${r.stopped}` : ""}`),
+    totals.line,
+    ...(totals.short.length ? [`⚠ 최소 기준 미달: ${totals.short.join(" · ")}`] : []),
+    "",
+    "Longlist (newest first):",
+    ...[...totals.candidates].sort(newestFirst).map((c) => `- ${c.published ?? "미상"} ${c.title ?? ""} ${c.url}`),
+    ...rounds.flatMap((r) => r.dropped.map((d) => `dropped: ${d.channel ?? ""} ${d.ref ?? ""} ${d.reason ?? ""}`)),
+  ].join("\n");
+}
 
 export async function startRun(params, findRelated) {
   const col = await ensureCollection(params.collection ?? params.project, { kind: params.kind, domain: params.domain, title: params.title, description: params.description ?? params.project_description });
+  if (params.brief) mergeBrief(col, params.brief, params.brief_reason);
   const runs = await readRuns();
-  const run = { id: nextId("R", runs), collection: col.name, goal: params.goal ?? null, domain: col.domain, kind: col.kind ?? null, startedAt: new Date().toISOString() };
+  const run = { id: nextId("R", runs), collection: col.name, goal: params.goal ?? params.brief?.purpose ?? null, domain: col.domain, kind: col.kind ?? null, startedAt: new Date().toISOString(), ...(col.brief ? { brief: col.brief } : {}) };
   await saveRuns([run]);
   col.currentRun = run.id;
   // the category's own purpose (board header): first run's goal unless set explicitly; audience/question when given
@@ -61,6 +180,7 @@ export async function startRun(params, findRelated) {
   const lines = [
     `Started ${run.id} (${col.domain}) for ${col.name}: ${run.goal ?? ""}`,
     `Baseline: ${col.members.length} refs · ${active.length} active claims here · ${relClaims.length} claims from other categories citing these refs`,
+    ...(col.brief ? ["", briefTable(col.brief), "", SHOW_BRIEF] : ["", "⚠ no brief on this category: run the question loop (SKILL §1), then `ref brief set`"]),
   ];
   if (active.length) lines.push("", "Claims (confirm / revise / refute instead of re-adding):", ...active.map(claimLine));
   if (relClaims.length) lines.push("", "From other categories (same refs):", ...relClaims.map((c) => `${claimLine(c)}  ‹${(c.collections ?? []).join(", ")}›`));
@@ -100,6 +220,8 @@ export async function addSources(params) {
     if (!it.url) bad("each source needs url");
     if (it.type && !SOURCE_TYPES.includes(it.type)) bad(`source type must be one of ${SOURCE_TYPES.join(", ")}`);
     if (it.credibility && !["A", "B", "C", "D"].includes(it.credibility)) bad("credibility must be A, B, C or D");
+    if (it.channel && !CHANNELS.includes(it.channel)) bad(`channel must be one of ${CHANNELS.join(", ")}`);
+    if (it.published && !/^\d{4}-\d{2}-\d{2}/.test(it.published)) bad(`published must be YYYY-MM-DD, got "${it.published}"; leave it out when only the year or month is known`);
     let r = findRef(refs, it.url);
     const isNew = !r;
     if (!r) {
@@ -107,7 +229,8 @@ export async function addSources(params) {
       r = { id: nextId("S", refs), slug: refSlug(refs, it.url), url: it.url, normUrl: normUrl(it.url), aliases: [], label: it.label ?? it.title ?? null, product: product || null, page, screens: [], tags: [], categories: [], notes: [], snapshots: [], changes: [], firstSeen: now, run: col?.currentRun ?? null };
       refs.push(r);
     }
-    for (const k of ["title", "publisher", "published", "label", "description", "summary"]) if (it[k] !== undefined) r[k] = it[k]; // summary = one-line 요지 shown in the board's 자료 목록
+    for (const k of ["title", "publisher", "published", "label", "description", "summary", "channel"]) if (it[k] !== undefined) r[k] = it[k]; // summary = one-line 요지 shown in the board's 자료 목록
+    if (it.published) r.publishedFrom = "manual";
     if (it.type) r.type = it.type;
     r.type ??= "other";
     if (it.credibility) Object.assign(r, { credibility: it.credibility, credibilitySet: true });
@@ -161,7 +284,8 @@ export async function uncollect(name, id) {
 }
 
 /** structured note fields (SKILL §5) — stored next to the markdown text, rendered as a definition list in the viewer */
-export const NOTE_FIELDS = { structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", adopt: "차용할 점", avoid: "피할 점" };
+export const NOTE_FIELDS = { feature: "기능", structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", context: "맥락", why: "왜", why_basis: "왜의 근거", alternatives: "대안", result: "결과", implication: "시사점", adopt: "차용할 점", avoid: "피할 점" };
+const WHY_BASIS = { official: "공식", signal: "정황", guess: "추정" };
 
 export async function addNote(params) {
   const fields = params.fields && typeof params.fields === "object" ? Object.fromEntries(Object.entries(params.fields).filter(([k, v]) => NOTE_FIELDS[k] && String(v ?? "").trim())) : null;
@@ -169,8 +293,10 @@ export async function addNote(params) {
     const unknown = Object.keys(params.fields).filter((k) => !NOTE_FIELDS[k]);
     if (unknown.length) bad(`fields: unknown key(s) ${unknown.join(", ")} — use ${Object.keys(NOTE_FIELDS).join(", ")}`);
   }
-  if (!params.note && !fields) bad("note (markdown) or fields {structure, copy, visual, ui, adopt, avoid} is required");
-  params.note = params.note ?? Object.entries(fields).map(([k, v]) => `**${NOTE_FIELDS[k]}**: ${String(v).trim()}`).join("\n");
+  if (!params.note && !fields) bad(`note (markdown) or fields {${Object.keys(NOTE_FIELDS).join(", ")}} is required`);
+  if (params.note && fields) bad("send note or fields, not both: the viewer shows only fields");
+  if (fields?.why && !WHY_BASIS[fields.why_basis]) bad(`fields.why needs why_basis: ${Object.keys(WHY_BASIS).join(", ")}`);
+  params.note = params.note ?? Object.entries(fields).filter(([k]) => k !== "why_basis").map(([k, v]) => `**${NOTE_FIELDS[k]}**: ${k === "why" ? `${WHY_BASIS[fields.why_basis]} — ` : ""}${String(v).trim()}`).join("\n");
   const col = await mustCollection(params.collection ?? params.project);
   const now = new Date().toISOString();
   const refId = params.ref ?? params.entry_id;
@@ -203,7 +329,8 @@ export async function showRef(id) {
     text: [
       `${r.id} ${r.label ?? ""} — ${r.title ?? ""}`,
       `url: ${r.url}${r.aliases?.length ? ` (aliases: ${r.aliases.join(", ")})` : ""}`,
-      `type ${r.type}/${r.credibility} · publisher ${r.publisher ?? "-"} · categories: ${(r.categories ?? []).join(", ") || "-"}`,
+      `type ${r.type}/${r.credibility} · channel ${channelOf(r) ?? "-"} · publisher ${r.publisher ?? "-"} · categories: ${(r.categories ?? []).join(", ") || "-"}`,
+      `published ${r.published ?? "unknown"}${r.publishedFrom ? ` (${r.publishedFrom})` : ""}${r.updated ? ` · updated ${r.updated}` : ""}${r.firstArchived ? ` · first archived ${r.firstArchived}` : ""}`,
       `screens: ${(r.screens ?? []).join(", ") || "-"} · tags: ${(r.tags ?? []).join(", ") || "-"}`,
       `snapshots: ${r.snapshots?.length ?? 0}${snap ? ` (latest ${snap.at.slice(0, 10)}, ${snap.dir})` : ""} · first seen ${r.firstSeen?.slice(0, 10)}`,
       ...(r.changes?.length ? ["changes:", ...r.changes.map((c) => `  ${c.at.slice(0, 10)} vs ${c.from.slice(0, 10)}: ${c.lines.length ? c.lines.join(" · ") : "none visible"}`)] : []),

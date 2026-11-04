@@ -9,12 +9,27 @@
 import { promises as fs, existsSync } from "node:fs";
 import * as path from "node:path";
 import {
-  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeJsonl,
+  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, listCollections, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
 } from "./store.mjs";
 
 const ROLE_SET = new Set(ROLES);
 const SCREEN_SET = new Set(SCREEN_TYPES);
 const PAGE_META = ["title", "description", "ogImage", "lang", "headings", "nav", "ctas", "fonts", "topColors", "viewport", "pageHeight", "innerScroller", "hiddenOverlays", "frameYs"];
+
+/** analogous → indirect (docs/RESEARCH-FLOW-REDESIGN.md Q7); the old value stays in roleWas. Safe to run twice. */
+export async function migrateRoles({ dryRun = false } = {}) {
+  const log = [];
+  for (const c of await listCollections()) {
+    const hit = c.members.filter((m) => m.role === "analogous");
+    if (!hit.length) continue;
+    log.push(`${c.name}: ${hit.length}`);
+    if (dryRun) continue;
+    for (const m of hit) Object.assign(m, { role: "indirect", roleWas: "analogous" });
+    await writeCollection(c);
+  }
+  if (!log.length) return "nothing to migrate (no analogous members)";
+  return [`${dryRun ? "would move" : "moved"} analogous → indirect:`, ...log.map((l) => `- ${l}`), ...(dryRun ? [] : ["Re-run `ref report` per collection to refresh the boards."])].join("\n");
+}
 
 export async function migrate({ dryRun = false, plan = null } = {}) {
   const v1Index = path.join(LIB, "index.jsonl");

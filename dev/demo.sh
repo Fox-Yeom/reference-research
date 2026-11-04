@@ -13,7 +13,7 @@ R="$ROOT/scripts/ref"
 {"url":"https://www.todoist.com/pricing","label":"Todoist — 요금제","tags":["pricing","direct","two-tier","freemium-compare","annual-monthly-equivalent"]},
 {"url":"https://evernote.com/compare-plans","label":"Evernote — 요금제 비교","tags":["pricing","direct","freemium-compare","free-trial"]},
 {"url":"https://obsidian.md/pricing","label":"Obsidian — 요금제","tags":["pricing","indirect","why-pay-section"]},
-{"url":"https://www.craft.do/pricing","label":"Craft — 요금제","tags":["pricing","analogous","two-tier","annual-monthly-equivalent","illustration-hero"]}]}' | grep -E '^- S|Fail'
+{"url":"https://www.craft.do/pricing","label":"Craft — 요금제","tags":["pricing","indirect","two-tier","annual-monthly-equivalent","illustration-hero"]}]}' | grep -E '^- S|Fail'
 for j in \
 '{"collection":"note-app-pricing","ref":"S1","note":"무료 · Plus · Business · Enterprise 4단. 월간/연간 토글(**연간 최대 20% 할인**), 원화 표시. Business에 추천 배지."}' \
 '{"collection":"note-app-pricing","ref":"S2","note":"비기너(무료) · 프로 · 비즈니스 3단. 연간 토글, 유료 단계에 **무료 체험 시작** 버튼."}' \

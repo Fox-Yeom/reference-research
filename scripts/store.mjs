@@ -2,10 +2,11 @@
  * store — library layout and records for the ref CLI (v2, reference-centric).
  *
  *   <LIB>/refs.jsonl              S#  one record per reference (URL). Belongs to any number of categories (collections).
+ *                                     Dates: published + publishedFrom (meta|jsonld|time|last-modified|manual), updated, firstArchived. channel: CHANNELS
  *   <LIB>/refs/<slug>/<stamp>/        capture snapshots of that reference (images + meta.json)
  *   <LIB>/claims.jsonl            C#  findings, cite S#, global across categories
- *   <LIB>/runs.jsonl              R#  research sessions (one collection each)
- *   <LIB>/<collection>/collection.json   category: kind, domain, members [{ref, role}]
+ *   <LIB>/runs.jsonl              R#  research sessions (one collection each); rounds [{n, queries, candidates, newAxes, dropped, stopped}]
+ *   <LIB>/<collection>/collection.json   category: kind, domain, brief, briefHistory, members [{ref, role, roleWas?}]
  *   <LIB>/<collection>/{NOTES,SUMMARY,DELTA,README}.md, index.html
  *   <LIB>/plans/<plan>.json            optional plan layer: items + links to claims (positions live here, not on claims)
  *   <LIB>/.vectors/                    local embeddings (derived, git-ignored)
@@ -39,11 +40,21 @@ export const COVERAGE = {
 export const SCREEN_TYPES = [...new Set(Object.values(COVERAGE).flat())];
 export const coverageTypes = (domain) => COVERAGE[domain] ?? COVERAGE.design;
 export const ROLES = ["direct", "indirect", "trend", "analogous"]; // analogous: legacy, read for existing members only
-export const DOMAINS = ["design", "dev", "research", "curriculum"];
+export const DOMAINS = ["design", "dev", "research", "strategy", "voice", "travel", "curriculum"];
+/** domains read through sources, not screens: no screen-coverage warnings, compact source list on the board */
+export const SOURCE_LED = ["research", "strategy", "voice", "travel"];
 // framework: competency frameworks / official curricula (UNESCO, 교육부 …) · survey: learner/employer surveys · job-posting: demand evidence
 export const SOURCE_TYPES = ["official", "docs", "store", "repo", "paper", "report", "press", "framework", "survey", "job-posting", "community", "blog", "listicle", "capture", "other"];
 export const TYPE_CRED = { official: "A", docs: "A", store: "A", repo: "A", paper: "A", framework: "A", report: "B", press: "B", survey: "B", capture: "B", "job-posting": "C", community: "C", blog: "C", listicle: "C", other: "C" };
 export const CRED_SCORE = { A: 3, B: 2, C: 1, D: 0 };
+/** what a source is evidence of (docs/RESEARCH-FLOW-REDESIGN.md C4); a ref without one falls back on its type */
+export const CHANNELS = ["primary", "interpretation", "reaction", "rationale"];
+const TYPE_CHANNEL = {
+  official: "primary", docs: "primary", repo: "primary", paper: "primary", framework: "primary", capture: "primary",
+  report: "interpretation", press: "interpretation", blog: "interpretation", listicle: "interpretation",
+  store: "reaction", community: "reaction", survey: "reaction", "job-posting": "rationale",
+};
+export const channelOf = (r) => r.channel ?? TYPE_CHANNEL[r.type] ?? null;
 export const CLAIM_KINDS = ["fact", "pattern", "benchmark", "failure", "gap", "opinion", "hypothesis"];
 export const POSITIONS = ["table-stakes", "duplicate", "below-bar", "differentiator", "gap", "validates", "contradicts"];
 

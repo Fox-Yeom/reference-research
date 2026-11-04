@@ -1,7 +1,7 @@
 # 조사 흐름 개편 기획안 (v2 · 2026-11-04)
 
 대상: `skills/reference-research/SKILL.md` + `scripts/` (store · capture · evidence · report · board · mcp · ref)
-상태: 결정 3건 반영 (2026-11-04, 8절). 1단계 완료, 2a 진행.
+상태: 결정 3건 반영 (2026-11-04, 8절). 1단계 완료, 2a 구현, 2b 착수 전.
 배경: 실사용 포스트모템 (2026-10-30, 발표 자료 디자인 양식 조사)과 관리자 보정 5방향. 보드 개편(`BOARD-REDESIGN.md`)과 홈 개편(`HOME-REDESIGN.md`)의 원칙·부품을 이어 쓴다.
 
 ## 0. 결론
@@ -312,6 +312,13 @@
 | 2c 보드 | R2 · R3 · R4 · R5 · R6 · W3 (렌더링 화면으로 확인 — CLAUDE.md 규칙) |
 | 2d MCP | W5 · T7 |
 | 2e 커넥터 (선택) | HN · App Store 리뷰 · GitHub Releases 먼저, 키가 필요한 네이버 · OpenDART는 그다음 |
+
+**2a 구현 메모:**
+- `brief`는 `collection.json`에 저장한다. `ref brief set`과 `ref run start`가 표를 출력하며 그대로 보여 주라고 안내한다.
+- 새 패턴 수는 CLI가 세므로 앞 바퀴에 나온 패턴은 다시 세지 않는다. 표현이 바뀌면 새 패턴으로 잡힌다.
+- 노트는 `fields`로 돌아갔다. `note`와 함께 보내면 뷰어에서 사라지므로 거절한다. `why`에는 `why_basis`가 필수다.
+- 날짜는 전체 날짜만 받는다. 연도나 연월만 있으면 저장하지 않는다.
+- 봇 확인은 약 16초 기다린 뒤 판정한다. `REF_CAPTURE=chrome`이어도 Aside가 있으면 한 번 다시 시도한다.
 
 릴리스: 2단계가 끝나면 `docs/RELEASE.md` 절차로 버전을 올린다.
 

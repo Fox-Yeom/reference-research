@@ -5,7 +5,7 @@
 import { promises as fs, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, mustCollection } from "./evidence.mjs";
-import { FILES, LIB, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
+import { FILES, LIB, SOURCE_LED, bad, coverageTypes, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { renderBoard, renderHome, splitSummary } from "./board.mjs";
 import { run } from "./capture.mjs";
@@ -29,12 +29,13 @@ export function coverage(members, domain = "design") {
     return [head, ...rows, "", noSyl.length ? `⚠ no syllabus page (모듈·시간 확인 불가): ${noSyl.join(", ")}` : ""].filter((l, i, a) => l || i < a.length - 1).join("\n");
   }
   const noUi = ![...prods.values()].some((s) => s.has("app-ui"));
+  const sourceLed = SOURCE_LED.includes(domain);
   return [
     head,
     ...rows,
     "",
-    thin.length ? `⚠ marketing pages only (no in-app UI/onboarding/help/store): ${thin.join(", ")}` : "",
-    noUi ? "⚠ NO in-app UI screens — use `ref store` and help-center/docs/feature-tour pages" : "",
+    !sourceLed && thin.length ? `⚠ marketing pages only (no in-app UI/onboarding/help/store): ${thin.join(", ")}` : "",
+    !sourceLed && noUi ? "⚠ NO in-app UI screens — use `ref store` and help-center/docs/feature-tour pages" : "",
   ]
     .filter((l, i, a) => l || i < a.length - 2)
     .join("\n");

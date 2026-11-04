@@ -2,6 +2,9 @@
 
 Newest first. One line of context, the decision, why.
 
+## 2026-11-04 · Research flow v2: phases, roles, freshness
+A real design research drifted for four rounds because the request ("make it not look AI-made") became the goal, and old sources served as exemplars (`docs/RESEARCH-FLOW-REDESIGN.md`). → (1) Ship in two phases: SKILL.md first (plus the `trend` role constant), then CLI/board/MCP. (2) Drop the `analogous` role; scope is direct · indirect · trend, and existing analogous members migrate to indirect with `roleWas` kept. (3) One freshness threshold, 12 months: older or undated sources serve only as principles or before/after comparison; key claims citing only those get a warning unless `scope:"원리"`. The board keeps indigo + semantic colors (2026-10-02 decision); v2 only enforces one meaning per color.
+
 ## 2026-10-19 · Repository made public
 Private-beta friction (invites, `gh auth` for install) outweighed the benefit once the library stays local anyway. → Repo is public; README drops the invite steps; marketplace name stays `reference-research-beta`. The library (`~/references`) is still never pushed. License: MIT (`LICENSE`, 2026-10-19) — captures in `assets/` remain the property of their sites; see README 고지.
 

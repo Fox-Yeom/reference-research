@@ -84,7 +84,7 @@ const CSS = `
 --green:#1f9d55;--green-soft:#dff3e7;--amber:#d4870f;--amber-soft:#fcf0dc;--coral:#e0533d;--coral-soft:#fde7e3;
 --blue:var(--accent);--blue-soft:var(--accent-soft);--violet:var(--accent);--violet-soft:var(--accent-soft);--teal:var(--accent);--teal-soft:var(--accent-soft);
 --good:var(--green);--warn:var(--amber);--bad:var(--coral);--radius:10px;
---side-bg:#191d3a;--side-text:#e8eaf6;--side-muted:#9aa0c3;--side-line:#2b3058;--hero-a:#2f45c8;--hero-b:#4338ca;--on-hero-good:#6fe3a5;--on-hero-warn:#ffd27a;--on-hero-bad:#ff9d8a;
+--side-bg:#191d3a;--side-text:#e8eaf6;--side-muted:#9aa0c3;--side-line:#2b3058;
 --v-bg:#0b0b0b;--v-panel:#111;--v-btn:#1a1a1a;--v-btn-hover:#262626;--v-line:#222;--v-text:#ececec;--v-muted:#8f8f8f;--v-soft:#c4c4c4;--v-accent:#7d9bf7}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b0d16;--page:#0b0d16;--mat:#1a1e29;--panel:#141821;--panel2:#171b27;--inner:#171b27;--text:#e9ecf3;--muted:#98a0b3;--faint:#5d6578;--line:#252a36;--chip:#1d2230;--chip-on-text:#0e1016;--gray-soft:#1d2230;--accent:#7d9bf7;--accent-soft:#1c2747;--accent-2:#3c5299;--green:#4fcb83;--green-soft:#163423;--amber:#f0b04e;--amber-soft:#3a2c14;--coral:#f2846f;--coral-soft:#3d1f1a}}
 :root[data-theme=dark]{--bg:#0b0d16;--page:#0b0d16;--mat:#1a1e29;--panel:#141821;--panel2:#171b27;--inner:#171b27;--text:#e9ecf3;--muted:#98a0b3;--faint:#5d6578;--line:#252a36;--chip:#1d2230;--chip-on-text:#0e1016;--gray-soft:#1d2230;--accent:#7d9bf7;--accent-soft:#1c2747;--accent-2:#3c5299;--green:#4fcb83;--green-soft:#163423;--amber:#f0b04e;--amber-soft:#3a2c14;--coral:#f2846f;--coral-soft:#3d1f1a}
@@ -269,10 +269,9 @@ body{background:var(--page)}
 .side .search input:focus{background:rgba(255,255,255,.12);border-color:#7d9bf7;box-shadow:0 0 0 3px rgba(125,155,247,.25)}
 .side .search kbd{background:transparent;border-color:var(--side-line);color:var(--side-muted)}
 .content{padding:28px 40px 80px}
-.hero{max-width:none;margin:0 0 20px;padding:26px 36px 22px;border-radius:20px;color:#fff;background:radial-gradient(1200px 400px at 100% 0%,rgba(255,255,255,.14),transparent 60%),linear-gradient(120deg,var(--hero-a),var(--hero-b))}
-.hero .eyebrow{color:rgba(255,255,255,.75)}.hero h1{color:#fff}.hero .lead{color:rgba(255,255,255,.85);max-width:880px}
-.hero .stats{color:rgba(255,255,255,.85);max-width:920px}.hero .stats b{color:#fff;background:linear-gradient(transparent 62%,rgba(255,255,255,.22) 62%)}
-.hero .collage .thumb{background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.hero{max-width:none;margin:0 0 24px;padding:22px 32px 14px;border-radius:18px;color:var(--text);background:var(--panel);border:1px solid var(--line);box-shadow:0 1px 2px rgba(25,29,58,.04),0 8px 24px rgba(25,29,58,.04)}
+.hero .eyebrow{color:var(--muted)}.hero h1{color:var(--text)}.hero .lead{color:var(--muted);max-width:880px}
+.hero .stats{color:var(--muted);max-width:920px}.hero .stats b{color:var(--text)}
 section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:32px 36px 36px;margin:0 0 24px;box-shadow:0 1px 2px rgba(25,29,58,.04),0 8px 24px rgba(25,29,58,.04)}
 .sechead .n{display:inline-grid;place-items:center;width:30px;height:24px;padding:0;border-radius:7px;background:var(--accent);color:#fff;font-size:12px;margin-top:2px}
 section .panel{background:var(--inner);border-color:transparent}
@@ -290,23 +289,29 @@ footer{border-top:0;text-align:center}
 body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 @media (max-width:760px){#viewer.open{grid-template-columns:1fr}#viewer aside{grid-column:1;grid-row:auto;width:auto;max-height:38vh;border-left:0;border-top:1px solid var(--v-line)}#viewer .nav.next{right:16px}#viewer .count{bottom:auto;top:58px}}
 /* ---- readability pass (docs/BOARD-REDESIGN.md, phase 1): goal block, stat tiles, 3-line claim cards, limited lists, copyable ids, scrollspy ---- */
-.hero .goal{margin:18px 0 0;padding:16px 20px;border-radius:14px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);max-width:72ch}
-.hero .goal .lbl{display:block;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:rgba(255,255,255,.75);margin-bottom:4px}
-.hero .goal p{margin:0;font-size:17px;line-height:1.55;color:#fff;font-weight:500}.hero .goal p .cite{background:rgba(255,255,255,.2);color:#fff}
-.hero .goal .aud{margin-top:6px;font-size:14px;font-weight:400;color:rgba(255,255,255,.82)}
-.hero.answer h1{font-size:18px;font-weight:600;letter-spacing:0;margin:6px 0 14px;color:rgba(255,255,255,.88)}
-.concl{display:grid;grid-template-columns:40px minmax(0,1fr);gap:6px 12px;margin:0;max-width:82ch}
-.concl dt{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.72);padding-top:.25em}
-.concl dd{margin:0;font-size:15px;line-height:1.5;color:rgba(255,255,255,.92)}
-.concl dd.ans{font-size:23px;line-height:1.36;font-weight:600;color:#fff;letter-spacing:-.01em}
-.concl dt.ans{padding-top:.5em}.concl .cite{background:rgba(255,255,255,.2);color:#fff}
-.hmeta{margin:14px 0 0;font-size:13px;color:rgba(255,255,255,.76)}
-#key{padding-top:20px;padding-bottom:20px}#key h3{margin:0 0 6px;font-size:15px}
+.hero .goal{margin:16px 0 8px;padding:14px 18px;border-radius:12px;background:var(--inner);max-width:72ch}
+.hero .goal .lbl{display:block;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.hero .goal p{margin:0;font-size:16px;line-height:1.55;color:var(--text);font-weight:500}
+.hero .goal .aud{margin-top:6px;font-size:14px;font-weight:400;color:var(--muted)}
+.htop{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;padding-bottom:12px;border-bottom:1px solid var(--line)}.hero.answer h1{font-size:21px;font-weight:600;letter-spacing:-.01em;margin:4px 0 0}
+.hmeta{margin:0;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.hgrid{display:grid;grid-template-columns:minmax(0,1fr) 216px;gap:0 28px}
+.crow{display:grid;grid-template-columns:60px minmax(0,1fr);gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:15px;line-height:1.55}.crow:last-child{border-bottom:0}
+.crow .cl{font-size:12.5px;font-weight:700;color:var(--muted);padding-top:.2em}
+.crow.ans .cl{color:var(--accent)}.crow.ans>div{font-size:21px;line-height:1.4;font-weight:600;letter-spacing:-.01em}
+.crow.warn .cl{color:var(--amber)}.cto{display:block;font-size:12.5px;font-weight:600;color:var(--amber)}.evn{display:inline-block;min-width:1.3em;margin-right:4px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.hlegend{margin:0;padding:10px 0 4px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.6;color:var(--muted)}.hlegend b{font-weight:600;color:var(--text)}
+.intents{margin:0;padding-left:20px}.intents li{margin:0 0 8px}.intents small{display:block;font-size:13px;line-height:1.5;color:var(--muted)}
+.hside{border-left:1px solid var(--line);padding:12px 0 10px 24px;display:flex;flex-direction:column;gap:16px}
+.hstat h4{margin:0 0 6px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.sbar{display:flex;gap:2px;height:7px;margin:0 0 7px;border-radius:2px;overflow:hidden;background:var(--gray-soft)}.sbar i{display:block}
+.s-good{background:var(--green)}.s-warn{background:var(--amber)}.s-bad{background:var(--coral)}.s-none{background:var(--faint)}
+.hstat ul{list-style:none;margin:0;padding:0;font-size:13px;line-height:1.7}.hstat li{display:flex;justify-content:space-between;gap:10px;color:var(--muted)}.hstat li b{font-weight:600;color:var(--text)}.hstat li.miss,.hstat li.miss b{color:var(--amber)}
+.hstat .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
 .evrow{border-top:1px solid var(--line)}.evrow:first-of-type{border-top:0}
 .evrow summary{display:flex;align-items:baseline;gap:10px;padding:9px 0;cursor:pointer;list-style:none;font-size:15px}.evrow summary::-webkit-details-marker{display:none}
 .evrow summary::before{content:"▸";color:var(--accent);flex:none}.evrow[open] summary::before{content:"▾"}.evrow summary .t{flex:1;min-width:0}.evrow .conf{flex:none}
 .evrow .evbody{padding:0 0 12px 22px;font-size:14px;color:var(--muted)}.evrow .evbody p{margin:0 0 8px}.evrow div.plain{padding:9px 0;font-size:15px}
-.counter{margin:10px 0 0;padding:9px 14px;border-left:3px solid var(--amber);background:var(--amber-soft);color:var(--text);border-radius:0 8px 8px 0;font-size:14px;line-height:1.55}.counter b{color:var(--amber);margin-right:6px}
 .whycards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
 .whycard{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;padding:16px;border-radius:var(--radius);background:var(--inner)}.whycard.noimg{grid-template-columns:minmax(0,1fr)}
 .whycard .thumb{aspect-ratio:4/3;padding:0;align-self:start;overflow:hidden;border-radius:6px}.whycard .thumb img{width:100%;height:100%;object-fit:cover;object-position:top}
@@ -315,14 +320,14 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .axwhy{margin:0 0 10px;font-size:13px;line-height:1.5;color:var(--muted)}.axwhy .basis{margin-right:6px}
 .vwhy{margin:0 0 16px;padding:12px 14px;border-radius:8px;background:var(--v-btn);font-size:13px;line-height:1.55;color:var(--v-soft)}.vwhy h5{margin:0 0 6px}.vwhy p{margin:4px 0 0}.vwhy b{color:var(--v-muted);font-weight:600;margin-right:6px}
 .proc summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:600;padding:4px 0}.proc[open] summary{margin-bottom:12px}
-.procgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:0 0 16px;align-items:start}.procgrid h4{margin:0 0 8px;font-size:14px}.procgrid table{width:100%;font-size:13.5px}
-.seg{max-width:100%;flex-wrap:wrap}.procfresh{display:flex;flex-wrap:wrap;gap:8px}.proc .tiles{margin:0 0 16px}.proc .tiles div{background:var(--inner);box-shadow:none}.proc .tiles b{color:var(--text)}.proc .tiles span{color:var(--muted)}
+.procgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:0 0 16px;align-items:start}.procgrid h4{margin:0 0 8px;font-size:14px}.procgrid table{width:100%;font-size:13.5px}.procgrid th,.procgrid td{padding:8px 10px;vertical-align:baseline;font-size:13.5px;line-height:1.5}.procgrid th{font-size:12.5px;white-space:nowrap}.procgrid tbody th{width:1%;padding-left:0}.procgrid thead th:first-child,.procgrid tbody td:first-child{padding-left:0}.procgrid th.n,.procgrid td.n{width:1%;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.procgrid tbody tr:last-child th,.procgrid tbody tr:last-child td{border-bottom:0}
+.seg{max-width:100%;flex-wrap:wrap}.procfresh{display:flex;flex-wrap:wrap;gap:8px}.proc .tiles{margin:0 0 16px}
 .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:22px 0 0}
-.tiles div{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);border-radius:12px;padding:14px 16px;min-width:0}
-.tiles b{display:block;font-size:30px;line-height:1.1;font-weight:500;letter-spacing:-.02em;color:#fff}
-.tiles span{display:block;margin-top:5px;font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.78)}
-.tiles .mbar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-top:9px;background:rgba(255,255,255,.18)}
-.tiles .mbar i{display:block;height:100%}.tiles .mbar .h{background:var(--on-hero-good)}.tiles .mbar .m{background:var(--on-hero-warn)}.tiles .mbar .l{background:var(--on-hero-bad)}
+.tiles div{background:var(--inner);border-radius:12px;padding:14px 16px;min-width:0}
+.tiles b{display:block;font-size:30px;line-height:1.1;font-weight:500;letter-spacing:-.02em;color:var(--text)}
+.tiles span{display:block;margin-top:5px;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.tiles .mbar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-top:9px;background:var(--gray-soft)}
+.tiles .mbar i{display:block;height:100%}.tiles .mbar .h{background:var(--green)}.tiles .mbar .m{background:var(--amber)}.tiles .mbar .l{background:var(--coral)}
 .hero .lead,.sechead p{max-width:72ch}
 .side nav a{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.side nav a small{font-size:11.5px;opacity:.7;font-variant-numeric:tabular-nums}.side nav a.on{color:#fff;background:rgba(255,255,255,.1)}
 /* claims: title / body / meta */
@@ -369,7 +374,7 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .pbtn::before{content:"⧉";margin-right:5px;font-size:.95em;opacity:.8}.pbtn.done::before{content:"✓"}.pbtn.done{background:var(--green-soft);color:var(--green);border-color:transparent}
 .pact{display:inline-flex;flex-direction:column;align-items:flex-start;gap:6px;vertical-align:middle;max-width:100%}.asks .pact{flex-direction:row}.pprev{font-size:12.5px}.pprev summary{cursor:pointer;color:var(--muted);list-style:none}.pprev summary::before{content:"▸ "}.pprev[open] summary::before{content:"▾ "}
 .pprev pre{margin:8px 0 4px;padding:10px 12px;border-radius:8px;background:var(--inner);border:1px solid var(--line);font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;color:var(--text);max-width:72ch;max-height:180px;overflow:auto}
-.hero .pprev summary{color:rgba(255,255,255,.8)}.hero .pprev pre{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}.hero .pprev .muted{color:rgba(255,255,255,.7)}.hero .pact:has(.pprev){flex-basis:100%}
+.hero .pact:has(.pprev){flex-basis:100%}
 .oqact{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:flex-start;margin:4px 0 6px 18px}.oqact > a{padding-top:4px}.oqact a{white-space:nowrap}
 .seg.tabs button{display:inline-flex;align-items:center;gap:6px}.seg.tabs button small{font-size:11px;opacity:.75;font-variant-numeric:tabular-nums}.seg.tabs .kdot{width:8px;height:8px;margin:0}
 #viewer aside .vtabs{display:flex;gap:6px;margin:0 0 10px}#viewer aside .vtabs button{padding:4px 11px;font-size:12.5px}#viewer aside .vtabs button.on{background:var(--v-accent);color:#fff}
@@ -387,7 +392,7 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .nl{display:block;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;margin:8px 0 2px}
 #viewer aside .nf dt,#viewer aside .nl{color:var(--v-muted)}#viewer aside .nf dd{color:var(--v-soft)}
 /* home */
-.hero .prompts{max-width:none;display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center}.hero .prompts .lbl{width:100%;margin:0}.hero .prompts .pbtn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff}.hero .prompts .pbtn.big{margin:0}.hero .prompts .asks{display:flex;flex-wrap:wrap;gap:6px}.hero .prompts .aud{width:100%;margin:2px 0 0;font-size:12.5px}.hero .prompts code{background:rgba(255,255,255,.18);color:#fff}
+.hero .prompts{max-width:none;display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center}.hero .prompts .lbl{width:100%;margin:0}.hero .prompts .pbtn.big{margin:0}.hero .prompts .asks{display:flex;flex-wrap:wrap;gap:6px}.hero .prompts .aud{width:100%;margin:2px 0 0;font-size:12.5px}
 .catcard .concl{display:block;margin-top:8px;font-size:15px;font-weight:600;line-height:1.45;color:var(--text)}.catcard .concl .cite{margin-left:4px;vertical-align:2px}.catcard .concl.muted{font-weight:400}
 .catcard .goal2{font-weight:400;color:var(--muted);font-size:13.5px}
 .hero .goal.prompts{margin-top:18px}
@@ -401,7 +406,8 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .catcard .cap .p a{color:var(--accent)}.pill.plan{background:var(--teal-soft);color:var(--teal)}.meta2 .warn{color:var(--amber);font-weight:600}.catcard .meta2 .pbtn{vertical-align:1px}
 @media (max-width:1100px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:860px){.keygrid{grid-template-columns:1fr}.runs .run{grid-template-columns:1fr}.runs .rr,.runs .rc{grid-column:1}}
-@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.hero .goal p{font-size:15.5px}.claim .chead{flex-direction:column;gap:6px}}
+@media (max-width:860px){.hgrid{grid-template-columns:minmax(0,1fr)}.hside{border-left:0;border-top:1px solid var(--line);padding:12px 0;flex-direction:row;flex-wrap:wrap}.hstat{flex:1 1 150px}.htop{display:block}.hmeta{margin-top:6px;white-space:normal}}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{padding:18px 18px 8px}.crow{grid-template-columns:minmax(0,1fr);gap:2px}.hero .goal p{font-size:15.5px}.claim .chead{flex-direction:column;gap:6px}}
 `;
 
 const JS = `
@@ -606,7 +612,20 @@ const UNIT = { design: "제품", dev: "제품", curriculum: "강의", research: 
 const TYPE_KO = { official: "공식", docs: "문서", store: "스토어", repo: "저장소", paper: "논문", report: "보고서", press: "언론", framework: "기준", survey: "설문", "job-posting": "채용 공고", community: "커뮤니티", blog: "블로그", listicle: "목록글", capture: "캡처", other: "기타" };
 const short = (s, n) => ((s = String(s ?? "")), s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
 /** copyable id chip — one click puts S#/C#/R# on the clipboard to hand to Claude */
-const idBtn = (id, extra = "") => `<button class="idbtn" data-copy="${esc(id)}" title="클릭하면 ${esc(id)} 복사 — Claude에게 '${esc(id)} 다시 확인해줘'라고 말할 수 있습니다"${extra}>${esc(id)}</button>`;
+const idText = (id) => ({ S: `자료 ${id}`, C: `발견 ${id}`, R: `${id.slice(1)}번째 조사` })[id[0]] ?? id;
+const idBtn = (id, extra = "") => `<button class="idbtn" data-copy="${esc(id)}" title="클릭하면 ${esc(id)} 복사 — Claude에게 '${esc(id)} 다시 확인해줘'라고 말할 수 있습니다"${extra}>${esc(idText(id))}</button>`;
+const CRED_KO = { A: "공식·1차 자료", B: "언론·조사 기관", C: "커뮤니티·블로그", D: "미확인" };
+const credLabel = (g) => `${g} ${CRED_KO[g] ?? ""}`.trim();
+const WHY_TITLE = { design: "기획 의도", dev: "설계 의도", curriculum: "교육 설계 의도", strategy: "전략적 의도", voice: "반응의 이유", travel: "구성 의도", research: "연구 배경" };
+/** "text — 의도: why" → [text, why]: an open question or next step says what its answer changes */
+const withIntent = (s) => {
+  const m = String(s).match(/^(.*?)\s+[—-]\s*의도\s*[:：]\s*(.+)$/s);
+  return m ? [m[1], m[2]] : [String(s), ""];
+};
+const intentList = (items, cite) => `<ul class="intents" data-limit="5" data-items="li">${items.map((q) => {
+  const [t, why] = withIntent(q);
+  return `<li>${inline(t, cite)}${why ? `<small>의도: ${inline(why, cite)}</small>` : ""}</li>`;
+}).join("")}</ul>`;
 /**
  * prompt action — a copy button (clipboard icon, "복사됨 ✓" feedback) and, with preview, a fold that shows the exact text
  * that will be pasted into Claude Code. Used for 이어서 하기 / 다시 확인 / 새 조사 시작 / 묻기.
@@ -648,7 +667,7 @@ const SUMMARY_KEYS = [
   ["common", /공통|차별|common/i],
   ["recommend", /추천|다음 (할 일|단계)|권장|recommend|next/i],
   ["open", /열린|미해결|질문|open question/i],
-  ["why", /왜 이렇게|^왜|rationale/i],
+  ["why", /왜 이렇게|^왜|의도|이유|배경|벤치마킹|rationale/i],
   ["avoid", /피할|avoid/i],
   ["process", /조사 과정|process/i],
 ];
@@ -688,7 +707,7 @@ const sectionsOf = (src) => {
   if (cur.title !== null || cur.body.join("").trim()) out.push(cur);
   return out.map((x) => ({ ...x, body: x.body.join("\n").trim() }));
 };
-const NOTE_FIELDS_KO = { feature: "기능", structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", context: "맥락", why: "왜", alternatives: "대안", result: "결과", implication: "시사점", adopt: "차용할 점", avoid: "피할 점" };
+const NOTE_FIELDS_KO = { feature: "기능", structure: "구조", copy: "카피/CTA", visual: "비주얼", ui: "UI 패턴", context: "맥락", why: "의도", alternatives: "대안", result: "결과", implication: "시사점", adopt: "차용할 점", avoid: "피할 점" };
 export const WHY_BASIS_KO = { official: "공식", signal: "정황", guess: "추정" };
 /** a note → html: structured fields as a definition list, else markdown with "**라벨**:" lines styled as labels */
 const noteHtml = (x, cite) => {
@@ -717,6 +736,9 @@ function conclusionOf(block) {
     if (k === "evidence") out.evidence.push(m[2]);
     else if (k) out[k] ??= m[2];
   }
+  // "근거 2 — …": what the counter-evidence stands against
+  const target = out.counter?.match(/^(답|제안|근거\s*\d+)\s*[—:-]\s*(.+)$/s);
+  if (target) Object.assign(out, { counterOf: target[1].replace(/\s+/g, " "), counter: target[2] });
   return out;
 }
 /** What a board leads with, shared with the MCP server. Key claims: collection.highlights → claims marked key → summary list → strongest claims. */
@@ -781,6 +803,9 @@ export function renderBoard(d) {
   const citedBy = new Map();
   for (const c of [...d.claims.own, ...d.claims.related]) if (c.status === "active") for (const s of c.sources) citedBy.set(s, (citedBy.get(s) ?? 0) + 1);
   const runGoal = (id) => d.runs.find((r) => r.id === id)?.goal ?? "";
+  // R# counts across the whole library; a reader wants "which run of this research"
+  const runNo = new Map(d.runs.map((r, i) => [r.id, i + 1]));
+  const runLabel = (id) => (runNo.has(id) ? `${runNo.get(id)}회차` : "다른 조사");
   // a claim's evidence: thumbnails of its sources
   const evidence = (ids) =>
     ids
@@ -798,24 +823,22 @@ export function renderBoard(d) {
 
   const { sum, claimById, keyClaims, keySource, keyLines, openQ, nextS, concl, answer, evItems } = conclusionData(col, d.claims, d.summary);
   const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
-  const continuePrompt = `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})를 이어서 해줘.${openQ.length ? ` 열린 질문: ${openQ.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}${nextS.length ? ` 다음 할 일: ${nextS.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
-  const evRow = ({ line, c }) => {
-    const head = line ? inline(line, cite) : esc(splitTitle(c)[0]);
+  const continuePrompt = `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})를 이어서 해줘.${openQ.length ? ` 추가 질문 항목: ${openQ.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}${nextS.length ? ` 다음 할 일: ${nextS.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
+  const evRow = ({ line, c }, i) => {
+    const head = `<b class="evn">${i + 1}</b>${line ? inline(line, cite) : esc(splitTitle(c)[0])}${concl.counterOf === `근거 ${i + 1}` ? ` <span class="role fr-unknown">반대 근거 있음</span>` : ""}`;
     if (!c) return `<div class="evrow"><div class="plain">${head}</div></div>`;
     return `<details class="evrow"><summary><span class="t">${head}</span>${confBadge(c.confidence)}</summary><div class="evbody"><p>${esc(c.text)}</p>${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}<div class="cmeta" style="margin-top:8px">${idBtn(c.id)}${c.asOf ? `<span class="sep">·</span><span>기준 ${esc(c.asOf)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}</span></div></div></details>`;
   };
-  const keySection =
-    evItems.length || concl.counter
-      ? `<section id="key"><h3>근거 ${evItems.slice(0, 3).length}개</h3>${evItems.slice(0, 3).map(evRow).join("")}${concl.counter ? `<p class="counter"><b>반대 근거</b>${inline(concl.counter, cite)}</p>` : ""}</section>`
-      : "";
+  const evShown = evItems.slice(0, 3);
   const openSection =
     openQ.length || nextS.length
-      ? `<section id="open">${sectionHead(next(), "열린 질문과 다음 할 일", "아직 답하지 못한 것과 이어서 할 일. 버튼을 누르면 이어서 조사할 프롬프트가 복사됩니다.")}<div class="panel openq">${openQ.length ? `<h4>열린 질문</h4><ul data-limit="5" data-items="li">${openQ.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4><ul data-limit="5" data-items="li">${nextS.map((q) => `<li>${inline(q, cite)}</li>`).join("")}</ul>${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
-          !openQ.length && !nextS.length ? `<p class="muted small">요약에 <code>## 열린 질문</code> · <code>## 추천</code> 절을 쓰거나 <code>ref report</code>에 <code>open_questions</code> · <code>next_steps</code>를 넘기면 여기에 표시됩니다.</p>` : ""
-        }${promptAction("이 조사 이어서 하기", continuePrompt, { preview: true, big: true, hint: "열린 질문과 다음 할 일을 담은 프롬프트를 복사합니다" })}</div></section>`
+      ? `<section id="open">${sectionHead(next(), "추가 질문 항목과 다음 할 일", "답에 따라 결론이나 제안이 달라질 수 있는 질문과 이어서 할 일입니다. 항목 아래 의도는 왜 확인해야 하는지를 적은 것입니다. 버튼을 누르면 이어서 조사할 프롬프트가 복사됩니다.")}<div class="panel openq">${openQ.length ? `<h4>추가 질문 항목</h4>${intentList(openQ, cite)}${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4>${intentList(nextS, cite)}${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
+          !openQ.length && !nextS.length ? `<p class="muted small">요약에 <code>## 추가 질문 항목</code> · <code>## 추천</code> 절을 쓰거나 <code>ref report</code>에 <code>open_questions</code> · <code>next_steps</code>를 넘기면 여기에 표시됩니다.</p>` : ""
+        }${promptAction("이 조사 이어서 하기", continuePrompt, { preview: true, big: true, hint: "추가 질문 항목과 다음 할 일을 담은 프롬프트를 복사합니다" })}</div></section>`
       : "";
   const avoidSection = sum.avoid ? `<section id="avoid">${sectionHead(next(), "피할 것", "맥락과 함께 적은, 따라 하면 안 되는 조합.")}<div class="panel prose">${md(sum.avoid, cite)}</div></section>` : "";
 
+  const whyTitle = col.whyTitle || (WHY_TITLE[col.domain] ?? WHY_TITLE.design);
   // why-traces: one per reference, the best-evidenced first; they also feed the viewer and the pattern cards
   const traces = d.members
     .map((m) => ({ m, w: (m.r.notes ?? []).filter((x) => !x.collection || x.collection === col.name).map(rationaleOf).find(Boolean) }))
@@ -827,7 +850,7 @@ export function renderBoard(d) {
   const whyCard = ({ m, w }) => `<article class="whycard${m.thumb ? "" : " noimg"}">${m.thumb ? `<button class="thumb" data-open-ref="${m.r.id}" title="${esc(m.r.label ?? m.r.id)} 크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt=""></button>` : ""}<div><h4>${esc(m.r.product ?? m.r.label ?? m.r.id)}${basisChip(w.basis)}</h4><p>${inline(w.why, cite)}</p>${w.result ? `<p><b>결과</b>${inline(w.result, cite)}</p>` : ""}${w.implication ? `<p><b>시사점</b>${inline(w.implication, cite)}</p>` : ""}</div></article>`;
   const whySection =
     traces.length || sum.why
-      ? `<section id="why">${sectionHead(next(), "왜 이렇게 만들었나", "무엇이 보이는가에서 멈추지 않고 이유를 따라간 기록. 초록은 회사가 직접 밝힌 것, 주황은 정황, 회색은 추정입니다.")}${traces.length ? `<div class="whycards">${traces.slice(0, 5).map(whyCard).join("")}</div>` : `<div class="panel prose">${md(sum.why, cite)}</div>`}</section>`
+      ? `<section id="why">${sectionHead(next(), whyTitle, "왜 이렇게 만들었는지 근거로 따라간 기록입니다. 공식은 회사가 직접 밝힌 것, 정황은 여러 단서로 본 것, 추정은 가설입니다.")}${traces.length ? `<div class="whycards">${traces.slice(0, 5).map(whyCard).join("")}</div>` : `<div class="panel prose">${md(sum.why, cite)}</div>`}</section>`
       : "";
 
   const topbar = `<a class="brand" href="../index.html">References</a>${searchBox("검색")}`;
@@ -847,12 +870,19 @@ export function renderBoard(d) {
 </div>`;
   const question = concl.question ?? col.question ?? goal;
   const decision = concl.decision ?? null;
-  const hero = `<header class="hero${answer ? " answer" : ""}">
-<div class="eyebrow">${esc(KIND_KO[col.kind] ?? col.kind ?? "")} · ${esc(DOMAIN_KO[col.domain] ?? col.domain)}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>
-<h1>${esc(col.title ?? col.name)}</h1>
-${answer ? `<dl class="concl">${question ? `<dt>질문</dt><dd>${inline(question, cite)}</dd>` : ""}<dt class="ans">답</dt><dd class="ans">${inline(answer, cite)}</dd>${decision ? `<dt>제안</dt><dd>${inline(decision, cite)}</dd>` : ""}</dl>` : `${col.description ? `<p class="lead">${esc(col.description)}</p>` : ""}${goalBlock}`}
-<p class="hmeta">${productCount}개 ${esc(unit)} · 레퍼런스 ${d.members.length}개 · 발견 ${active.length}개 · ${d.runs.length}회차</p>
-</header>`;
+  const meta = `${productCount}개 ${esc(unit)} · 레퍼런스 ${d.members.length}개 · 발견 ${active.length}개 · ${d.runs.length}회차`;
+  const eyebrow = `<div class="eyebrow">${esc(KIND_KO[col.kind] ?? col.kind ?? "")} · ${esc(DOMAIN_KO[col.domain] ?? col.domain)}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>`;
+  const row = (label, html, cls = "") => (html ? `<div class="crow ${cls}"><span class="cl">${label}</span><div>${html}</div></div>` : "");
+  const stat = (title, rows, bar = true) => {
+    const shown = rows.filter(([, n, , always]) => n || always);
+    return `<div class="hstat"><h4>${title}</h4>${bar ? `<span class="sbar">${shown.filter(([, n]) => n).map(([, n, cls]) => `<i class="${cls}" style="flex:${n}"></i>`).join("")}</span>` : ""}<ul>${shown.map(([label, n, cls, always]) => `<li${always && !n ? ' class="miss"' : ""}><span>${cls ? `<i class="dot ${cls}"></i>` : ""}${esc(label)}</span><b>${n}</b></li>`).join("")}</ul></div>`;
+  };
+  const f = d.process.fresh;
+  const hside = `<aside class="hside">${stat("근거 세기", [["강함", conf("high"), "s-good"], ["보통", conf("medium"), "s-warn"], ["약함", conf("low"), "s-bad"], ["가설", conf("hypothesis"), "s-none"]])}${stat("자료 신선도", [["신선", f.fresh, "s-good"], ["날짜 미상", f.unknown, "s-warn"], ["지난 자료", f.stale, "s-none"]])}${stat("채널", d.process.channels.rows.map((r) => [r.label, r.count, "", d.process.channels.missing.includes(r.label)]), false)}</aside>`;
+  const hero = answer
+    ? `<header class="hero answer" id="key"><div class="htop"><div>${eyebrow}<h1>${esc(col.title ?? col.name)}</h1></div><p class="hmeta">${meta}</p></div>
+<div class="hgrid"><div>${row("질문", question ? inline(question, cite) : "")}${row("답", inline(answer, cite), "ans")}${row("제안", decision ? inline(decision, cite) : "")}${row("근거", evShown.map(evRow).join(""))}${row("반대 근거", concl.counter ? `<b class="cto">${esc(concl.counterOf ?? "결론")}에 대한 반대</b>${inline(concl.counter, cite)}` : "", "warn")}</div>${hside}</div><p class="hlegend">번호 읽는 법: <b>발견 C</b>는 조사에서 나온 주장, <b>자료 S</b>는 레퍼런스, <b>회차</b>는 이 조사를 몇 번째로 진행했는지입니다. <b>A~D</b>는 출처 등급입니다. 칩을 누르면 해당 항목으로 이동합니다.</p></header>`
+    : `<header class="hero">${eyebrow}<h1>${esc(col.title ?? col.name)}</h1>${col.description ? `<p class="lead">${esc(col.description)}</p>` : ""}${goalBlock}<p class="hmeta" style="margin:8px 0">${meta}</p></header>`;
 
   // long summaries fold: every heading becomes a section, the first two stay open, a mini TOC jumps and opens
   const secs = sectionsOf(d.summary);
@@ -881,10 +911,10 @@ ${answer ? `<dl class="concl">${question ? `<dt>질문</dt><dd>${inline(question
   <header><strong>${esc(r.label)}</strong><span class="count"><b>${r.products.length}</b> / ${n} ${esc(unit)}</span></header>
   ${r.question ? `<p class="q">${esc(r.question)}</p>` : ""}
   ${r.verdict ? `<p class="verdict">${inline(r.verdict, cite)}</p>` : ""}
-  ${axisWhy.has(r.id) ? `<p class="axwhy">${basisChip(axisWhy.get(r.id).basis)}왜: ${inline(short(axisWhy.get(r.id).why, 90), cite)}</p>` : ""}
+  ${axisWhy.has(r.id) ? `<p class="axwhy">${basisChip(axisWhy.get(r.id).basis)}의도: ${inline(short(axisWhy.get(r.id).why, 90), cite)}</p>` : ""}
   ${
     compact
-      ? `<div class="schips">${r.products.map((p) => { const m = byRef.get(r.refBy[p]); const g = m?.r.credibility ?? ""; return `<a class="schip g-${esc(g)}" href="#${esc(r.refBy[p])}" title="${esc(p)} — ${esc(r.how[p].join(" · "))}"><b>${esc(g)}</b>${esc(short(p, 18))}</a>`; }).join("")}</div>`
+      ? `<div class="schips">${r.products.map((p) => { const m = byRef.get(r.refBy[p]); const g = m?.r.credibility ?? ""; return `<a class="schip g-${esc(g)}" href="#${esc(r.refBy[p])}" title="${esc(p)} — ${esc(r.how[p].join(" · "))} · 출처 등급 ${esc(credLabel(g))}"><b>${esc(g)}</b>${esc(short(p, 18))}</a>`; }).join("")}</div>`
       : `<ul class="how" data-limit="6" data-items="li">${r.products.map((p) => { const th = byRef.get(r.refBy[p])?.thumb; return `<li><button class="prod" data-open-ref="${esc(r.refBy[p])}" title="${esc(p)} 캡처 보기">${th ? `<span class="mini"><img loading="lazy" src="${esc(th)}" alt=""></span>` : `<span class="mini"></span>`}<span class="pn">${esc(p)}</span></button><span>${r.how[p].map(esc).join(" · ")}</span></li>`; }).join("")}</ul>${r.products.length > 6 ? `<button class="morebtn small" type="button" hidden></button>` : ""}`
   }
   ${r.other.length ? `<p class="also">${r.other.map((o) => `<a href="../${esc(o.name)}/index.html#axis-${esc(r.id)}">${esc(o.title)}</a> 조사에서도 같은 패턴 — ${o.products.map(esc).join(", ")}`).join("<br>")}</p>` : ""}
@@ -913,11 +943,11 @@ ${answer ? `<dl class="concl">${question ? `<dt>질문</dt><dd>${inline(question
     const pics = m.frames.length || m.screens.length;
     const viewer = { id: r.id, title: `${r.product ?? ""}${r.page ? " — " + r.page : ""}` || r.label || r.id, url: r.url, preview: m.thumb, frames: m.frames, full: m.fullParts, screens: m.screens, date: snap?.at?.slice(0, 10) ?? "" };
     const facts = `<div><strong>${esc(r.product ?? "")}</strong>${r.page ? ` · ${esc(r.page)}` : ""}</div>
-<div>${m.role ? `${ROLE_KO[m.role] ?? m.role} · ` : ""}출처 등급 ${esc(r.credibility)} (${esc(r.type)})${r.publisher ? ` · ${esc(r.publisher)}` : ""}</div>
+<div>${m.role ? `${ROLE_KO[m.role] ?? m.role} · ` : ""}출처 등급 ${esc(credLabel(r.credibility))} · ${esc(TYPE_KO[r.type] ?? r.type)}${r.publisher ? ` · ${esc(r.publisher)}` : ""}</div>
 ${snap ? `<div>캡처 ${r.snapshots.length}회 · 최신 ${esc(snap.at.slice(0, 10))}${r.changes?.length ? ` · 변화 기록 ${r.changes.length}` : ""}</div>` : ""}
 ${other.length ? `<div>다른 조사에도 포함: ${other.map((c) => `<a href="../${esc(c)}/index.html#${r.id}">${esc(d.catTitle(c))}</a>`).join(", ")}</div>` : ""}
 <div style="margin-top:8px">${[...(r.screens ?? []), ...m.axes.map(axisLabel)].map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>
-${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc(c.at.slice(0, 10))}: ${esc(c.lines.join(" · ") || "변화 없음")}`).join("<br>")}</div>` : ""}${traceById.has(r.id) ? `<div class="vwhy"><h5>왜 이렇게 만들었나</h5>${basisChip(traceById.get(r.id).basis)}<p>${inline(traceById.get(r.id).why, cite)}</p>${traceById.get(r.id).result ? `<p><b>결과</b>${inline(traceById.get(r.id).result, cite)}</p>` : ""}${traceById.get(r.id).implication ? `<p><b>시사점</b>${inline(traceById.get(r.id).implication, cite)}</p>` : ""}</div>` : ""}`;
+${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc(c.at.slice(0, 10))}: ${esc(c.lines.join(" · ") || "변화 없음")}`).join("<br>")}</div>` : ""}${traceById.has(r.id) ? `<div class="vwhy"><h5>${esc(whyTitle)}</h5>${basisChip(traceById.get(r.id).basis)}<p>${inline(traceById.get(r.id).why, cite)}</p>${traceById.get(r.id).result ? `<p><b>결과</b>${inline(traceById.get(r.id).result, cite)}</p>` : ""}${traceById.get(r.id).implication ? `<p><b>시사점</b>${inline(traceById.get(r.id).implication, cite)}</p>` : ""}</div>` : ""}`;
     const notesHtml = notes.map((x) => `${x.collection && x.collection !== col.name ? `<p style="color:var(--amber);font-size:12px;margin:12px 0 0">‹${esc(d.catTitle(x.collection))}› 조사에서 쓴 노트</p>` : ""}${noteHtml(x, cite)}`).join("<hr>");
     return `<article class="card" id="${r.id}" data-role="${esc(m.role ?? "")}" data-axes="${esc(m.axes.join(" "))}" data-run="${esc(m.run ?? "")}" data-name="${esc(r.product ?? r.label ?? r.id)}" data-date="${esc(snap?.at ?? "")}" data-claims="${citedBy.get(r.id) ?? 0}" data-viewer="${esc(JSON.stringify(viewer))}" data-search="${searchText(r.id, r.product, r.page, r.label, r.title, r.tags, m.axes.map(axisLabel), notes.map((x) => x.text))}">
   <button class="thumb" data-view="" title="크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt="${esc(r.label ?? r.id)}">${pics ? `<span class="count">${m.frames.length ? `${m.frames.length}화면` : `${m.screens.length}장`}</span>` : ""}<span class="go" aria-hidden="true">↗</span></button>
@@ -942,7 +972,7 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
 <td class="n">${idBtn(r.id)}</td>
 <td><a class="tt" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a>${r.summary || r.description ? `<span class="sum">${esc(short(r.summary ?? r.description, 160))}</span>` : ""}${notes.length ? `<details><summary>노트 ${notes.length}</summary><div class="prose">${notes.map((x) => noteHtml(x, cite)).join("<hr>")}</div></details>` : ""}</td>
 <td>${esc(r.publisher ?? r.product ?? "")}</td>
-<td class="n">${esc(r.credibility)} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type)}</span></td>
+<td class="n" title="자료 종류: ${esc(TYPE_KO[r.type] ?? r.type)}">${esc(credLabel(r.credibility))}</td>
 <td class="n">${refDate(r) ? `<span class="small">${esc(refDate(r).slice(0, 10))}</span> ` : ""}<span class="role fr-${freshness(r)}">${FRESH_KO[freshness(r)]}</span></td>
 <td class="n">${m.role ? `<span class="role r-${esc(m.role)}">${ROLE_KO[m.role] ?? esc(m.role)}</span>` : ""}</td>
 <td class="n num">${n ? `<a href="#claims" title="이 자료를 인용한 발견">${n}</a>` : `<span class="muted">0</span>`}</td>
@@ -972,11 +1002,11 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
     .join("");
   const roleSeg = ["", "direct", "indirect", "trend", "analogous"].filter((r) => !r || d.members.some((m) => m.role === r));
   const usedAxes = d.axes.rows.filter((r) => r.products.length > 1);
-  const runSelect = d.runs.length > 1 ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${d.runs.map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(short(r.goal ?? r.startedAt.slice(0, 10), 28))}</option>`).join("")}</select>` : "";
+  const runSelect = d.runs.length > 1 ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${d.runs.map((r) => `<option value="${esc(r.id)}">${esc(runLabel(r.id))} · ${esc(short(r.goal ?? r.startedAt.slice(0, 10), 28))}</option>`).join("")}</select>` : "";
   const more = `<button class="morebtn" type="button" hidden></button>`;
   const shotProducts = d.products.filter((p) => p.members.some((m) => m.thumb)).length;
   const view0 = ["grid", "rows", "flow"].includes(col.view) ? col.view : !SOURCE_LED.includes(col.domain) && shotProducts >= 10 && rows ? "rows" : "grid";
-  const refs = `<section id="refs">${sectionHead(next(), "레퍼런스", `캡처한 화면은 <b>격자</b>(한 장씩) · <b>제품별</b>(제품 하나에 여러 페이지) · <b>흐름</b>(한 페이지의 화면을 순서대로)으로 봅니다. 이미지를 누르면 뷰어가 열립니다: <kbd>←</kbd><kbd>→</kbd> 화면 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 다른 레퍼런스 · <kbd>N</kbd> 정보 · <kbd>Esc</kbd> 닫기. 글로 읽은 자료(논문·기사·문서)는 아래 <b>자료 목록</b>에 있습니다.`)}
+  const refs = `<section id="refs">${sectionHead(next(), "레퍼런스", `<b>자료 S1234</b>는 라이브러리 전체에서 이 레퍼런스를 가리키는 고유 번호입니다. 누르면 복사되어 Claude에게 'S1234 다시 확인해줘'처럼 말할 수 있습니다. 캡처한 화면은 <b>격자</b>(한 장씩) · <b>제품별</b>(제품 하나에 여러 페이지) · <b>흐름</b>(한 페이지의 화면을 순서대로)으로 봅니다. 이미지를 누르면 뷰어가 열립니다: <kbd>←</kbd><kbd>→</kbd> 화면 · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 다른 레퍼런스 · <kbd>N</kbd> 정보 · <kbd>Esc</kbd> 닫기. 글로 읽은 자료(논문·기사·문서)는 아래 <b>자료 목록</b>에 있습니다.`)}
 <div id="gallery">
 <div class="toolbar">
   ${roleSeg.length > 2 ? `<div class="seg" data-k="role">${roleSeg.map((r) => `<button data-v="${r}"${r ? "" : ' class="on"'}>${r ? ROLE_KO[r] : "전체"}</button>`).join("")}</div>` : ""}
@@ -993,7 +1023,7 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
 ${
   docs.length
     ? `<div class="sgroup docs"><div class="groupcap"><h3>자료 목록</h3><span>캡처 없이 글로 읽은 자료 · <span class="shown">${docs.length}개</span> · 노트가 있으면 펼쳐 볼 수 있습니다</span></div>
-<div class="panel tablewrap" style="padding:0"><table><thead><tr><th class="n">번호</th><th>자료</th><th>발행처</th><th class="n">등급</th><th class="n">날짜</th><th class="n">역할</th><th class="n">인용</th></tr></thead><tbody data-limit="20" data-items="tr">${[...docs].sort((a, b) => String(refDate(b.r) ?? "").localeCompare(String(refDate(a.r) ?? ""))).map(docRow).join("")}</tbody></table></div>${more}</div>`
+<div class="panel tablewrap" style="padding:0"><table><thead><tr><th class="n">번호</th><th>자료</th><th>발행처</th><th class="n">출처 등급</th><th class="n">날짜</th><th class="n">역할</th><th class="n">인용</th></tr></thead><tbody data-limit="20" data-items="tr">${[...docs].sort((a, b) => String(refDate(b.r) ?? "").localeCompare(String(refDate(a.r) ?? ""))).map(docRow).join("")}</tbody></table></div>${more}</div>`
     : ""
 }
 ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</section>`;
@@ -1011,7 +1041,7 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
     return `<article class="claim" id="${c.id}" data-kind="${esc(c.kind ?? "")}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
   <div class="chead"><h4 class="ctitle">${c.key ? `<span class="star">핵심</span>` : ""}${esc(title)}</h4>${confBadge(c.confidence)}</div>
   ${body ? `<p class="cbody${body.length > 150 ? " clamp" : ""}">${esc(body)}</p>${body.length > 150 ? `<button class="more" type="button">더 보기</button>` : ""}` : ""}
-  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 핵심 결론은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(c.run)}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
+  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 핵심 결론은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(runLabel(c.run))}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
   ${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}
   ${olds.length ? `<details class="prev"><summary>이전 버전 ${olds.length}개 — ${olds[0].status === "refuted" ? "틀린 것으로 확인됨" : "수정됨"}</summary>${olds.map((o) => `<div class="old" id="${o.id}">${idBtn(o.id)} ${esc(o.text)} <span class="small">(${esc((o.createdAt ?? "").slice(0, 10))})</span></div>`).join("")}</details>` : ""}
 </article>`;
@@ -1022,16 +1052,16 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
   const claimRuns = [...new Set(active.map((c) => c.run).filter(Boolean))].sort();
   const runFilter =
     claimRuns.length > 4
-      ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${claimRuns.map((r) => `<option value="${esc(r)}">${esc(r)} · ${esc(short(runGoal(r), 28))}</option>`).join("")}</select>`
+      ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${claimRuns.map((r) => `<option value="${esc(r)}">${esc(runLabel(r))} · ${esc(short(runGoal(r), 28))}</option>`).join("")}</select>`
       : claimRuns.length > 1
-        ? `<div class="seg" data-k="run"><button data-v="" class="on">모든 회차</button>${claimRuns.map((r) => `<button data-v="${esc(r)}" title="${esc(runGoal(r))}">${esc(r)}</button>`).join("")}</div>`
+        ? `<div class="seg" data-k="run"><button data-v="" class="on">모든 회차</button>${claimRuns.map((r) => `<button data-v="${esc(r)}" title="${esc(runGoal(r))}">${esc(runLabel(r))}</button>`).join("")}</div>`
         : "";
   const confSeg = `<div class="seg" data-k="conf"><button data-v="" class="on">모든 근거</button><button data-v="high">강함</button><button data-v="medium">보통</button><button data-v="low">약함</button></div>`;
   // one kind at a time (the biggest first); 전체 shows every group
   const kindCounts = kinds.map((k) => [k, active.filter((c) => c.kind === k).length]).sort((a, b) => b[1] - a[1]);
   const firstKind = active.length > 12 && kindCounts.length > 1 ? kindCounts[0][0] : "";
   const kindTabs = kindCounts.length > 1 ? `<div class="seg tabs" data-k="kind">${kindCounts.map(([k, n]) => `<button data-v="${k}"${k === firstKind ? ' class="on"' : ""}><i class="kdot k-${k}"></i>${KIND[k][0]} <small>${n}</small></button>`).join("")}<button data-v=""${firstKind ? "" : ' class="on"'}>전체 <small>${active.length}</small></button></div>` : "";
-  const claims = `<section id="claims">${sectionHead(next(), "발견과 근거", "조사에서 나온 주장과 그 근거. 제목 → 내용 → 근거 세기·조사 회차·날짜·출처 구성 순으로 읽습니다. 근거 세기는 출처의 수와 등급으로 자동 계산되고, 썸네일을 누르면 근거 화면이 열립니다. 번호를 누르면 복사됩니다.")}${
+  const claims = `<section id="claims">${sectionHead(next(), "발견과 근거", "조사에서 나온 주장과 그 근거. <b>발견 C1234</b>는 주장의 고유 번호, <b>N회차</b>는 이 조사의 몇 번째 진행에서 나왔는지입니다. 제목 → 내용 → 근거 세기·조사 회차·날짜·출처 구성 순으로 읽습니다. 근거 세기는 출처의 수와 등급으로 자동 계산되고, 썸네일을 누르면 근거 화면이 열립니다. 번호를 누르면 복사됩니다.")}${
     active.length || d.claims.related.length
       ? `${kindTabs ? `<div class="stoolbar">${kindTabs}</div>` : ""}<div class="stoolbar">${runFilter}${confSeg}<span class="shown"></span></div>` +
         kinds.map((k) => `<div class="kindgroup sgroup"><h3><i class="kdot k-${k}"></i>${KIND[k][0]} <span>${KIND[k][1]} · ${active.filter((c) => c.kind === k).length}개</span></h3><div class="panel">${active.filter((c) => c.kind === k).map((c) => claimRow(c)).join("")}</div></div>`).join("") +
@@ -1055,14 +1085,14 @@ ${
           .slice()
           .reverse()
           .map(
-            (r) => `<li class="run${r.id === col.currentRun ? " cur" : ""}" data-search="${searchText(r.id, r.goal, r.result)}"><div class="rh">${idBtn(r.id)}<span class="rd">${esc(r.startedAt.slice(0, 10))}${r.endedAt && r.endedAt.slice(0, 10) !== r.startedAt.slice(0, 10) ? ` → ${esc(r.endedAt.slice(0, 10))}` : ""}</span>${r.id === col.currentRun ? `<span class="pill">현재</span>` : ""}</div>
+            (r) => `<li class="run${r.id === col.currentRun ? " cur" : ""}" data-search="${searchText(r.id, r.goal, r.result)}"><div class="rh"><strong>${esc(runLabel(r.id))}</strong><span class="rd">${esc(r.startedAt.slice(0, 10))}${r.endedAt && r.endedAt.slice(0, 10) !== r.startedAt.slice(0, 10) ? ` → ${esc(r.endedAt.slice(0, 10))}` : ""}</span>${r.id === col.currentRun ? `<span class="pill">현재</span>` : ""}</div>
 <div class="rg">${esc(r.goal ?? "")}</div>${r.result ? `<div class="rr">→ ${inline(r.result, cite)}</div>` : ""}
 <div class="rc">${[["새 발견", r.counts.created], ["정정", r.counts.revised + r.counts.refuted], ["다시 확인", r.counts.confirmed]].filter(([, v]) => v).map(([k, v]) => `<span class="chip">${k} ${v}</span>`).join("") || `<span class="muted small">발견 변화 없음</span>`}</div></li>`,
           )
           .join("")}</ol>`
       : `<p class="muted">아직 조사 회차가 없습니다.</p>`
   }
-${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>최근 조사(${esc(cur.run)})에서 바뀐 것</h3><div class="panel prose"><ul>${[
+${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>최근 조사(${esc(runLabel(cur.run))})에서 바뀐 것</h3><div class="panel prose"><ul>${[
     ...cur.refuted.map((c) => li("틀린 것으로 확인", c, ` <span class="muted">(${c.refutes} 대체)</span>`)),
     ...cur.revised.map((c) => li("수정", c, ` <span class="muted">(${c.revises} 대체)</span>`)),
     ...cur.confirmed.map((c) => li("다시 확인", c)),
@@ -1076,28 +1106,29 @@ ${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>�
   // sources: the citation index — cited-only by default, filter by grade / type, 20 rows at a time
   const grades = [...new Set(d.sources.map((r) => r.credibility))].sort();
   const types = [...new Set(d.sources.map((r) => r.type).filter(Boolean))].sort();
-  const sources = `<section id="sources">${sectionHead(next(), "출처", "발견이 인용한 자료의 색인. 등급 A 공식·1차 자료 · B 언론·조사 기관 · C 커뮤니티·블로그 · D 미확인. 기본은 인용된 자료만 보이고, 끄면 이 조사의 모든 레퍼런스가 나옵니다.")}
-<div class="stoolbar">${grades.length > 1 ? `<div class="seg" data-k="grade"><button data-v="" class="on">모든 등급</button>${grades.map((g) => `<button data-v="${esc(g)}">${esc(g)}</button>`).join("")}</div>` : ""}${types.length > 1 ? `<select data-k="type" aria-label="종류로 거르기"><option value="">모든 종류</option>${types.map((t) => `<option value="${esc(t)}">${esc(TYPE_KO[t] ?? t)}</option>`).join("")}</select>` : ""}<div class="seg" data-k="cited"><button class="tog on" type="button">인용된 것만</button></div><span class="shown"></span></div>
-<div class="panel tablewrap" style="padding:0"><table><thead><tr><th class="n">번호</th><th>제목</th><th class="n">등급</th><th>발행처</th><th class="n">인용</th><th>포함된 조사</th></tr></thead><tbody data-limit="20" data-items="tr">${d.sources
+  const sources = `<section id="sources">${sectionHead(next(), "출처", "발견이 인용한 자료의 색인. 출처 등급은 자료 종류로 매긴 신뢰도입니다: A 공식·1차 자료 · B 언론·조사 기관 · C 커뮤니티·블로그 · D 미확인. 등급은 발견의 근거 세기를 계산할 때 쓰입니다. 기본은 인용된 자료만 보이고, 끄면 이 조사의 모든 레퍼런스가 나옵니다.")}
+<div class="stoolbar">${grades.length > 1 ? `<div class="seg" data-k="grade"><button data-v="" class="on">모든 등급</button>${grades.map((g) => `<button data-v="${esc(g)}">${esc(credLabel(g))}</button>`).join("")}</div>` : ""}${types.length > 1 ? `<select data-k="type" aria-label="종류로 거르기"><option value="">모든 종류</option>${types.map((t) => `<option value="${esc(t)}">${esc(TYPE_KO[t] ?? t)}</option>`).join("")}</select>` : ""}<div class="seg" data-k="cited"><button class="tog on" type="button">인용된 것만</button></div><span class="shown"></span></div>
+<div class="panel tablewrap" style="padding:0"><table><thead><tr><th class="n">번호</th><th>제목</th><th class="n">출처 등급</th><th>발행처</th><th class="n">인용</th><th>포함된 조사</th></tr></thead><tbody data-limit="20" data-items="tr">${d.sources
     .map((r) => {
       const n = citedBy.get(r.id) ?? 0;
-      return `<tr id="${memberIds.has(r.id) ? `src-row-${r.id}` : `src-${r.id}`}" data-grade="${esc(r.credibility)}" data-type="${esc(r.type ?? "")}" data-cited="${n}" data-search="${searchText(r.id, r.label, r.title, r.publisher)}"><td class="n">${idBtn(r.id)}${memberIds.has(r.id) ? ` <a href="#${r.id}" title="이 조사의 레퍼런스로 이동">↑</a>` : ""}</td><td><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a></td><td class="n">${esc(r.credibility)} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type)}</span></td><td>${esc(r.publisher ?? "")}</td><td class="n num">${n || `<span class="muted">0</span>`}</td><td>${(r.categories ?? []).map((c) => (c === col.name ? esc(d.catTitle(c)) : `<a href="../${esc(c)}/index.html">${esc(d.catTitle(c))}</a>`)).join(", ")}</td></tr>`;
+      return `<tr id="${memberIds.has(r.id) ? `src-row-${r.id}` : `src-${r.id}`}" data-grade="${esc(r.credibility)}" data-type="${esc(r.type ?? "")}" data-cited="${n}" data-search="${searchText(r.id, r.label, r.title, r.publisher)}"><td class="n">${idBtn(r.id)}${memberIds.has(r.id) ? ` <a href="#${r.id}" title="이 조사의 레퍼런스로 이동">↑</a>` : ""}</td><td><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.label ?? r.title ?? r.url)}</a></td><td class="n" title="자료 종류: ${esc(TYPE_KO[r.type] ?? r.type)}">${esc(credLabel(r.credibility))}</td><td>${esc(r.publisher ?? "")}</td><td class="n num">${n || `<span class="muted">0</span>`}</td><td>${(r.categories ?? []).map((c) => (c === col.name ? esc(d.catTitle(c)) : `<a href="../${esc(c)}/index.html">${esc(d.catTitle(c))}</a>`)).join(", ")}</td></tr>`;
     })
     .join("")}</tbody></table></div><button class="morebtn" type="button" hidden></button></section>`;
 
   const foot = `<footer>${esc(col.name)} · 생성 ${esc(new Date().toLocaleString("ko-KR"))} · <code>ref report</code>로 다시 만들 수 있습니다</footer>`;
-  const blocks = { key: keySection, why: whySection, curriculum, axes, avoid: avoidSection, open: openSection, refs, claims, summary, changes, sources };
+  const blocks = { why: whySection, curriculum, axes, avoid: avoidSection, open: openSection, refs, claims, summary, changes, sources };
   const ORDER = {
-    decision: ["key", "why", "avoid", "open", "axes", "curriculum", "summary", "claims", "refs", "changes", "sources"],
-    practitioner: ["key", "why", "axes", "curriculum", "avoid", "open", "refs", "claims", "summary", "changes", "sources"],
-    archive: ["key", "summary", "why", "axes", "curriculum", "avoid", "open", "claims", "refs", "changes", "sources"],
+    decision: ["why", "avoid", "open", "axes", "curriculum", "summary", "claims", "refs", "changes", "sources"],
+    practitioner: ["why", "axes", "curriculum", "avoid", "open", "refs", "claims", "summary", "changes", "sources"],
+    archive: ["summary", "why", "axes", "curriculum", "avoid", "open", "claims", "refs", "changes", "sources"],
   };
-  const NAV = { key: ["핵심 결론", evItems.slice(0, 3).length], why: ["왜 이렇게 만들었나", traces.slice(0, 5).length], curriculum: ["커리큘럼 비교", d.curriculum?.n], axes: ["패턴 비교", d.axes.rows.length], avoid: ["피할 것", ""], open: ["열린 질문", openQ.length], refs: ["레퍼런스", d.members.length], claims: ["발견과 근거", active.length], summary: ["전체 요약", ""], changes: ["조사 과정", d.runs.length], sources: ["출처", d.sources.filter((r) => citedBy.has(r.id)).length] };
+  const NAV = { key: ["핵심 결론", evShown.length], why: [whyTitle, traces.slice(0, 5).length], curriculum: ["커리큘럼 비교", d.curriculum?.n], axes: ["패턴 비교", d.axes.rows.length], avoid: ["피할 것", ""], open: ["추가 질문 항목", openQ.length], refs: ["레퍼런스", d.members.length], claims: ["발견과 근거", active.length], summary: ["전체 요약", ""], changes: ["조사 과정", d.runs.length], sources: ["출처", d.sources.filter((r) => citedBy.has(r.id)).length] };
   const order = ORDER[reader].filter((k) => blocks[k]);
+  const navOrder = [...(answer ? ["key"] : []), ...order];
   const side = `<a class="brand" href="../index.html">References <span>/ 라이브러리</span></a>
 <div class="about"><strong>${esc(col.title ?? col.name)}</strong><br>${esc(col.description ?? "")}</div>
 ${searchBox("레퍼런스·발견·패턴 검색")}
-<nav>${order.map((k) => `<a href="#${k}">${NAV[k][0]}${NAV[k][1] ? `<small>${NAV[k][1]}</small>` : ""}</a>`).join("")}</nav>
+<nav>${navOrder.map((k) => `<a href="#${k}">${NAV[k][0]}${NAV[k][1] ? `<small>${NAV[k][1]}</small>` : ""}</a>`).join("")}</nav>
 <div class="foot">${productCount}개 ${unit} · ${d.members.length}개 레퍼런스 · ${active.length}개 발견<br>${lastRun ? `마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>`;
   let sec = 0;
   const body = (hero + order.map((k) => blocks[k]).join("") + foot).replaceAll(NUM, () => String(++sec).padStart(2, "0"));
@@ -1212,7 +1243,7 @@ export function renderHome(h) {
   const side = `<a class="brand" href="index.html">References <span>/ 라이브러리</span></a>
 <div class="about">조사할 때마다 모은 레퍼런스와 발견. 같은 레퍼런스는 한 번만 저장하고, 여러 조사에 걸쳐 다시 씁니다.</div>
 ${searchBox("조사·패턴 검색")}
-<nav>${h.recent?.length ? `<a href="#recent">최근 활동<small>${h.recent.length}</small></a>` : ""}${h.cats.some((c) => c.openQuestions?.length) ? `<a href="#openq">열린 질문<small>${h.cats.reduce((n, c) => n + (c.openQuestions?.length ?? 0), 0)}</small></a>` : ""}<a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴<small>${shared.length}</small></a>${h.sharedRefs?.length ? `<a href="#sharedrefs">여러 조사에 쓴 레퍼런스<small>${h.sharedRefs.length}</small></a>` : ""}${h.findings?.length ? `<a href="#findings">발견 검색<small>${h.findings.length}</small></a>` : ""}</nav>
+<nav>${h.recent?.length ? `<a href="#recent">최근 활동<small>${h.recent.length}</small></a>` : ""}${h.cats.some((c) => c.openQuestions?.length) ? `<a href="#openq">추가 질문 항목<small>${h.cats.reduce((n, c) => n + (c.openQuestions?.length ?? 0), 0)}</small></a>` : ""}<a href="#cats">조사<small>${h.cats.length}</small></a><a href="#shared">조사 사이에 겹치는 패턴<small>${shared.length}</small></a>${h.sharedRefs?.length ? `<a href="#sharedrefs">여러 조사에 쓴 레퍼런스<small>${h.sharedRefs.length}</small></a>` : ""}${h.findings?.length ? `<a href="#findings">발견 검색<small>${h.findings.length}</small></a>` : ""}</nav>
 <div class="foot">${h.cats.length}개 조사 · ${h.totals.refs}개 레퍼런스 · ${h.totals.claims}개 발견<br>${esc(new Date().toLocaleDateString("ko-KR"))} 기준</div>`;
   const topbar = `<a class="brand" href="index.html">References</a>${searchBox("검색")}`;
 
@@ -1251,13 +1282,13 @@ ${promptAction("새 조사 시작", startPrompt, { preview: true, big: true, hin
     return `<span class="concl"${b ? ` title="${esc(short(b, 200))}"` : ""}>${c.conclusion.key ? `<span class="star">핵심</span>` : ""}${esc(t)} <span class="cite">${esc(c.conclusion.id)}</span></span>`;
   };
   const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
-  const continuePrompt = (c) => `reference-research 스킬로 "${c.title ?? c.name}" 조사(컬렉션 ${c.name})를 이어서 해줘.${c.openQuestions?.length ? ` 열린 질문: ${c.openQuestions.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
+  const continuePrompt = (c) => `reference-research 스킬로 "${c.title ?? c.name}" 조사(컬렉션 ${c.name})를 이어서 해줘.${c.openQuestions?.length ? ` 추가 질문 항목: ${c.openQuestions.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
   const catCard = (c) => `<article class="card catcard" data-domain="${esc(c.domain ?? "design")}" data-name="${esc(c.title ?? c.name)}" data-date="${esc(c.lastRunAt ?? "")}" data-search="${searchText(c.title, c.description, c.goal, c.topAxes, c.conclusion?.subject, c.conclusion?.text, c.plans)}">
   <a href="${esc(c.name)}/index.html">${c.thumbs.length ? `<span class="thumb" style="cursor:pointer"><img loading="lazy" src="${esc(c.thumbs[0])}" alt=""><span class="go" aria-hidden="true">↗</span></span>` : kindBar(c)}</a>
   <span class="cap"><span class="t"><div class="p"><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a></div><div class="s">${esc(KIND_KO[c.kind] ?? c.kind ?? "")} · ${esc(DOMAIN_KO[c.domain] ?? c.domain)}${c.plans?.length ? ` · ${c.plans.map((n) => `<span class="pill plan" title="제품 계획 plans/${esc(n)}.json이 이 조사를 씁니다">${esc(n)}</span>`).join(" ")}` : ""}</div></span><span class="r">${c.products}개 ${esc(UNIT[c.domain] ?? "제품")}<br>${c.claims}개 발견</span></span>
   ${concl(c)}
   <span class="goal2">${esc(c.goal ?? c.description ?? "")}</span>
-  <span class="meta2">${[c.lastRun ? `마지막 조사 ${esc(c.lastRun)}` : "", `레퍼런스 ${c.refs}`, c.openQ ? `열린 질문 ${c.openQ}` : "", c.stale ? `<span class="warn">다시 캡처 필요 ${c.stale}</span>` : ""].filter(Boolean).join(" · ")}${c.inProgress ? ` <span class="pill">진행 중</span> ${promptAction("이어서 하기", continuePrompt(c), { hint: "열린 질문을 담은 프롬프트를 복사합니다" })}` : ""}</span></article>`;
+  <span class="meta2">${[c.lastRun ? `마지막 조사 ${esc(c.lastRun)}` : "", `레퍼런스 ${c.refs}`, c.openQ ? `추가 질문 ${c.openQ}` : "", c.stale ? `<span class="warn">다시 캡처 필요 ${c.stale}</span>` : ""].filter(Boolean).join(" · ")}${c.inProgress ? ` <span class="pill">진행 중</span> ${promptAction("이어서 하기", continuePrompt(c), { hint: "열린 질문을 담은 프롬프트를 복사합니다" })}` : ""}</span></article>`;
   const sorted = h.cats.slice().sort((a, b) => String(b.lastRunAt ?? "").localeCompare(String(a.lastRunAt ?? "")));
   const catsSection = `<section id="cats">${sectionHead(h.recent?.length ? "01" : "01", "조사", "카테고리별 레퍼런스 보드. 최근 조사순이고, 칩으로 분야를 고릅니다.")}
 <div class="stoolbar">${domains.length > 1 ? `<div class="seg" data-k="domain"><button data-v="" class="on">전체 <small>${h.cats.length}</small></button>${domains.map(([dm, n]) => `<button data-v="${dm}">${esc(DOMAIN_KO[dm])} <small>${n}</small></button>`).join("")}</div>` : ""}<select data-k="sort" aria-label="정렬"><option value="recent">최근 조사순</option><option value="name">이름순</option><option value="claims">발견 많은 순</option></select><span class="shown"></span></div>
@@ -1294,14 +1325,14 @@ ${promptAction("새 조사 시작", startPrompt, { preview: true, big: true, hin
   // open questions across the library: the three most recent collections open, the rest folded per collection
   const withQ = sorted.filter((c) => c.openQuestions?.length);
   const totalQ = withQ.reduce((n, c) => n + c.openQuestions.length, 0);
-  const oqGroup = (c, open) => `<details class="oq sgroup"${open ? " open" : ""}><summary><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a><span class="muted small">${c.openQuestions.length}개${c.lastRun ? ` · ${esc(c.lastRun)}` : ""}</span>${c.inProgress ? `<span class="pill">진행 중</span>` : ""}</summary><ul>${c.openQuestions.map((q) => `<li data-search="${searchText(q, c.title)}">${inline(q, hcite)}</li>`).join("")}</ul><div class="oqact">${promptAction("이 질문들로 이어서 하기", continuePrompt(c), { preview: true, hint: "이 조사의 열린 질문을 담은 프롬프트를 복사합니다" })}<a class="muted small" href="${esc(c.name)}/index.html#key">보드의 핵심 결론 보기 →</a></div></details>`;
+  const oqGroup = (c, open) => `<details class="oq sgroup"${open ? " open" : ""}><summary><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a><span class="muted small">${c.openQuestions.length}개${c.lastRun ? ` · ${esc(c.lastRun)}` : ""}</span>${c.inProgress ? `<span class="pill">진행 중</span>` : ""}</summary><ul>${c.openQuestions.map((q) => `<li data-search="${searchText(q, c.title)}">${inline(withIntent(q)[0], hcite)}${withIntent(q)[1] ? `<small class="muted" style="display:block">의도: ${inline(withIntent(q)[1], hcite)}</small>` : ""}</li>`).join("")}</ul><div class="oqact">${promptAction("이 질문들로 이어서 하기", continuePrompt(c), { preview: true, hint: "이 조사의 열린 질문을 담은 프롬프트를 복사합니다" })}<a class="muted small" href="${esc(c.name)}/index.html#key">보드의 핵심 결론 보기 →</a></div></details>`;
   const openSection = withQ.length
-    ? `<section id="openq">${sectionHead("00", "열린 질문", `아직 답하지 못한 것 ${totalQ}개 (${withQ.length}개 조사). 최근 조사 ${Math.min(3, withQ.length)}개는 펼쳐져 있고 나머지는 제목을 누르면 열립니다.`)}<div class="panel oqs">${withQ.map((c, i) => oqGroup(c, i < 3)).join("")}</div></section>`
+    ? `<section id="openq">${sectionHead("00", "추가 질문 항목", `아직 답하지 못한 질문 ${totalQ}개 (${withQ.length}개 조사). 최근 조사 ${Math.min(3, withQ.length)}개는 펼쳐져 있고 나머지는 제목을 누르면 열립니다.`)}<div class="panel oqs">${withQ.map((c, i) => oqGroup(c, i < 3)).join("")}</div></section>`
     : "";
   // references reused across collections — folded, ten at a time
   const srRow = (r) => `<tr data-search="${searchText(r.id, r.product, r.page, r.label, r.categories.map(([, t]) => t))}"><td class="n">${idBtn(r.id)}</td><td>${r.thumb ? `<span class="mini"><img loading="lazy" src="${esc(r.thumb)}" alt=""></span>` : ""}<strong>${esc(r.product ?? r.label ?? r.id)}</strong>${r.page ? ` <span class="muted">· ${esc(r.page)}</span>` : ""}</td><td class="n">${esc(r.credibility ?? "")} <span class="muted small">${esc(TYPE_KO[r.type] ?? r.type ?? "")}</span></td><td class="n num">${r.cited || `<span class="muted">0</span>`}</td><td>${r.categories.map(([n, t]) => `<a class="chip" href="${esc(n)}/index.html#${esc(r.id)}">${esc(short(t, 22))}</a>`).join("")}</td></tr>`;
   const sharedRefsSection = h.sharedRefs?.length
-    ? `<section id="sharedrefs">${sectionHead("04", "여러 조사에 쓴 레퍼런스", `한 번 모은 레퍼런스를 다른 조사가 다시 쓴 것 ${h.sharedRefs.length}개. 많이 쓰인 순입니다.`)}<details class="sgroup"><summary class="muted" style="cursor:pointer">목록 보기</summary><div class="panel tablewrap" style="padding:0;margin-top:10px"><table class="docs"><thead><tr><th class="n">번호</th><th>레퍼런스</th><th class="n">등급</th><th class="n">인용</th><th>쓴 조사</th></tr></thead><tbody data-limit="10" data-items="tr" data-limit-always>${h.sharedRefs.map(srRow).join("")}</tbody></table></div><button class="morebtn" type="button" hidden></button></details></section>`
+    ? `<section id="sharedrefs">${sectionHead("04", "여러 조사에 쓴 레퍼런스", `한 번 모은 레퍼런스를 다른 조사가 다시 쓴 것 ${h.sharedRefs.length}개. 많이 쓰인 순입니다.`)}<details class="sgroup"><summary class="muted" style="cursor:pointer">목록 보기</summary><div class="panel tablewrap" style="padding:0;margin-top:10px"><table class="docs"><thead><tr><th class="n">번호</th><th>레퍼런스</th><th class="n">출처 등급</th><th class="n">인용</th><th>쓴 조사</th></tr></thead><tbody data-limit="10" data-items="tr" data-limit-always>${h.sharedRefs.map(srRow).join("")}</tbody></table></div><button class="morebtn" type="button" hidden></button></details></section>`
     : "";
   // findings search: every active finding is in the page but only shows while a search is typed
   const frow = (f) => {

@@ -51,7 +51,7 @@ export async function report(params) {
     .filter((m) => m.r)
     .sort((a, b) => String(a.r.product ?? "").localeCompare(String(b.r.product ?? "")) || a.r.id.localeCompare(b.r.id));
   // header fields (docs/BOARD-REDESIGN.md E1): explicit params win, stored on the collection
-  const HEAD = { goal: "goal", audience: "audience", question: "question", highlights: "highlights", open_questions: "openQuestions", next_steps: "nextSteps", view: "view", reader: "reader" };
+  const HEAD = { goal: "goal", audience: "audience", question: "question", highlights: "highlights", open_questions: "openQuestions", next_steps: "nextSteps", view: "view", reader: "reader", why_title: "whyTitle" };
   let touched = false;
   for (const [p, k] of Object.entries(HEAD))
     if (params[p] !== undefined) {

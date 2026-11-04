@@ -11,7 +11,7 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { axisOf, readAxes, tagIndex } from "./axes.mjs";
 import {
-  CLAIM_KINDS, FILES, POSITIONS, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
+  CLAIM_KINDS, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
   confidence, daysSince, ensureCollection, findRef, latestSnapshot, nextId, normUrl, readClaims, readCollection, readRefs,
   readRuns, recomputeConfidence, refSlug, saveClaims, saveRefs, saveRuns, splitLabel, writeCollection,
 } from "./store.mjs";
@@ -114,11 +114,11 @@ export async function addSources(params) {
     else if (!r.credibilitySet) r.credibility = TYPE_CRED[r.type];
     if (it.tags) {
       r.screens = [...new Set([...(r.screens ?? []), ...it.tags.filter((t) => SCREEN_TYPES.includes(t))])];
-      r.tags = [...new Set([...r.tags, ...it.tags.filter((t) => !SCREEN_TYPES.includes(t) && !["direct", "indirect", "analogous"].includes(t))])];
+      r.tags = [...new Set([...r.tags, ...it.tags.filter((t) => !SCREEN_TYPES.includes(t) && !ROLES.includes(t))])];
     }
     if (it.note) r.notes.push({ at: now, collection: col?.name ?? null, run: col?.currentRun ?? null, text: it.note });
     r.lastSeen = now;
-    const added = col ? addMember(col, r, it.role ?? (it.tags ?? []).find((t) => ["direct", "indirect", "analogous"].includes(t)), col.currentRun) : false;
+    const added = col ? addMember(col, r, it.role ?? (it.tags ?? []).find((t) => ROLES.includes(t)), col.currentRun) : false;
     touched.set(r.id, r);
     out.push(`${r.id}${isNew ? "" : " (updated)"} [${r.type}/${r.credibility}] ${r.label ?? r.title ?? r.url}${r.categories.length ? ` ‹${r.categories.join(", ")}›` : ""}${added && !isNew ? `  (+${col.name})` : ""}`);
   }

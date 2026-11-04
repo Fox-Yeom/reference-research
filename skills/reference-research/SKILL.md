@@ -25,7 +25,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | thing | id | what |
 |---|---|---|
 | reference | `S#` | one URL, **global**. Snapshots (captures over time), notes from every category, change history. Belongs to any number of categories |
-| category | collection name | a research theme (`budget-app-category`, `ai-agent-terminal-category`). Members = refs + role (direct/indirect/analogous) |
+| category | collection name | a research theme (`budget-app-category`, `ai-agent-terminal-category`). Members = refs + role (direct/indirect/trend; older members may still read analogous) |
 | claim | `C#` | one finding citing ≥1 `S#`; global, remembers which categories recorded/confirmed it |
 | run | `R#` | one research session in one category |
 | axis | `axes.json` | **tag normalization**: free-form pattern tags grouped into global axes (`limit-gauge-pace` + `traffic-light-limits` + `pace-line-chart` → 남은 한도·예산 게이지). facet `pattern` drives comparisons; `market` / `platform` / `positioning` are listed apart |
@@ -73,17 +73,18 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 {"collection":"…","app":"Toss","country":"kr","label":"토스 — App Store","tags":["direct"],"max_screens":10}
 
 // source add — type: official|docs|store|repo|paper|report|press|community|blog|listicle|other ; credibility A–D (default from type)
-{"collection":"…","sources":[{"url":"…","label":"VoiceMode — GitHub README","type":"repo","publisher":"VoiceMode","published":"2026-05-01","summary":"one-line 요지 (board 자료 목록)","note":"…","role":"analogous"}]}
+// published = YYYY-MM-DD, whenever the page states one. capture does not record a date → after capturing, set it on the same URL: {"sources":[{"url":"…","published":"2026-09-30"}]}
+{"collection":"…","sources":[{"url":"…","label":"VoiceMode — GitHub README","type":"repo","publisher":"VoiceMode","published":"2026-05-01","summary":"one-line 요지 (board 자료 목록)","note":"…","role":"trend"}]}
 
 // collect
 {"collection":"…","refs":["S5","S18"],"role":"indirect","note":"why it belongs here"}
 
 // note — "ref" omitted = category note; tags = pattern names, they feed the category delta
-// prefer "fields" for a screen analysis (the viewer renders them as 구조 / 카피 / 비주얼 / UI 패턴 / 차용 / 피할 점); "note" markdown is still accepted
-{"collection":"…","ref":"S12","fields":{"structure":"…","copy":"…","visual":"…","ui":"…","adopt":"…","avoid":"…"},"tags":["limit-gauge-pace"]}
+// analysis = "note" markdown with one **라벨**: line per part (§5); the viewer styles them as labels. Older "fields" still work, but the viewer shows only fields when both are sent → send "note" alone
+{"collection":"…","ref":"S12","note":"**기능**: …\n**맥락**: …\n**왜**: 공식 — … [S3]\n**대안**: … [S7]\n**결과**: …\n**시사점**: 차용 — … (조건: …)","tags":["limit-gauge-pace"]}
 
 // claim add — kind: fact|pattern|benchmark|failure|gap|opinion|hypothesis
-// subject = 5–12 char title the board shows (always give one) · key = headline finding (board 핵심 결론) · asOf = date a price/number was true · scope = where it applies
+// subject = 5–12 char title the board shows (always give one) · key = headline finding (board 핵심 결론) · asOf = date a price/number was true · scope = where it applies; "원리" = a principle about human cognition or theory (freshness rule, §2)
 {"collection":"…","claims":[
   {"text":"…","kind":"pattern","subject":"세로 탭 상태","sources":["S2","S9"],"tags":["vertical-tabs"]},
   {"text":"개인 유료 첫 단계 월 5–14천원","kind":"benchmark","subject":"개인 유료 가격","asOf":"2026-10-15","key":true,"sources":["S1","S2"]},
@@ -92,12 +93,12 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
   {"revises":"C4","text":"corrected finding","kind":"fact","sources":["S13"]},
   {"refutes":"C5","text":"what is actually true","kind":"fact","sources":["S14"]}]}
 
-// report — header fields are optional and stored on the category; without them the board reads the summary's 핵심 발견 / 열린 질문 / 추천 sections
+// report — header fields are optional and stored on the category; without them the board reads the summary's 핵심 결론 / 열린 질문 / 추천 sections
 // result = one-line outcome of this run (closes it in 조사 기록) · view = default reference view grid|rows|flow
 {"collection":"…","summary_file":"/path/to/summary.md","open":false,
  "highlights":["C12","C3","C8"],"open_questions":["…"],"next_steps":["…"],"audience":"…","result":"…"}
 ```
-Tag vocabulary: screen tags `landing, features, pricing, app-ui, onboarding, help, store` (coverage) · role `direct, indirect, analogous` (per category) · anything else = **pattern tag** (kebab-case). Before inventing a tag, `ref axes show` and reuse a tag already on the right axis.
+Tag vocabulary: screen tags `landing, features, pricing, app-ui, onboarding, help, store` (coverage) · role `direct, indirect, trend` (per category) · anything else = **pattern tag** (kebab-case). Before inventing a tag, `ref axes show` and reuse a tag already on the right axis.
 
 ```jsonc
 // axes set — merged by id; listed tags MOVE into this axis; "remove":[ids], "untag":[tags]
@@ -111,22 +112,83 @@ Confidence is computed: **high** ≥2 independent publishers and score ≥4 (A=3
 1. `ref learn read` — apply every lesson.
 2. `ref list` — is there a category for this already? Reuse it instead of creating a near-duplicate (check `ref categories` for close ones).
 
-## 1. Classify and start
-- **kind**: *category* ("X 앱 만들기 전" → similar products, `<category>-category`) or *service* ("Y 서비스 분석" → one service + rivals, `<service>-service`).
-- **domain**: `design` (디자인/기획 — sections 2–7) · `curriculum` (교육과정·강의 설계 — **§9**) · `dev` (개발: 아키텍처·라이브러리·안티패턴 — planned; meanwhile use sources/claims with WebFetch, skip screen coverage) · `research` (연구/논문 — planned; record papers as `type:"paper"` sources).
-- Write a one-line goal (which decision these references support). Pick a reasonable scope if vague; ask only if truly ambiguous.
-- `ref run start` → read the whole baseline:
+## 1. Question loop, then start
+Ask before searching. Models are weak at noticing a vague request on their own, and a request copied straight into the goal makes a run drift. The brief below is a hypothesis: §2 rechecks it after round 0.
+
+**Round 1 — always, minus what the request already answers.** Use **AskUserQuestion** (≤ 4 questions, 2–4 options each; "Other" is automatic) and write the options as concrete guesses from the request. Without that tool, ask the same questions in text.
+| slot | question |
+|---|---|
+| 문제 | 지금 무엇이 안 되고 있어서 이 조사를 하나요? |
+| 목표 | 조사 결과로 무엇을 결정하거나 만드나요? 누가 보나요? |
+| 가치 유형 | 전략·비즈니스 / 디자인·UX / 사용자 반응·시장 / 여행·동선 / 기술·개발 / 교육과정 — offer the 3–4 likeliest as a multi-select |
+| 성공 모습 | 조사가 끝났을 때 손에 무엇이 있으면 성공인가요? |
+
+**Avoidance requests** ("~티 안 나게", "~처럼", "세련되게"): an avoidance condition is not a goal, so never copy it into `goal`. Ask this ladder + 가치 유형 instead of the table above (대신 무엇 stands in for 성공 모습), and write `goal` from the answers:
+| step | question |
+|---|---|
+| 왜 | 그게 왜 문제인가요? 보는 사람이 어떻게 느끼나요? |
+| 어디서 | 어느 부분에서 그렇게 느껴지나요? (색 · 배치 · 말투 · 도형 …) |
+| 대신 무엇 | 대신 어떤 느낌이면 성공인가요? 예시가 있나요? |
+
+**Round 2 — only if round 1 did not settle the scope:**
+| 범위 | 뜻 |
+|---|---|
+| 직접 (`direct`) | 같은 문제를 같은 방식으로 푸는 것 |
+| 간접 (`indirect`) | 같은 문제를 다른 방식으로, 또는 같은 방식으로 다른 고객을. 다른 업종이지만 구조가 같은 것도 여기 넣는다 |
+| 트렌드 (`trend`) | 해외·최신 흐름. 이 분야가 어디로 가는지 |
+
+**Brief**: show the answers as a table (목적 · 대상 · 문제 · 성공 기준 · 가치 유형 · 범위 · 고정할 것 · 뺄 것 · 가정), then start.
+- The user says "알아서", in the request or as an answer → ask nothing further, fill the blanks yourself and mark them **가정**.
+- The request already states 문제, 목표 and 가치 유형 → ask nothing; just show the brief.
+- Questions skipped and scope unknown → all three scopes, marked 가정.
+
+**Start**
+- **kind**: *category* ("X 앱 만들기 전", or a topic → similar products, `<category>-category`) or *service* ("Y 서비스 분석" → one service + rivals, `<service>-service`).
+- **domain**: `design` (디자인·UX — sections 2–7) · `curriculum` (교육과정 — **§9**) · `dev` (기술·개발: 아키텍처·라이브러리·안티패턴 — planned; meanwhile use sources/claims with WebFetch, skip screen coverage) · `research` (전략·비즈니스, 사용자 반응·시장, 여행·동선, 연구/논문 — source-led: skip screen coverage, capture only pages that are evidence themselves; record papers as `type:"paper"` sources).
+- `ref run start`, after the answers are in, with `goal` = the decision from the brief (not the request's wording), `audience`, `question` = the one question the decision hinges on. Then `ref note` the brief table as a category note tagged `brief`. Read the whole baseline:
   - claims already here → confirm / revise / refute them, don't re-add
   - claims from other categories on the same refs → reuse what applies
   - stale members → re-capture with `"force":true` if they matter for this goal
   - **related refs from other categories** → open the promising ones (`ref show S#`, look at the preview), `ref collect` those on the same axis with a one-line reason
 
-## 2. Discover candidates (WebSearch → WebFetch) — required minimums
+## 2. Discover candidates (WebSearch → WebFetch) — newest first, in rounds
+Read newest first and let the newest sources rewrite the next queries. WebSearch has no date sort or filter, so dates come from the queries and from the pages you open.
+
+### Freshness rule (12 months back from today)
+| status | meaning | may be used for |
+|---|---|---|
+| 신선 | published or updated within 12 months | anything: exemplars, key claims |
+| 지난 자료 | older, or date unknown | only a principle (human cognition, theory) or a before/after comparison |
+
+Date unknown → look for it on the page before giving up.
+
+### Channels by value type — choose before round 0
+| 가치 유형 | 1차 (사실·실물) | 해석 | 반응 | 이유 근거 | 편향 주의 | 남길 것 |
+|---|---|---|---|---|---|---|
+| 전략·비즈니스 | DART·SEC 공시, IR·실적 발표, 가격·약관 | 증권사·업계 리포트, 언론 | 고객 리뷰, 커뮤니티 | 실적 발표 질의응답, 대표 인터뷰, 채용 공고 | IR은 회사 관점 | 수익 구조·가격·성장 수치 (기준일 필수) |
+| 디자인·UX | 실제 제품 화면(캡처·앱스토어·실서비스 화면 라이브러리), 공식 디자인 시스템·브랜드 가이드 | 템플릿 플랫폼 본문, 디자인 매체 리뷰 | 리뷰 중 화면 관련 의견 | 체인지로그, 디자인 블로그·발표 | 콘셉트 샷은 '영감'으로만 | 화면 흐름, 색·글꼴 체계, 상태 화면 |
+| 사용자 반응·시장 | 앱스토어·플레이 리뷰(버전·날짜별), G2·Capterra | 리뷰 분석 리포트 | Reddit·HN·GitHub 이슈, 국내 커뮤니티 | 회사의 답글·공지 | 불만 많은 사용자 과대표, 체험단·광고 | 원문 인용 + URL + 날짜 + 작성자 유형 |
+| 여행·동선 | 공식(관광청·시설 영업시간·요금), 지도 앱의 영업시간·이동 시간 | 큐레이션 앱·가이드북 | 최근 6개월 방문 후기 | — | 협찬·체험단, 폐업·시간 변경 | 동선·시간표, 장소마다 마지막 확인일 |
+| 기술·개발 | 공식 문서, GitHub 릴리스·이슈, 표준 | 엔지니어링 블로그, 벤치마크 | HN·Reddit·이슈 토론 | RFC·설계 문서·릴리스 노트 | 벤치마크 조건 차이 | 버전 기준 비교 |
+| 교육과정 (§9) | 강의계획서 | 역량 프레임워크·수요 조사 | 수강 후기 | — | 판매 페이지 과장 | 모듈·시간·순서 |
+
+- Per value type, see ≥ 1 primary, ≥ 1 reaction and ≥ 1 rationale channel (where the table has one), including ≥ 1 Korean channel.
+- To drop a channel, sample one item from it first and record its S# and the reason in the search log.
+- Several value types → give the main one more queries. Splitting channels across subagents is possible but costly: only when the user asks.
+
+### Rounds — widen → read → narrow, at most 3 rounds including round 0
+1. **Round 0**: queries carrying this year and last year, `latest`, `changelog`, `release notes`, recent announcements. Note each candidate's published date; sort the longlist newest first.
+2. **Recheck, after round 0 only**: one line, "최신 자료를 보니 X 쪽으로 좁혀집니다. 맞나요?". Update the `brief` note if the answer changes it. If the user said "알아서", state the narrowing as 가정 and continue.
+3. **Clues**: from the newest 5–10 candidates, pull repeated names, terms and patterns → the next round's queries.
+4. **Branch**: follow good sources backward (what they reference) and forward (what came after, what copied them).
+5. **Stop**: a round that adds no new pattern ends the search.
+
+### Minimums, across all rounds
 - **≥ 8 WebSearch queries**, **≥ 3 Korean and ≥ 3 English**, covering all 5 angles: listicle/best-of · alternatives/vs · community (reddit, `site:news.ycombinator.com`, 긱뉴스, velog/디스콰이엇) · open source (`github`, `awesome …`) · KR market/local players
 - if earlier runs set a direction, **≥ 2 queries aimed at products not yet in the library**
 - `ref list --query <name>` before capturing a candidate — it may already be a ref in another category
-- **Longlist before shortlist**: every candidate **with its URL** (name · type · URL · source query · one line), aim for ≥ 12; then select 3–5 direct, 1–2 indirect, 1–2 analogous with reasons. Candidates you will cite but not capture → `ref source add` (so they are refs, not just names)
-- **Search log**: queries + longlist + selection as a category note tagged `search-log`. The final answer states query count (KR/EN) and longlist size
+- **Longlist before shortlist**: every candidate **with its URL** (name · type · URL · published date or 미상 · source query · one line), newest first, aim for ≥ 12; then select 3–5 direct, 1–2 indirect, 1–2 trend with reasons. Exemplars must be 신선. Candidates you will cite but not capture → `ref source add` (so they are refs, not just names)
+- **Search log**: each round's queries and new patterns, the longlist, the selection and dropped channels, as a category note tagged `search-log`. The final answer states query count (KR/EN), rounds and longlist size
 
 ## 3. Screen coverage — do NOT stop at landing pages
 | tag | what | how |
@@ -144,13 +206,17 @@ Same product name before " — " in labels (`Warp — landing`). `ref list <coll
 - Opens tabs in the user's **Aside** browser (logged-in sessions). Read-only: never submit forms, sign up, pay, post, or click consent buttons (overlays are hidden, not clicked).
 - Retry failures once separately with higher wait_ms; record a lesson if a site keeps failing. Desktop viewport only — mobile UI comes from `store`.
 
-## 5. Analyze — look at the images
-Read every printed image. For each new or refreshed ref, `ref note` (with `ref`, as `fields`) covering:
-- **구조**: layout, section/screen order, information hierarchy
-- **카피/CTA**: headline, value prop, CTA wording & placement
-- **비주얼**: palette (`colors:`), typography (`fonts:`), imagery
-- **UI 패턴** (app-ui): navigation, key components, states, data density
-- **차용할 점 / 피할 점**
+## 5. Analyze — look at the images, then trace why
+Read every printed image. Do not stop at what is on screen: trace why it was built this way, with evidence. For each new or refreshed ref, `ref note` (with `ref`, as `note` markdown with `**라벨**:` lines):
+| part | asks | evidence rule |
+|---|---|---|
+| 기능 | what is visible, as is: 구조 · 카피/CTA · 비주얼 (`colors:`, `fonts:`) · UI 패턴 | capture S# and screen number required |
+| 맥락 | for whom, under what constraints (고객 · 시장 · 시기 · 플랫폼) | S# if sourced, else 추정 |
+| 왜 | why it was built this way | start with the basis: **공식** (the company said so: blog, changelog, talk, interview) / **정황** (job ads, price changes, repetition across products) / **추정** (hypothesis) |
+| 대안 | how others solved the same problem | ≥ 1 other S# |
+| 결과 | did it work | official numbers, user reaction, 유지 여부 (still there a year later: re-capture changes, web archive), spread (did others copy it) |
+| 시사점 | what it means for the brief's goal | one of 차용 · 변형 · 회피, plus its condition |
+All six parts only for the 3–5 key refs; the rest get 기능 + 시사점. Write 회피 for a combination in its context, never as a blanket ban on one element.
 Give the note **pattern tags** — through their axes they drive the category delta (common vs. one-product) and cross-category links. Reuse existing tag names (`ref axes show`).
 For a REUSED ref, add only what is new for this category's angle. Only state what is visible; mark guesses 추정.
 
@@ -159,17 +225,30 @@ Turn every finding you would put in a summary into a claim, written **from the i
 - `pattern` · `benchmark` (price, rating, count, speed) · `failure` (complaints, shutdowns, pitfalls) · `gap` (nobody does it — needs a query aimed at it first) · `fact` · `opinion` · `hypothesis` (no source)
 - **always a `subject`** (5–12 chars — the board's title line; `claim add` warns without one) · `asOf` on every price/number · `key:true` on the 2–4 findings a reader must not miss (`{"update":"C#","key":true}` for existing ones)
 - cite every supporting ref; prefer ≥2 independent publishers
+- **before `key:true`** (the CLI does not check these yet): a key claim needs ≥ 1 신선 source unless it is `scope:"원리"`, and cannot rest on a 왜 or 결과 that is only 추정
 - baseline claim seen again → `confirms`; partly wrong → `revises`; wrong → `refutes`
 **Normalize tags** whenever `note`/`capture` warns "tags not on any axis": `ref axes suggest <collection>` proposes mutual-nearest pairs and nearest axes from tag names only — expect surface matches (scroll-storytelling ~ scrollback-context). Judge against the notes (same *solution*, not same words), then `ref axes set` (add to an existing axis, or create one with a Korean label + one-line description). An axis may span categories — that is the point (AI 한도 게이지 ≈ 가계부 예산 게이지).
 Then `ref delta <collection>`: A tells what this run changed, C what is common / partly shared / one-product **by axis** and which axes other categories share, T what changed on re-captured refs and what is stale. `ref categories` shows shared refs and shared axes between categories.
 
 ## 7. Report, learnings, commit
-- Summary markdown (scratch file) with **these `##` headings, in this order** (the board reads them): `## 목표` · `## 이번 실행에서 바뀐 것` (delta A + T) · `## 핵심 발견` (3–5 bullets, each ending in `[C#]`) · `## 공통 vs 차별` (delta C, by axis; include 다른 카테고리와 공유하는 축) · `## 추천` · `## 열린 질문` (bullets). Every finding line ends with `[C#]`/`[S#]`; inferences say 추정/가설.
-- `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of 핵심 발견, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 핵심 결론 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
+- Summary markdown (scratch file), conclusion first, with **these `##` headings, in this order** (the board reads them):
+| heading | content |
+|---|---|
+| `## 목표` | the decision this run supports |
+| `## 핵심 결론` | bullets, in order: the question answered · the answer in one sentence · the proposed decision · the strongest counter-evidence · 3 evidence bullets (claim headline + `[C#]`, with `[S#]` of the representative screen) |
+| `## 왜 이렇게 만들었나` | 3–5 key refs: 왜 with its basis (공식·정황·추정) + 결과 |
+| `## 공통 vs 차별` | delta C by axis: 기본기 · 선택지 · 차별점; include 다른 카테고리와 공유하는 축 |
+| `## 피할 것` | combinations in their context |
+| `## 추천` | next actions |
+| `## 열린 질문` | bullets |
+| `## 이번 실행에서 바뀐 것` | delta A + T |
+| `## 조사 과정` | short prose, no bullets: brief, channels, rounds, how many sources are 신선 vs 지난 자료 |
+- Writing rules: a headline is a claim sentence of about 40 characters, not a topic label · C#/S# appear only as trailing chips, never inside the prose · ≤ 3 sentences per paragraph · inside a section use bullets or tables, because the board reads a line starting with `**` as a heading · every finding line ends with `[C#]`/`[S#]`; inferences say 추정/가설.
+- `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of 핵심 결론, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 핵심 결론 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
 - After `ref delta`, give each pattern axis with ≥2 products a `verdict` (`ref axes set`): 기본기 / 선택지 / 차별점 후보, cited. Pass the run's one-line outcome as `result` to `ref report`.
 - `ref learn add` for each reusable, verified lesson.
 - **Commit**: `git -C ~/references add -A && git -C ~/references commit -m "<collection>: <run goal>"` (end the message with the session's attribution line). Do not push unless the user asks. If the library is not a git repo, skip and suggest `ref setup --git`. **Never push the library anywhere** unless the user asks — it holds captures of third-party pages.
-- Final answer: summary, board path (`open ~/references/<collection>/index.html`; library home `open ~/references/index.html`), query count (KR/EN) + longlist size, refs NEW / REUSED / REFRESHED, categories added to existing refs, claims (by confidence) + what changed vs. baseline, coverage gaps, failures, next captures.
+- Final answer: summary, board path (`open ~/references/<collection>/index.html`; library home `open ~/references/index.html`), query count (KR/EN) + rounds + longlist size, refs NEW / REUSED / REFRESHED, categories added to existing refs, claims (by confidence) + what changed vs. baseline, coverage gaps, failures, next captures.
 
 ## 8. Plans (optional)
 Only when research feeds a concrete product plan. The plan lives in `plans/<plan>.json` (`"repo"` points at the product's repo); categories stay plan-agnostic.

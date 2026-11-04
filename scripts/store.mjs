@@ -38,7 +38,7 @@ export const COVERAGE = {
 };
 export const SCREEN_TYPES = [...new Set(Object.values(COVERAGE).flat())];
 export const coverageTypes = (domain) => COVERAGE[domain] ?? COVERAGE.design;
-export const ROLES = ["direct", "indirect", "analogous"];
+export const ROLES = ["direct", "indirect", "trend", "analogous"]; // analogous: legacy, read for existing members only
 export const DOMAINS = ["design", "dev", "research", "curriculum"];
 // framework: competency frameworks / official curricula (UNESCO, 교육부 …) · survey: learner/employer surveys · job-posting: demand evidence
 export const SOURCE_TYPES = ["official", "docs", "store", "repo", "paper", "report", "press", "framework", "survey", "job-posting", "community", "blog", "listicle", "capture", "other"];

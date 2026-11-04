@@ -135,7 +135,7 @@ export async function report(params) {
 
 // ---------- board data ----------
 
-const ROLE_ORDER = { direct: 0, indirect: 1, analogous: 2 };
+const ROLE_ORDER = { direct: 0, indirect: 1, trend: 2, analogous: 2 };
 
 async function boardData(col, members, refs, claims, summary, cite, cov, relp) {
   const axes = await readAxes();

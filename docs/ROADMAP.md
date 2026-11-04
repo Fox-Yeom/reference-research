@@ -20,7 +20,7 @@ Goal frame: references must serve 5 purposes (시행착오 절감 · 벤치마�
 - [ ] Consider moving to a free Organization for read-only tester access (see DECISIONS)
 
 ## Research flow v2 (`docs/RESEARCH-FLOW-REDESIGN.md`, planned 2026-11-04)
-- [ ] Phase 1 — SKILL.md: brief-first question loop (Q1–Q5), recency-first looping search with a 12-month freshness rule (F1–F3), value-type channel table (C1–C2), 6-part rationale notes (W1), conclusion-first summary order (R1), AskUserQuestion/WebSearch usage (T8–T9); code exception: `ROLES` + `ROLE_KO` gain `trend`
+- [ ] Phase 1 — SKILL.md: brief-first question loop (Q1–Q5), recency-first looping search with a 12-month freshness rule (F1–F3), value-type channel table (C1–C2), 6-part rationale notes (W1), conclusion-first summary order (R1), AskUserQuestion/WebSearch usage (T8–T9); code exception: role vocabulary gains `trend` (store · evidence · board · report)
 - [ ] Phase 2 — CLI/board/MCP: 2a data (published extraction, `ref date`, `ref brief`, `ref run round`, `channel`, note fields, role migration) · 2b checks (`ref fresh`, `ref channels`) · 2c board (conclusion-first hero, reader types, color tokens, rationale cards) · 2d MCP (`get_brief`, `get_conclusion`, `get_rationale`, `since`) · 2e optional connectors (HN, App Store reviews, GitHub Releases → Naver, OpenDART)
 - [ ] Phase 3 — re-run one real research with the new flow and compare
 

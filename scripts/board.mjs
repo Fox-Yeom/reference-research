@@ -126,7 +126,7 @@ tbody tr:last-child td{border-bottom:0}
 .conf{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:2px 9px 2px 8px;border-radius:999px;white-space:nowrap;background:var(--gray-soft);color:var(--muted)}.conf::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 .conf.high{background:var(--green-soft);color:var(--green)}.conf.medium{background:var(--amber-soft);color:var(--amber)}.conf.low{background:var(--coral-soft);color:var(--coral)}
 .note{background:var(--amber-soft);color:var(--amber);border-radius:8px;padding:10px 14px;font-size:14px;margin:12px 0}
-.role{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}.r-direct{background:var(--blue-soft);color:var(--blue)}.r-indirect{background:var(--amber-soft);color:var(--amber)}.r-analogous{background:var(--teal-soft);color:var(--teal)}
+.role{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}.r-direct{background:var(--blue-soft);color:var(--blue)}.r-indirect{background:var(--amber-soft);color:var(--amber)}.r-analogous,.r-trend{background:var(--teal-soft);color:var(--teal)}
 .kdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:2px;vertical-align:0}.k-pattern{background:var(--blue)}.k-benchmark{background:var(--violet)}.k-fact{background:var(--teal)}.k-gap{background:var(--amber)}.k-failure{background:var(--coral)}.k-opinion,.k-hypothesis{background:var(--faint)}
 .muted{color:var(--muted)}.small{font-size:13px}
 .prod{font:inherit;font-size:13.5px;font-weight:500;background:none;border:0;padding:0;color:var(--accent);cursor:zoom-in;text-align:left}.prod:hover{text-decoration:underline;text-underline-offset:3px}
@@ -571,7 +571,7 @@ function shell(title, side, topbar, body, viewer = true) {
 
 const searchBox = (placeholder) => `<label class="search"><input class="q" type="search" placeholder="${esc(placeholder)}" autocomplete="off" aria-label="검색"><kbd>/</kbd></label>`;
 const confBadge = (c) => `<span class="conf ${esc(c)}">근거 ${esc({ high: "강함", medium: "보통", low: "약함", hypothesis: "가설" }[c] ?? c)}</span>`;
-const ROLE_KO = { direct: "직접 경쟁", indirect: "간접 경쟁", analogous: "유사 분야" };
+const ROLE_KO = { direct: "직접 경쟁", indirect: "간접 경쟁", trend: "트렌드", analogous: "유사 분야" };
 const KIND = { pattern: ["패턴", "여러 곳에서 반복되는 해법"], benchmark: ["기준치", "수치로 본 수준"], fact: ["사실", "확인된 정보"], gap: ["빈틈", "아무도(거의) 하지 않는 것"], failure: ["실패 사례", "불만·문제·피할 점"], opinion: ["의견", "평가·리뷰"], hypothesis: ["가설", "근거 없이 세운 추정"] };
 const sectionHead = (n, title, desc, extra = "") => `<div class="sechead"><span class="n">${n}</span><h2>${title}</h2>${extra}${desc ? `<p>${desc}</p>` : ""}</div>`;
 const searchText = (...parts) => esc(parts.flat().filter(Boolean).join(" ").toLowerCase());
@@ -897,7 +897,7 @@ ${r.changes?.length ? `<div style="margin-top:8px">${r.changes.map((c) => `${esc
 </div>`;
     })
     .join("");
-  const roleSeg = ["", "direct", "indirect", "analogous"].filter((r) => !r || d.members.some((m) => m.role === r));
+  const roleSeg = ["", "direct", "indirect", "trend", "analogous"].filter((r) => !r || d.members.some((m) => m.role === r));
   const usedAxes = d.axes.rows.filter((r) => r.products.length > 1);
   const runSelect = d.runs.length > 1 ? `<select data-k="run" aria-label="조사 회차로 거르기"><option value="">모든 회차</option>${d.runs.map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(short(r.goal ?? r.startedAt.slice(0, 10), 28))}</option>`).join("")}</select>` : "";
   const more = `<button class="morebtn" type="button" hidden></button>`;

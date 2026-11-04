@@ -10,8 +10,9 @@
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { axisOf, readAxes, tagIndex } from "./axes.mjs";
+import { connectorNames } from "./connectors.mjs";
 import {
-  CHANNELS, CLAIM_KINDS, announce, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
+  CHANNELS, CHANNEL_KO, CLAIM_KINDS, announce, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
   FRESH_KO, channelOf, confidence, daysSince, freshness, ensureCollection, findRef, latestSnapshot, nextId, normUrl, readClaims, readCollection, readRefs,
   readRuns, recomputeConfidence, refSlug, saveClaims, saveRefs, saveRuns, splitLabel, writeCollection,
 } from "./store.mjs";
@@ -92,14 +93,25 @@ async function currentRun(col) {
   return run;
 }
 
-/** Totals across a run's rounds, and what is still short of the minimums in SKILL §2 */
+/** Totals across a run's rounds, and what is still short of the minimums in SKILL §2. Connector queries come on top of the minimums. */
 function roundTotals(rounds) {
   const queries = rounds.flatMap((r) => r.queries);
   const candidates = rounds.flatMap((r) => r.candidates);
-  const ko = queries.filter((q) => q.lang === "ko").length;
-  const en = queries.filter((q) => q.lang === "en").length;
-  const short = [queries.length < 8 && `질의 ${queries.length}개 (최소 8)`, ko < 3 && `한국어 ${ko}개 (최소 3)`, en < 3 && `영어 ${en}개 (최소 3)`, candidates.length < MIN_LONGLIST && `후보 ${candidates.length}개 (최소 ${MIN_LONGLIST})`].filter(Boolean);
-  return { queries, candidates, ko, en, short, line: `누적: 질의 ${queries.length}개 (한국어 ${ko} · 영어 ${en}) · 후보 ${candidates.length}개 (날짜 미상 ${candidates.filter((c) => !c.published).length}개)` };
+  const searched = queries.filter((q) => !q.via);
+  const viaQueries = queries.length - searched.length;
+  const ko = searched.filter((q) => q.lang === "ko").length;
+  const en = searched.filter((q) => q.lang === "en").length;
+  const short = [searched.length < 8 && `질의 ${searched.length}개 (최소 8)`, ko < 3 && `한국어 ${ko}개 (최소 3)`, en < 3 && `영어 ${en}개 (최소 3)`, candidates.length < MIN_LONGLIST && `후보 ${candidates.length}개 (최소 ${MIN_LONGLIST})`].filter(Boolean);
+  const byConnector = {};
+  for (const c of candidates) if (c.via) byConnector[c.via] = (byConnector[c.via] ?? 0) + 1;
+  return { queries, candidates, ko, en, short, byConnector, line: `누적: 질의 ${queries.length}개 (한국어 ${ko} · 영어 ${en}${viaQueries ? ` · 커넥터 ${viaQueries}` : ""}) · 후보 ${candidates.length}개 (날짜 미상 ${candidates.filter((c) => !c.published).length}개)` };
+}
+
+/** `via` names the connector a query or candidate came from; absent = WebSearch and the like. */
+function viaOf(item) {
+  if (!item.via) return {};
+  if (!connectorNames.includes(item.via)) bad(`via must be one of ${connectorNames.join(", ")}; leave it out for WebSearch`);
+  return { via: item.via };
 }
 
 /** One search round: the CLI, not the agent, counts what is new and decides whether the loop stops. */
@@ -108,7 +120,7 @@ export async function addRound(params) {
   const run = await currentRun(col);
   const rounds = run.rounds ?? [];
   if (rounds.at(-1)?.stopped) bad(`${run.id} already stopped: ${rounds.at(-1).stopped}`);
-  const queries = (params.queries ?? []).map((q) => (typeof q === "string" ? { q } : q)).map((q) => ({ q: q.q, lang: q.lang ?? (/[가-힣]/.test(q.q) ? "ko" : "en") }));
+  const queries = (params.queries ?? []).map((q) => (typeof q === "string" ? { q } : q)).map((q) => ({ q: q.q, lang: q.lang ?? (/[가-힣]/.test(q.q) ? "ko" : "en"), ...viaOf(q) }));
   if (!queries.length || queries.some((q) => !q.q)) bad("run round needs queries [{q, lang}]");
   const seenUrls = new Set(rounds.flatMap((r) => r.candidates.map((c) => normUrl(c.url))));
   const candidates = [];
@@ -117,7 +129,7 @@ export async function addRound(params) {
     if (c.published && !/^\d{4}-\d{2}-\d{2}/.test(c.published)) bad(`candidate published must be YYYY-MM-DD, got "${c.published}"; leave it out when only the year or month is known`);
     if (seenUrls.has(normUrl(c.url))) continue;
     seenUrls.add(normUrl(c.url));
-    candidates.push({ url: c.url, title: c.title ?? null, published: c.published ?? null });
+    candidates.push({ url: c.url, title: c.title ?? null, published: c.published ?? null, ...viaOf(c) });
   }
   const seenPatterns = new Set(rounds.flatMap((r) => r.newAxes.map(patternKey)));
   const newAxes = [];
@@ -153,10 +165,11 @@ export async function showRun(name) {
     `${run.id} · ${run.goal ?? ""}`,
     ...rounds.map((r) => `- ${r.n}바퀴: 질의 ${r.queries.length} · 후보 ${r.candidates.length} · 새 패턴 ${r.newAxes.length}${r.newAxes.length ? ` (${r.newAxes.join(", ")})` : ""}${r.stopped ? ` · 멈춤: ${r.stopped}` : ""}`),
     totals.line,
+    ...(Object.keys(totals.byConnector).length ? [`커넥터 후보: ${Object.entries(totals.byConnector).map(([name, n]) => `${name} ${n}`).join(" · ")}`] : []),
     ...(totals.short.length ? [`⚠ 최소 기준 미달: ${totals.short.join(" · ")}`] : []),
     "",
     "Longlist (newest first):",
-    ...[...totals.candidates].sort(newestFirst).map((c) => `- ${c.published ?? "미상"} ${c.title ?? ""} ${c.url}`),
+    ...[...totals.candidates].sort(newestFirst).map((c) => `- ${c.published ?? "미상"} ${c.title ?? ""} ${c.url}${c.via ? ` ‹${c.via}›` : ""}`),
     ...rounds.flatMap((r) => r.dropped.map((d) => `dropped: ${d.channel ?? ""} ${d.ref ?? ""} ${d.reason ?? ""}`)),
   ].join("\n");
 }
@@ -672,7 +685,6 @@ export async function planDelta(name, suggest) {
 // ---------- freshness and channels ----------
 
 const FRESH_RULE_SINCE = "2026-11-04"; // older claims get a board badge, not a warning
-const CHANNEL_KO = { primary: "1차", interpretation: "해석", reaction: "반응", rationale: "이유" };
 const NO_RATIONALE = new Set(["여행·동선", "교육과정"]); // SKILL §2: the channel table has no rationale column for these
 const KR_HOST = /(\.kr|(^|\.)(naver\.com|daum\.net|kakao\.com|tistory\.com|velog\.io|toss\.im|tossinvest\.com|hada\.io|disquiet\.io|inflearn\.com))$/;
 

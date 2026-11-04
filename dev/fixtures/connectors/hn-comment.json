@@ -1,0 +1,16 @@
+{
+  "nbHits": 1,
+  "hits": [
+    {
+      "objectID": "2001",
+      "comment_text": "We moved off it because of &lt;Select&gt; bugs.<p>See https:&#x2F;&#x2F;example.com&#x2F;a &#x27;here&#x27;.",
+      "story_id": 1001,
+      "story_title": "A fixture story",
+      "story_url": "https://example.com/tokens",
+      "parent_id": 1001,
+      "author": "fixture-author",
+      "created_at": "2026-11-03T01:00:00Z",
+      "created_at_i": 1793667600
+    }
+  ]
+}

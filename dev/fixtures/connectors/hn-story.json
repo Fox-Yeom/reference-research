@@ -1,0 +1,26 @@
+{
+  "nbHits": 134,
+  "hits": [
+    {
+      "objectID": "1001",
+      "title": "A  fixture story\nabout tokens",
+      "url": "https://example.com/tokens",
+      "author": "fixture-author",
+      "points": 42,
+      "num_comments": 18,
+      "created_at": "2026-11-02T08:30:00Z",
+      "created_at_i": 1793608200
+    },
+    {
+      "objectID": "1002",
+      "title": "Ask HN: a fixture question",
+      "url": null,
+      "story_text": "<p>Why are tokens &amp; themes separate?</p>",
+      "author": "fixture-author",
+      "points": 17,
+      "num_comments": 6,
+      "created_at": "2026-10-30T23:59:59Z",
+      "created_at_i": 1793404799
+    }
+  ]
+}

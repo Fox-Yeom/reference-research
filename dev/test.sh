@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke test in a throwaway library: deps, doctor, Chrome capture, board, MCP handshake, manifest validation.
+# Smoke test in a throwaway library: deps, doctor, Chrome capture, connectors, board, MCP handshake, manifest validation.
 # Never touches ~/references or ~/.reference-research.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -17,10 +17,21 @@ step "capture ($REF_CAPTURE)"
 step "flow"
 "$R" brief set '{"collection":"smoke","brief":{"purpose":"smoke test"}}' | grep -q '목적'
 "$R" run round '{"collection":"smoke","queries":["스모크 2026","smoke 2026"],"candidates":[{"url":"https://example.com","published":"2026-01-02"}],"new_axes":["a"]}' | grep '바퀴 끝'
+"$R" run round '{"collection":"smoke","queries":[{"q":"smoke","via":"hn"}],"candidates":[{"url":"https://news.ycombinator.com/item?id=1","via":"hn"}],"new_axes":["b"]}' | grep -q '커넥터 1'
+"$R" run show smoke | grep -q '커넥터 후보: hn 1'
+"$R" run show smoke | grep -q '질의 2개 (최소 8)'
+! "$R" run round '{"collection":"smoke","queries":[{"q":"smoke","via":"web"}]}' 2>/dev/null
 "$R" migrate roles --dry-run
 "$R" migrate grades --dry-run
 "$R" fresh smoke | head -1
 "$R" channels smoke | head -1
+step "connectors"
+node "$ROOT/dev/test-connectors.mjs"
+"$R" fetch list | grep -q '^hn'
+library_hash() { (cd "$REF_LIBRARY" && find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 shasum | shasum); }
+before="$(library_hash)"
+"$R" fetch hn '{"q":"design system","limit":3}' | head -2 || echo "(hn unreachable: read-only check still runs)"
+[ "$before" = "$(library_hash)" ] && echo "library untouched"
 step "report";   "$R" report '{"collection":"smoke","open":false}' | grep -c index.html
 step "mcp"
 printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' \

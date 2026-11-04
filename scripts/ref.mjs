@@ -6,6 +6,7 @@
  *   ref capture '<json>' | -          capture URLs (Aside or headless Chrome) → refs (re-encounter: reuse + add category, refresh if stale)
  *   ref store   '<json>' | -          App Store / Mac App Store screens
  *   ref source add '<json>'           text-only refs (articles, docs, papers, threads)
+ *   ref fetch <connector> '<json>' [--json] | list   read-only candidates, newest first; writes nothing to the library (hn: {q, match, since_days, min_points, tags, limit})
  *   ref collect '<json>'              add existing refs to a collection (= add a category)
  *   ref uncollect <collection> <S#>
  *   ref note '<json>'                 note on a ref (attributed to the collection) or on the collection; "fields":{feature,structure,copy,visual,ui,context,why,why_basis,alternatives,result,implication,adopt,avoid}
@@ -21,7 +22,7 @@
  * Evidence
  *   ref brief set '<json>' | show <collection>   {collection, brief:{purpose,audience,problem,success,value_types,scope,fixed,exclude,assumptions}, reason}
  *   ref run start '<json>'            {collection, brief, goal, domain, kind} → R#, baseline + related refs from other categories
- *   ref run round '<json>' | show <collection>   {collection, queries:[{q,lang}], candidates:[{url,title,published}], new_axes:[], dropped:[]} → round line, stop rule
+ *   ref run round '<json>' | show <collection>   {collection, queries:[{q,lang,via}], candidates:[{url,title,published,via}], new_axes:[], dropped:[]} → round line, stop rule; via = connector
  *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope; {update:"C#"} edits that metadata)
  *   ref delta <collection> [--run R#] run / category / time delta → DELTA.md
  *   ref fresh <collection>            freshness split, key claims resting only on old sources, undated refs to fill first
@@ -47,6 +48,7 @@ import { promises as fs, existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { archiveDates, capture, storeScreens } from "./capture.mjs";
+import { connectorList, connectorNames, fetchCandidates } from "./connectors.mjs";
 import * as ev from "./evidence.mjs";
 import { report, coverage } from "./report.mjs";
 import { migrate, migrateGrades, migrateRoles } from "./migrate.mjs";
@@ -190,6 +192,7 @@ async function doctor() {
   } catch {
     warn("embeddings not installed — optional; text search still works", "ref setup --embeddings   (~700 MB, one time)");
   }
+  ok(`커넥터: ${connectorNames.join(", ")} (선택 사용, 자세히: ref fetch list)`);
   const { existsSync } = await import("node:fs");
   ok(`library: ${LIB}${existsSync(LIB) ? "" : " (created on first capture)"}`);
   existsSync(`${LIB}/.git`) ? ok("library is a git repo") : warn("library is not a git repo — no history to roll back to", "ref setup --git");
@@ -222,7 +225,7 @@ async function setup(args) {
 // ---------- main ----------
 
 const [cmd, ...args] = process.argv.slice(2);
-const needsV2 = !["learn", "migrate", "doctor", "setup", undefined, "help", "--help"].includes(cmd);
+const needsV2 = !["learn", "migrate", "doctor", "setup", "fetch", undefined, "help", "--help"].includes(cmd);
 if (needsV2 && existsSync(path.join(LIB, "index.jsonl")) && !existsSync(FILES.refs)) fail("library is v1 — run `ref migrate` first (commit the library to git before)");
 
 try {
@@ -236,6 +239,17 @@ try {
     case "store": {
       const r = await storeScreens(await jsonArg(args[0]));
       print(r.text, r.images);
+      break;
+    }
+    case "fetch": {
+      const asJson = bool(args, "--json");
+      const name = args[0] ?? fail("usage: ref fetch <connector> '<json>' [--json] | ref fetch list");
+      if (name === "list") {
+        print(connectorList());
+        break;
+      }
+      const r = await fetchCandidates(name, await jsonArg(args[1] ?? "{}"));
+      print(asJson ? JSON.stringify(r.candidates, null, 2) : r.text);
       break;
     }
     case "source": {

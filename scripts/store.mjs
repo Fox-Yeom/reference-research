@@ -5,7 +5,7 @@
  *                                     Dates: published + publishedFrom (meta|jsonld|time|last-modified|manual), updated, firstArchived. channel: CHANNELS
  *   <LIB>/refs/<slug>/<stamp>/        capture snapshots of that reference (images + meta.json)
  *   <LIB>/claims.jsonl            C#  findings, cite S#, global across categories
- *   <LIB>/runs.jsonl              R#  research sessions (one collection each); rounds [{n, queries, candidates, newAxes, dropped, stopped}]
+ *   <LIB>/runs.jsonl              R#  research sessions (one collection each); rounds [{n, queries [{q, lang, via?}], candidates [{url, title, published, via?}], newAxes, dropped, stopped}]; via = connector
  *   <LIB>/<collection>/collection.json   category: kind, domain, brief, briefHistory, members [{ref, role, roleWas?}]
  *   <LIB>/<collection>/{NOTES,SUMMARY,DELTA,README}.md, index.html
  *   <LIB>/plans/<plan>.json            optional plan layer: items + links to claims (positions live here, not on claims)
@@ -49,6 +49,7 @@ export const TYPE_CRED = { official: "A", docs: "A", store: "A", repo: "A", pape
 export const CRED_SCORE = { A: 3, B: 2, C: 1, D: 0 };
 /** what a source is evidence of (docs/RESEARCH-FLOW-REDESIGN.md C4); a ref without one falls back on its type */
 export const CHANNELS = ["primary", "interpretation", "reaction", "rationale"];
+export const CHANNEL_KO = { primary: "1차", interpretation: "해석", reaction: "반응", rationale: "이유" };
 const TYPE_CHANNEL = {
   official: "primary", docs: "primary", repo: "primary", paper: "primary", framework: "primary", capture: "primary",
   report: "interpretation", press: "interpretation", blog: "interpretation", listicle: "interpretation",

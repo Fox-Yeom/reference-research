@@ -137,22 +137,22 @@ Ask before searching. Models are weak at noticing a vague request on their own, 
 | 간접 (`indirect`) | 같은 문제를 다른 방식으로, 또는 같은 방식으로 다른 고객을. 다른 업종이지만 구조가 같은 것도 여기 넣는다 |
 | 트렌드 (`trend`) | 해외·최신 흐름. 이 분야가 어디로 가는지 |
 
-**Brief**: before the first search, show the answers as a table in your reply (목적 · 대상 · 문제 · 성공 기준 · 가치 유형 · 범위 · 고정할 것 · 뺄 것 · 가정), even when you asked nothing.
-- The user says "알아서", in the request or as an answer → ask nothing further, fill the blanks yourself and mark them **가정**.
-- The request already states 문제, 목표 and 가치 유형 → ask nothing; just show the brief.
-- Questions skipped and scope unknown → all three scopes, marked 가정.
+**Brief**: turn the answers into a table (목적 · 대상 · 문제 · 성공 기준 · 가치 유형 · 범위 · 고정할 것 · 뺄 것 · 가정). Fill blanks yourself and mark them **가정**; scope unknown → all three scopes, marked 가정.
+- **Confirm it before searching**: AskUserQuestion, one single-select question "이 개요로 시작할까요?", options `이대로 시작` / `고칠 곳 있음`, with the full table in each option's `preview`. `고칠 곳 있음` → ask what to change, update the table, confirm again. A prose summary does not count. Without that tool, print the full table.
+- **Print the full table instead, then start**, when the user said "알아서" (in the request or as an answer), or when no slot is 가정.
+- The request already states 문제, 목표 and 가치 유형 → skip round 1 and go straight to the brief.
 
 **Start**
 - **kind**: *category* ("X 앱 만들기 전", or a topic → similar products, `<category>-category`) or *service* ("Y 서비스 분석" → one service + rivals, `<service>-service`).
 - **domain**: `design` (디자인·UX — sections 2–7) · `curriculum` (교육과정 — **§9**) · `dev` (기술·개발: 아키텍처·라이브러리·안티패턴 — planned; meanwhile use sources/claims with WebFetch, skip screen coverage) · `research` (전략·비즈니스, 사용자 반응·시장, 여행·동선, 연구/논문 — source-led: skip screen coverage, capture only pages that are evidence themselves; record papers as `type:"paper"` sources).
-- `ref run start`, after the answers are in, with `goal` = the decision from the brief (not the request's wording), `audience`, `question` = the one question the decision hinges on. Then `ref note` the brief table as a category note tagged `brief`. Read the whole baseline:
+- `ref run start`, after the brief is confirmed, with `goal` = the decision from the brief (not the request's wording), `audience`, `question` = the one question the decision hinges on. Then `ref note` the brief table as a category note tagged `brief`. Read the whole baseline:
   - claims already here → confirm / revise / refute them, don't re-add
   - claims from other categories on the same refs → reuse what applies
   - stale members → re-capture with `"force":true` if they matter for this goal
   - **related refs from other categories** → open the promising ones (`ref show S#`, look at the preview), `ref collect` those on the same axis with a one-line reason
 
 ## 2. Discover candidates (WebSearch → WebFetch) — newest first, in rounds
-**Gate: no WebSearch until the brief table is in your reply and saved as the `brief` note (§1).**
+**Gate: no WebSearch until the brief is confirmed or printed as a full table and saved as the `brief` note (§1).**
 
 Read newest first and let the newest sources rewrite the next queries. WebSearch has no date sort or filter, so dates come from the queries and from the pages you open.
 
@@ -180,10 +180,12 @@ Date unknown → look for it on the page before giving up.
 
 ### Rounds — widen → read → narrow, at most 3 rounds including round 0
 1. **Round 0**: queries carrying this year and last year, `latest`, `changelog`, `release notes`, recent announcements. Note each candidate's published date; sort the longlist newest first.
-2. **Recheck, after round 0 only**: one line, "최신 자료를 보니 X 쪽으로 좁혀집니다. 맞나요?". Update the `brief` note if the answer changes it. If the user said "알아서", state the narrowing as 가정 and continue.
+2. **Recheck, after round 0 only**: AskUserQuestion (or one line of text), "최신 자료를 보니 X 쪽으로 좁혀집니다. 맞나요?". Update the `brief` note if the answer changes it. If the user said "알아서", state the narrowing as 가정 and continue.
 3. **Clues**: from the newest 5–10 candidates, pull repeated names, terms and patterns → the next round's queries.
 4. **Branch**: follow good sources backward (what they reference) and forward (what came after, what copied them).
 5. **Stop**: a round that adds no new pattern ends the search.
+
+End every round with one chat line, so the loop is visible: `N바퀴 끝: 질의 X개 · 후보 Y개 · 새 패턴 Z개 → 다음: <queries or why it stops>`.
 
 ### Minimums, across all rounds
 - **≥ 8 WebSearch queries**, **≥ 3 Korean and ≥ 3 English**, covering all 5 angles: listicle/best-of · alternatives/vs · community (reddit, `site:news.ycombinator.com`, 긱뉴스, velog/디스콰이엇) · open source (`github`, `awesome …`) · KR market/local players

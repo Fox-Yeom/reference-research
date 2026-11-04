@@ -2,6 +2,9 @@
 
 Newest first. One line of context, the decision, why.
 
+## 2026-11-04 · Board head is a structured panel; progress goes through a hook
+Real-use feedback on the indigo head: "not structured, just a blue background with loud color". → The board head is one white panel: a question/answer/decision/evidence/counter table beside evidence-strength, freshness and channel stats; the home head follows. This narrows, not reverses, 2026-10-02: indigo stays the structural accent, semantic colors carry meaning. Separately, agents did not relay CLI output (brief table, round lines, capture backend) in 5 of 5 and 3 of 3 runs, whatever the wording. → `ref` writes such lines to `announce.log`, and a PostToolUse hook in the SKILL frontmatter shows them as `systemMessage`; verified in a real terminal. A file, because agents also filter stdout.
+
 ## 2026-11-04 · Research flow v2: phases, roles, freshness
 A real design research drifted for four rounds because the request ("make it not look AI-made") became the goal, and old sources served as exemplars (`docs/RESEARCH-FLOW-REDESIGN.md`). → (1) Ship in two phases: SKILL.md first (plus the `trend` role constant), then CLI/board/MCP. (2) Drop the `analogous` role; scope is direct · indirect · trend, and existing analogous members migrate to indirect with `roleWas` kept. (3) One freshness threshold, 12 months: older or undated sources serve only as principles or before/after comparison; key claims citing only those get a warning unless `scope:"원리"`. The board keeps indigo + semantic colors (2026-10-02 decision); v2 only enforces one meaning per color.
 

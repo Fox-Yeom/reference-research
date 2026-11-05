@@ -10,10 +10,11 @@ process.env.REF_HOME = path.join(scratch, "home"); // announce() writes here, se
 process.env.REF_LIBRARY = path.join(scratch, "lib");
 delete process.env.GITHUB_TOKEN;
 delete process.env.GH_TOKEN;
-const { cleanText, connectorList, connectorNames, connectorStatus, excerpt, fetchCandidates, hnUrl, parseGithub, parseHn } = await import("../scripts/connectors.mjs");
+const { cleanText, connectorList, connectorNames, connectorStatus, excerpt, fetchCandidates, hnUrl, parseDeckList, parseDeckPage, parseGithub, parseHn } = await import("../scripts/connectors.mjs");
 const { RefError } = await import("../scripts/store.mjs");
 
-const fixture = (name) => JSON.parse(readFileSync(new URL(`fixtures/connectors/${name}.json`, import.meta.url), "utf8"));
+const page = (name) => readFileSync(new URL(`fixtures/connectors/${name}`, import.meta.url), "utf8");
+const fixture = (name) => JSON.parse(page(`${name}.json`));
 const respond = (body, status = 200, headers = {}) => async () => ({ status, ok: status < 400, headers: new Headers(headers), json: async () => body });
 const announced = () => readFileSync(path.join(process.env.REF_HOME, "announce.log"), "utf8");
 const rejects = (promise, pattern) => assert.rejects(promise, (e) => e instanceof RefError && pattern.test(e.message));
@@ -166,5 +167,52 @@ for (const text of [...shown, connectorStatus(), connectorList(), announced()]) 
 assert.ok(!announced().includes("GITHUB_TOKEN"), "token advice goes to the agent, not to the user");
 assert.match(announced(), /커넥터 github 건너뜀: 시간당 호출 한도 소진, \d\d:\d\d 이후 다시 가능\. 조사는 계속됨/);
 delete process.env.GITHUB_TOKEN;
+
+// Speaker Deck: the account page lists, the deck page dates
+const listing = page("speakerdeck-account.html");
+const deckOn = (date) => page("speakerdeck-deck.html").replace("2026-08-25", date);
+assert.deepEqual(parseDeckList(listing), [
+  { url: "https://speakerdeck.com/acme/first-deck", title: "First & deck", slides: 26 },
+  { url: "https://speakerdeck.com/acme/second-deck", title: "Second deck", slides: 12 },
+  { url: "https://speakerdeck.com/acme/old-deck", title: "Old deck", slides: 40 },
+]);
+assert.deepEqual(parseDeckPage(deckOn("2026-08-25")), { published: "2026-08-25", summary: "Why we moved the design tokens. https://example.com/a", language: "en" });
+assert.deepEqual(parseDeckPage("<html></html>"), { published: null, summary: null, language: null });
+assert.deepEqual(parseDeckList('<script type="application/ld+json">{"@type":"ProfilePage"}</script>'), [], "a profile with no decks is a real 0");
+assert.throws(() => parseDeckList("<html>something else</html>"), /구조/, "a changed layout is not 0");
+
+const days = (n) => new Date(Date.now() - n * 86400_000).toISOString().slice(0, 10);
+const site = (decks) => {
+  const opened = [];
+  const get = async (url) => {
+    opened.push(url);
+    const key = url.split("/").pop();
+    if (key === "acme") return { status: 200, ok: true, headers: new Headers(), text: async () => listing };
+    if (decks[key] === undefined) return { status: 500, ok: false, headers: new Headers() };
+    return { status: 200, ok: true, headers: new Headers(), text: async () => decks[key] };
+  };
+  return { get, opened };
+};
+let pauses = 0;
+const pause = async () => void pauses++;
+const open = site({ "first-deck": deckOn(days(10)), "second-deck": deckOn(days(100)), "old-deck": deckOn(days(800)) });
+const decks = await fetchCandidates("speakerdeck", { url: "https://speakerdeck.com/acme/first-deck?slide=3" }, { get: open.get, pause });
+assert.deepEqual(open.opened, ["https://speakerdeck.com/acme", "https://speakerdeck.com/acme/first-deck", "https://speakerdeck.com/acme/second-deck", "https://speakerdeck.com/acme/old-deck"], "stops at the first old deck");
+assert.equal(pauses, 3, "waits before each deck page");
+assert.ok(open.opened.every((u) => !u.includes(".atom") && !u.includes("/search")), "paths robots.txt disallows stay unused");
+assert.deepEqual(decks.candidates.map((c) => c.published), [days(10), days(100)]);
+assert.deepEqual(decks.candidates[0].meta, { slides: 26, language: "en" });
+assert.equal(decks.candidates[0].via, "speakerdeck");
+assert.equal(decks.text.split("\n")[0], "speakerdeck · acme · 최근 365일 · 2건 (최신순)");
+assert.equal(decks.text.split("\n")[1], `${days(10)} · 26쪽 · First & deck · https://speakerdeck.com/acme/first-deck`);
+assert.match(decks.text, /고른 것: ref capture · ref run round의 후보와 질의에 via "speakerdeck"/);
+const capped = await fetchCandidates("speakerdeck", { account: "acme", limit: 1 }, { get: site({ "first-deck": deckOn(days(1)) }).get, pause });
+assert.match(capped.text, /최신순, 최근 1건까지 확인/);
+assert.match((await fetchCandidates("speakerdeck", { account: "acme" }, { get: site({ "first-deck": deckOn(days(900)) }).get, pause })).text, /가장 최근 덱도 365일보다 오래됨/);
+assert.match((await fetchCandidates("speakerdeck", { account: "acme" }, { get: site({ "first-deck": deckOn(days(1)) }).get, pause })).text, /덱 1건 확인 뒤 중단: 서버 응답 오류/, "keeps what it has when a deck page fails");
+assert.match((await fetchCandidates("speakerdeck", { account: "acme", limit: 1 }, { get: site({ "first-deck": "<html></html>" }).get, pause })).text, /날짜를 못 읽음/);
+await rejects(fetchCandidates("speakerdeck", { account: "none" }, { get: respond({}, 404), pause }), /계정을 찾지 못함/);
+for (const bad of [{}, { account: "toss.atom" }, { account: "search" }, { account: "c" }, { url: "https://speakerdeck.com/p/all.atom" }, { url: "https://example.com/acme/x" }]) await rejects(fetchCandidates("speakerdeck", bad), /needs account/);
+await rejects(fetchCandidates("speakerdeck", { account: "acme", limit: 19 }), /limit/);
 
 console.log("connectors ok");

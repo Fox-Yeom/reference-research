@@ -11,6 +11,7 @@ import { CHANNEL_KO, RefError, announce, bad } from "./store.mjs";
 
 const SUMMARY_CHARS = 200;
 const TIMEOUT_MS = 30_000;
+const PAUSE_MS = 1_000;
 const version = (() => {
   try {
     return JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
@@ -28,7 +29,7 @@ function giveUp(name, reason, detail = "") {
 }
 
 /** One line per failure; connectors never retry (docs/CONNECTORS.md §3). Messages never carry request headers: a token lives there. */
-async function getJson(name, url, get, { headers, explain } = {}) {
+async function request(name, url, get, { headers, explain } = {}) {
   let res;
   try {
     res = await get(url, headers);
@@ -39,10 +40,24 @@ async function getJson(name, url, get, { headers, explain } = {}) {
     const known = explain?.(res) ?? (res.status === 429 ? { reason: "호출 한도 초과", detail: " (HTTP 429)" } : { reason: "서버 응답 오류", detail: ` (HTTP ${res.status})` });
     giveUp(name, known.reason, known.detail);
   }
+  return res;
+}
+
+async function getJson(name, url, get, options) {
+  const res = await request(name, url, get, options);
   try {
     return { data: await res.json(), headers: res.headers };
   } catch {
     giveUp(name, "응답 구조가 바뀜", " (JSON 아님)");
+  }
+}
+
+async function getText(name, url, get, options) {
+  const res = await request(name, url, get, options);
+  try {
+    return { data: await res.text(), headers: res.headers };
+  } catch {
+    giveUp(name, "연결 실패", " (본문을 읽지 못함)");
   }
 }
 
@@ -135,8 +150,8 @@ function hnHint(o) {
   return `구문 그대로 찾음. 단어를 줄이거나 match "${o.match === "title" ? "text" : "loose"}"로 다시 질의`;
 }
 
-async function hnRun(o, json) {
-  const { total, candidates } = parseHn((await json(hnUrl(o))).data);
+async function hnRun(o, http) {
+  const { total, candidates } = parseHn((await http.json(hnUrl(o))).data);
   const scope = o.tags === "comment" ? "댓글" : `${o.minPoints}점 이상`;
   return {
     head: `hn · "${o.q}" · 최근 ${o.sinceDays}일 · ${HN_MATCH_KO[o.match]} · ${scope} ${total}건${candidates.length < total ? ` 중 ${candidates.length}건` : ""} (최신순)`,
@@ -201,8 +216,8 @@ function githubHint(o, { scanned, wanted }, remaining) {
   return remaining;
 }
 
-async function githubRun(o, json) {
-  const { data, headers } = await json(`${GITHUB_API}/${o.repo}/releases?per_page=100`, { headers: githubHeaders(), explain: githubError });
+async function githubRun(o, http) {
+  const { data, headers } = await http.json(`${GITHUB_API}/${o.repo}/releases?per_page=100`, { headers: githubHeaders(), explain: githubError });
   const parsed = parseGithub(data, o);
   const { scanned, wanted, total, candidates } = parsed;
   const shown = (n) => `${n}건${candidates.length < n ? ` 중 ${candidates.length}건` : ""}`;
@@ -219,11 +234,90 @@ async function githubRun(o, json) {
 
 const githubLine = (c) => [`${c.published ?? "미상"} · ${c.title}${c.meta.prerelease ? " (사전 릴리스)" : ""} · ${c.url}`, ...(c.summary ? [`  ${c.summary}`] : [])];
 
+// ---------- Speaker Deck ----------
+
+const DECK_HOST = "https://speakerdeck.com";
+const DECK_PAGE_SIZE = 18;
+const NOT_ACCOUNTS = new Set(["c", "p", "search"]);
+
+/**
+ * robots.txt disallows account feeds and search for `User-agent: *`, so this reads the account page, which lists decks
+ * newest first without dates, and takes each date from the deck page. No dots in an account: "<name>.atom" is the disallowed feed.
+ */
+function speakerdeckInput(params) {
+  const account = oneLine(params.account) || /^https?:\/\/(?:www\.)?speakerdeck\.com\/([^/?#]+)/i.exec(params.url ?? "")?.[1];
+  if (!account || !/^[\w-]+$/.test(account) || NOT_ACCOUNTS.has(account)) bad("speakerdeck needs account, or url of a deck");
+  return { account, sinceDays: intParam(params, "since_days", 365, 1, 3650), limit: intParam(params, "limit", 10, 1, DECK_PAGE_SIZE) };
+}
+
+const speakerdeckError = (res) => (res.status === 404 ? { reason: "계정을 찾지 못함", detail: " (계정 이름 확인)" } : null);
+
+function jsonLd(html) {
+  return [...String(html).matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)].flatMap(([, body]) => {
+    try {
+      return [JSON.parse(body)];
+    } catch {
+      return [];
+    }
+  });
+}
+
+/** A profile with no decks is a real 0; a page that is neither is a changed layout. */
+export function parseDeckList(html) {
+  const decks = [...String(html).matchAll(/data-slide-count="(\d+)"[\s\S]*?class="deck-preview-link" href="(\/[^"]+)" title="([^"]*)"/g)].map(([, slides, href, title]) => ({ url: `${DECK_HOST}${href}`, title: cleanText(title), slides: Number(slides) }));
+  if (!decks.length && !jsonLd(html).some((d) => d["@type"] === "ProfilePage")) giveUp("speakerdeck", "응답 구조가 바뀜", " (덱 카드 · ProfilePage 없음)");
+  return decks;
+}
+
+export function parseDeckPage(html) {
+  const doc = jsonLd(html).find((d) => d.datePublished);
+  return { published: isoDate(doc?.datePublished), summary: excerpt(doc?.description), language: doc?.inLanguage ?? null };
+}
+
+async function speakerdeckRun(o, http) {
+  const decks = parseDeckList((await http.text(`${DECK_HOST}/${o.account}`, { explain: speakerdeckError })).data);
+  const oldest = Date.now() - o.sinceDays * 86400_000;
+  const candidates = [];
+  let halted = null;
+  let aged = false;
+  for (const deck of decks.slice(0, o.limit)) {
+    await http.pause();
+    let page;
+    try {
+      page = parseDeckPage((await http.text(deck.url)).data);
+    } catch (e) {
+      if (!(e instanceof RefError)) throw e;
+      halted = e.reason ?? e.message;
+      break;
+    }
+    if (page.published && Date.parse(page.published) < oldest) {
+      aged = true; // the list runs newest first, so everything after this is older too
+      break;
+    }
+    candidates.push({ url: deck.url, title: deck.title, published: page.published, summary: page.summary, via: "speakerdeck", type: "capture", channel: "primary", meta: { slides: deck.slides, language: page.language } });
+  }
+  const undated = candidates.filter((c) => !c.published).length;
+  const hints = [
+    halted && `덱 ${candidates.length}건 확인 뒤 중단: ${halted}`,
+    candidates.length && undated === candidates.length && "덱 페이지에서 날짜를 못 읽음. 구조가 바뀌었을 수 있음",
+    !decks.length && "공개 덱이 없는 계정",
+    aged && !candidates.length && `가장 최근 덱도 ${o.sinceDays}일보다 오래됨. since_days를 늘려 다시 질의`,
+  ].filter(Boolean);
+  return {
+    head: `speakerdeck · ${o.account} · 최근 ${o.sinceDays}일 · ${candidates.length}건 (최신순${!aged && !halted && decks.length > o.limit ? `, 최근 ${o.limit}건까지 확인` : ""})`,
+    candidates,
+    hint: hints.join("\n") || null,
+  };
+}
+
+const speakerdeckLine = (c) => [`${c.published ?? "미상"} · ${c.meta.slides}쪽 · ${c.title ?? "(제목 없음)"} · ${c.url}`, ...(c.summary ? [`  ${c.summary}`] : [])];
+
 // ---------- registry ----------
 
 const CONNECTORS = {
   hn: { channel: "reaction", type: "community", key: null, about: "Hacker News 최신순 검색. 영어 질의. {q, match, since_days, min_points, tags, limit}", input: hnInput, run: hnRun, line: hnLine },
   github: { channel: "rationale", type: "official", key: "토큰 선택 (GITHUB_TOKEN · GH_TOKEN)", about: "GitHub 릴리스 노트. '왜'의 공식 근거, 사실 근거로 쓰면 channel primary. {repo, q, limit, include_prerelease}", input: githubInput, run: githubRun, line: githubLine },
+  speakerdeck: { channel: "primary", type: "capture", key: null, next: "ref capture", about: "회사·발표자 계정의 최신 덱. 좋은 덱을 찾은 뒤 가지치기용. 요청 1 + N회. {account | url, since_days, limit}", input: speakerdeckInput, run: speakerdeckRun, line: speakerdeckLine },
 };
 
 export const connectorNames = Object.keys(CONNECTORS);
@@ -232,13 +326,13 @@ export const connectorStatus = () => `커넥터: ${connectorNames.join(", ")} (�
 
 export const connectorList = () => Object.entries(CONNECTORS).map(([name, c]) => `${name} · ${CHANNEL_KO[c.channel]} · ${c.key ?? "키 없음"} · ${c.about}`).join("\n");
 
-/** `get` is replaceable so tests run without a network. A failure is reported, and the research goes on without it. */
-export async function fetchCandidates(name, params = {}, { get = httpGet } = {}) {
+/** `get` and `pause` are replaceable so tests run without a network or waits. A failure is reported, and the research goes on without it. */
+export async function fetchCandidates(name, params = {}, { get = httpGet, pause = () => new Promise((done) => setTimeout(done, PAUSE_MS)) } = {}) {
   const c = CONNECTORS[name] ?? bad(`unknown connector "${name}" (ref fetch list)`);
   const options = c.input(params);
   let result;
   try {
-    result = await c.run(options, (url, request) => getJson(name, url, get, request));
+    result = await c.run(options, { json: (url, opts) => getJson(name, url, get, opts), text: (url, opts) => getText(name, url, get, opts), pause });
   } catch (e) {
     if (!(e instanceof RefError)) throw e;
     await announce(`커넥터 ${name} 건너뜀: ${e.reason ?? e.message}. 조사는 계속됨`);
@@ -247,6 +341,7 @@ export async function fetchCandidates(name, params = {}, { get = httpGet } = {})
   const { head, candidates, hint } = result;
   const newest = candidates.find((x) => x.published)?.published;
   await announce(`커넥터 ${name}: ${candidates.length}건${newest ? ` (최신 ${newest})` : ""}`);
-  const next = candidates.length ? `고른 것: ref source add (type ${c.type}, channel ${c.channel}) · ref run round의 후보와 질의에 via "${name}"` : "0건은 없다는 증거가 아님";
+  const add = c.next ?? `ref source add (type ${c.type}, channel ${c.channel})`;
+  const next = candidates.length ? `고른 것: ${add} · ref run round의 후보와 질의에 via "${name}"` : "0건은 없다는 증거가 아님";
   return { candidates, text: [head, ...candidates.flatMap(c.line), next, ...(hint ? [hint] : [])].join("\n") };
 }

@@ -6,7 +6,7 @@
  *   ref capture '<json>' | -          capture URLs (Aside or headless Chrome) → refs (re-encounter: reuse + add category, refresh if stale)
  *   ref store   '<json>' | -          App Store / Mac App Store screens
  *   ref source add '<json>'           text-only refs (articles, docs, papers, threads)
- *   ref fetch <connector> '<json>' [--json] | list   read-only candidates, newest first; writes nothing to the library (hn: {q, match, since_days, min_points, tags, limit})
+ *   ref fetch <connector> '<json>' [--json] | list   read-only candidates, newest first; writes nothing to the library (hn: {q, match, since_days, min_points, tags, limit} · github: {repo, q, limit, include_prerelease})
  *   ref collect '<json>'              add existing refs to a collection (= add a category)
  *   ref uncollect <collection> <S#>
  *   ref note '<json>'                 note on a ref (attributed to the collection) or on the collection; "fields":{feature,structure,copy,visual,ui,context,why,why_basis,alternatives,result,implication,adopt,avoid}
@@ -48,7 +48,7 @@ import { promises as fs, existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { archiveDates, capture, storeScreens } from "./capture.mjs";
-import { connectorList, connectorNames, fetchCandidates } from "./connectors.mjs";
+import { connectorList, connectorStatus, fetchCandidates } from "./connectors.mjs";
 import * as ev from "./evidence.mjs";
 import { report, coverage } from "./report.mjs";
 import { migrate, migrateGrades, migrateRoles } from "./migrate.mjs";
@@ -192,7 +192,7 @@ async function doctor() {
   } catch {
     warn("embeddings not installed — optional; text search still works", "ref setup --embeddings   (~700 MB, one time)");
   }
-  ok(`커넥터: ${connectorNames.join(", ")} (선택 사용, 자세히: ref fetch list)`);
+  ok(connectorStatus());
   const { existsSync } = await import("node:fs");
   ok(`library: ${LIB}${existsSync(LIB) ? "" : " (created on first capture)"}`);
   existsSync(`${LIB}/.git`) ? ok("library is a git repo") : warn("library is not a git repo — no history to roll back to", "ref setup --git");

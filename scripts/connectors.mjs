@@ -20,22 +20,29 @@ const version = (() => {
 })();
 const UA = `reference-research${version ? `/${version}` : ""} (+https://github.com/Fox-Yeom/reference-research)`;
 
-const httpGet = (url) => fetch(url, { headers: { "user-agent": UA }, redirect: "follow", signal: AbortSignal.timeout(TIMEOUT_MS) });
+const httpGet = (url, headers = {}) => fetch(url, { headers: { "user-agent": UA, ...headers }, redirect: "follow", signal: AbortSignal.timeout(TIMEOUT_MS) });
 
-/** One line per failure; connectors never retry (docs/CONNECTORS.md §3). */
-async function getJson(name, url, get) {
+/** Ends a call. `reason` reaches the user through announce, in plain words; `detail` only reaches the agent, so tokens and paths stay out of the user's view. */
+function giveUp(name, reason, detail = "") {
+  throw Object.assign(new RefError(`${name}: ${reason}${detail}`), { reason });
+}
+
+/** One line per failure; connectors never retry (docs/CONNECTORS.md §3). Messages never carry request headers: a token lives there. */
+async function getJson(name, url, get, { headers, explain } = {}) {
   let res;
   try {
-    res = await get(url);
+    res = await get(url, headers);
   } catch (e) {
-    bad(`${name}: 연결 실패 (${e.cause?.code ?? e.name})`);
+    giveUp(name, "연결 실패", ` (${e.cause?.code ?? e.name})`);
   }
-  if (res.status === 429) bad(`${name}: 호출 한도 초과 (HTTP 429)`);
-  if (!res.ok) bad(`${name}: HTTP ${res.status}`);
+  if (!res.ok) {
+    const known = explain?.(res) ?? (res.status === 429 ? { reason: "호출 한도 초과", detail: " (HTTP 429)" } : { reason: "서버 응답 오류", detail: ` (HTTP ${res.status})` });
+    giveUp(name, known.reason, known.detail);
+  }
   try {
-    return await res.json();
+    return { data: await res.json(), headers: res.headers };
   } catch {
-    bad(`${name}: 응답 구조가 바뀜 (JSON 아님)`);
+    giveUp(name, "응답 구조가 바뀜", " (JSON 아님)");
   }
 }
 
@@ -47,12 +54,21 @@ const decodeEntity = (whole, body) => {
   return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : whole;
 };
 
-/** HTML to plain text, cut to a summary. Tags go before entities so an escaped "<" survives as text. */
-export function cleanText(html, max = SUMMARY_CHARS) {
-  const text = oneLine(String(html ?? "").replace(/<[^>]*>/g, " ").replace(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, decodeEntity));
-  if (!text) return null;
+const cut = (text, max = SUMMARY_CHARS) => {
   const chars = [...text];
   return chars.length > max ? `${chars.slice(0, max).join("")}…` : text;
+};
+
+/** HTML to plain text, cut to a summary. Tags go before entities so an escaped "<" survives as text. */
+export function cleanText(html, max = SUMMARY_CHARS) {
+  return cut(oneLine(String(html ?? "").replace(/<[^>]*>/g, " ").replace(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, decodeEntity)), max) || null;
+}
+
+/** Plain text cut to a summary; with a query it starts near the first match, the passage the source was picked for. */
+export function excerpt(text, q, max = SUMMARY_CHARS) {
+  const flat = oneLine(text);
+  const at = q ? flat.toLowerCase().indexOf(q.toLowerCase()) : -1;
+  return cut(at > 40 ? `…${flat.slice(at - 40)}` : flat, max) || null;
 }
 
 /** The date as the source wrote it: no timezone conversion, and nothing invented when it is missing. */
@@ -96,7 +112,7 @@ export function hnUrl(o, now = Date.now()) {
 
 /** The candidate is the discussion, not the linked article: the discussion is the evidence of a reaction. */
 export function parseHn(data) {
-  if (!Array.isArray(data?.hits)) bad("hn: 응답 구조가 바뀜 (hits 없음)");
+  if (!Array.isArray(data?.hits)) giveUp("hn", "응답 구조가 바뀜", " (hits 없음)");
   const candidates = data.hits
     .filter((h) => h.objectID && h.created_at)
     .map((h) => ({
@@ -109,7 +125,7 @@ export function parseHn(data) {
       channel: "reaction",
       meta: h.story_id && h.comment_text ? { story: `${HN_ITEM}${h.story_id}`, link: h.story_url ?? null } : { points: h.points ?? 0, comments: h.num_comments ?? 0, link: h.url ?? null },
     }));
-  if (data.hits.length && !candidates.length) bad("hn: 응답 구조가 바뀜 (objectID · created_at 없음)");
+  if (data.hits.length && !candidates.length) giveUp("hn", "응답 구조가 바뀜", " (objectID · created_at 없음)");
   return { total: data.nbHits ?? candidates.length, candidates };
 }
 
@@ -120,7 +136,7 @@ function hnHint(o) {
 }
 
 async function hnRun(o, json) {
-  const { total, candidates } = parseHn(await json(hnUrl(o)));
+  const { total, candidates } = parseHn((await json(hnUrl(o))).data);
   const scope = o.tags === "comment" ? "댓글" : `${o.minPoints}점 이상`;
   return {
     head: `hn · "${o.q}" · 최근 ${o.sinceDays}일 · ${HN_MATCH_KO[o.match]} · ${scope} ${total}건${candidates.length < total ? ` 중 ${candidates.length}건` : ""} (최신순)`,
@@ -134,13 +150,85 @@ const hnLine = (c) => [
   ...(c.summary ? [`  ${c.summary}`] : []),
 ];
 
+// ---------- GitHub Releases ----------
+
+const GITHUB_API = "https://api.github.com/repos";
+const githubToken = () => process.env.GITHUB_TOKEN || process.env.GH_TOKEN || null;
+const githubHeaders = () => ({ accept: "application/vnd.github+json", "x-github-api-version": "2022-11-28", ...(githubToken() ? { authorization: `Bearer ${githubToken()}` } : {}) });
+
+function githubInput(params) {
+  const repo = String(params.repo ?? "").replace(/^https?:\/\/(www\.)?github\.com\//i, "").split("/").slice(0, 2).join("/").replace(/\.git$/, "");
+  if (!/^[\w-][\w.-]*\/(?!\.\.?$)[\w.-]+$/.test(repo)) bad('github needs repo as "owner/name"');
+  return { repo, q: oneLine(params.q) || null, includePrerelease: params.include_prerelease === true, limit: intParam(params, "limit", 10, 1, 100) };
+}
+
+function githubError(res) {
+  if (res.status === 404) return { reason: "저장소를 찾지 못함", detail: " (owner/name 확인, 비공개 저장소는 토큰 필요)" };
+  if (res.status === 401) return { reason: "토큰이 거절됨", detail: " (GITHUB_TOKEN · GH_TOKEN 확인)" };
+  if (![403, 429].includes(res.status) || res.headers.get("x-ratelimit-remaining") !== "0") return null;
+  const reset = new Date(Number(res.headers.get("x-ratelimit-reset")) * 1000);
+  const when = Number.isNaN(reset.getTime()) ? "한 시간 안에" : `${reset.toTimeString().slice(0, 5)} 이후`;
+  return { reason: `시간당 호출 한도 소진, ${when} 다시 가능`, detail: githubToken() ? "" : ". GITHUB_TOKEN을 넣으면 시간당 5,000회" };
+}
+
+/** The API has no filters: drafts, prereleases and q are applied here. It lists by creation, so a late backport is re-sorted by publish date. */
+export function parseGithub(data, o) {
+  if (!Array.isArray(data)) giveUp("github", "응답 구조가 바뀜", " (배열 아님)");
+  if (data.length && !data.some((r) => r.html_url)) giveUp("github", "응답 구조가 바뀜", " (html_url 없음)");
+  const wanted = data.filter((r) => r.html_url && !r.draft && (o.includePrerelease || !r.prerelease));
+  const needle = o.q?.toLowerCase();
+  const matched = needle ? wanted.filter((r) => [r.name, r.tag_name, r.body].some((t) => String(t ?? "").toLowerCase().includes(needle))) : wanted;
+  const candidates = [...matched]
+    .sort((a, b) => String(b.published_at ?? "").localeCompare(String(a.published_at ?? "")))
+    .slice(0, o.limit)
+    .map((r) => ({
+      url: r.html_url,
+      title: `${o.repo} ${oneLine(r.name) || r.tag_name}`,
+      published: isoDate(r.published_at),
+      summary: excerpt(r.body, o.q),
+      via: "github",
+      type: "official",
+      channel: "rationale",
+      meta: { tag: r.tag_name ?? null, prerelease: Boolean(r.prerelease) },
+    }));
+  return { scanned: data.length, wanted: wanted.length, total: matched.length, candidates };
+}
+
+function githubHint(o, { scanned, wanted }, remaining) {
+  if (!scanned) return "릴리스 없음. 태그만 쓰는 저장소일 수 있음. 체인지로그 파일이나 WebSearch로 대체";
+  if (!wanted) return `최근 ${scanned}개가 모두 사전 릴리스. include_prerelease: true로 다시 질의`;
+  if (o.q) return `최근 ${scanned}개 안에서만 찾음. 단어를 바꿔 다시 질의`;
+  return remaining;
+}
+
+async function githubRun(o, json) {
+  const { data, headers } = await json(`${GITHUB_API}/${o.repo}/releases?per_page=100`, { headers: githubHeaders(), explain: githubError });
+  const parsed = parseGithub(data, o);
+  const { scanned, wanted, total, candidates } = parsed;
+  const shown = (n) => `${n}건${candidates.length < n ? ` 중 ${candidates.length}건` : ""}`;
+  const kind = o.includePrerelease ? "릴리스" : "안정판";
+  const left = headers?.get("x-ratelimit-remaining");
+  const quota = left ? ` · 남은 호출 ${left}/${headers.get("x-ratelimit-limit")}` : "";
+  const low = left && Number(left) <= 10 && !githubToken() ? `호출 ${left}회 남음. GITHUB_TOKEN을 넣으면 시간당 5,000회` : null;
+  return {
+    head: `github · ${o.repo} · 최근 릴리스 ${scanned}개 · ${o.q ? `${kind} ${wanted}건 · "${o.q}" 포함 ${shown(total)}` : `${kind} ${shown(wanted)}`} (최신순)${quota}`,
+    candidates,
+    hint: candidates.length ? low : githubHint(o, parsed, low),
+  };
+}
+
+const githubLine = (c) => [`${c.published ?? "미상"} · ${c.title}${c.meta.prerelease ? " (사전 릴리스)" : ""} · ${c.url}`, ...(c.summary ? [`  ${c.summary}`] : [])];
+
 // ---------- registry ----------
 
 const CONNECTORS = {
   hn: { channel: "reaction", type: "community", key: null, about: "Hacker News 최신순 검색. 영어 질의. {q, match, since_days, min_points, tags, limit}", input: hnInput, run: hnRun, line: hnLine },
+  github: { channel: "rationale", type: "official", key: "토큰 선택 (GITHUB_TOKEN · GH_TOKEN)", about: "GitHub 릴리스 노트. '왜'의 공식 근거, 사실 근거로 쓰면 channel primary. {repo, q, limit, include_prerelease}", input: githubInput, run: githubRun, line: githubLine },
 };
 
 export const connectorNames = Object.keys(CONNECTORS);
+
+export const connectorStatus = () => `커넥터: ${connectorNames.join(", ")} (선택 사용, 자세히: ref fetch list) · GitHub 토큰 ${githubToken() ? "있음" : "없음 (없어도 됨, 시간당 60회)"}`;
 
 export const connectorList = () => Object.entries(CONNECTORS).map(([name, c]) => `${name} · ${CHANNEL_KO[c.channel]} · ${c.key ?? "키 없음"} · ${c.about}`).join("\n");
 
@@ -150,15 +238,15 @@ export async function fetchCandidates(name, params = {}, { get = httpGet } = {})
   const options = c.input(params);
   let result;
   try {
-    result = await c.run(options, (url) => getJson(name, url, get));
+    result = await c.run(options, (url, request) => getJson(name, url, get, request));
   } catch (e) {
     if (!(e instanceof RefError)) throw e;
-    await announce(`커넥터 ${name} 실패: ${e.message}`);
+    await announce(`커넥터 ${name} 건너뜀: ${e.reason ?? e.message}. 조사는 계속됨`);
     bad(`${e.message}. 없다는 증거가 아님, WebSearch로 대체`);
   }
   const { head, candidates, hint } = result;
   const newest = candidates.find((x) => x.published)?.published;
   await announce(`커넥터 ${name}: ${candidates.length}건${newest ? ` (최신 ${newest})` : ""}`);
-  const next = candidates.length ? `고른 것: ref source add (type ${c.type}, 채널 ${CHANNEL_KO[c.channel]}) · ref run round의 후보와 질의에 via "${name}"` : "0건은 없다는 증거가 아님";
+  const next = candidates.length ? `고른 것: ref source add (type ${c.type}, channel ${c.channel}) · ref run round의 후보와 질의에 via "${name}"` : "0건은 없다는 증거가 아님";
   return { candidates, text: [head, ...candidates.flatMap(c.line), next, ...(hint ? [hint] : [])].join("\n") };
 }

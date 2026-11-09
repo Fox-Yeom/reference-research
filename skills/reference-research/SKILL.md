@@ -92,6 +92,9 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 // fetch speakerdeck — account, or url of any deck of that account · since_days 365 · limit 10 (≤ 18)
 {"url":"https://speakerdeck.com/<account>/<deck>"}
 
+// fetch appstore — app (its store title must start with this, else pick an id from the reply) or app_id · country kr (ISO code: gb, not uk) · platform ios (default) | mac
+{"app":"토스","country":"kr"}
+
 // capture (≤ 6 URLs per call; each new capture ~10–40 s; Bash timeout 600000)
 {"collection":"…","urls":[{"url":"https://…","label":"Warp — landing","tags":["landing","direct","vertical-tabs"]},
                           {"url":"https://…","label":"Warp — docs agents","tags":["help","app-ui"],"force":true}],
@@ -198,7 +201,7 @@ Date unknown → look for it on the page, then `ref date <S#>` for a lower bound
 |---|---|---|---|---|---|---|
 | 전략·비즈니스 | DART·SEC 공시, IR·실적 발표, 가격·약관 | 증권사·업계 리포트, 언론 | 고객 리뷰, 커뮤니티 | 실적 발표 질의응답, 대표 인터뷰, 채용 공고 | IR은 회사 관점 | 수익 구조·가격·성장 수치 (기준일 필수) |
 | 디자인·UX | 실제 제품 화면(캡처·앱스토어·실서비스 화면 라이브러리), 공식 디자인 시스템·브랜드 가이드 | 템플릿 플랫폼 본문, 디자인 매체 리뷰 | 리뷰 중 화면 관련 의견 | 체인지로그, 디자인 블로그·발표 | 콘셉트 샷은 '영감'으로만 | 화면 흐름, 색·글꼴 체계, 상태 화면 |
-| 사용자 반응·시장 | 앱스토어·플레이 리뷰(버전·날짜별), G2·Capterra | 리뷰 분석 리포트 | Reddit·HN·GitHub 이슈, 국내 커뮤니티 | 회사의 답글·공지 | 불만 많은 사용자 과대표, 체험단·광고 | 원문 인용 + URL + 날짜 + 작성자 유형 |
+| 사용자 반응·시장 | 스토어 평점·버전(`ref store`), G2·Capterra | 리뷰 분석 리포트 | 스토어 리뷰 글, Reddit·HN·GitHub 이슈, 국내 커뮤니티 | 회사의 답글·공지 | 불만 많은 사용자 과대표, 체험단·광고, 스토어 노출 리뷰는 Apple이 고른 것 | 원문 인용 + URL + 날짜 + 작성자 유형 |
 | 여행·동선 | 공식(관광청·시설 영업시간·요금), 지도 앱의 영업시간·이동 시간 | 큐레이션 앱·가이드북 | 최근 6개월 방문 후기 | — | 협찬·체험단, 폐업·시간 변경 | 동선·시간표, 장소마다 마지막 확인일 |
 | 기술·개발 | 공식 문서, GitHub 릴리스·이슈, 표준 | 엔지니어링 블로그, 벤치마크 | HN·Reddit·이슈 토론 | RFC·설계 문서·릴리스 노트 | 벤치마크 조건 차이 | 버전 기준 비교 |
 | 교육과정 (§9) | 강의계획서 | 역량 프레임워크·수요 조사 | 수강 후기 | — | 판매 페이지 과장 | 모듈·시간·순서 |
@@ -214,13 +217,14 @@ Date unknown → look for it on the page, then `ref date <S#>` for a lower bound
 |---|---|---|
 | 기술·개발 | `github`, `hn` | from round 0, for each product or repo in scope |
 | 디자인·UX | `speakerdeck` for a company's latest decks, `github` for the reasons behind an open-source design system, `hn` | from round 1, once a product, repo or good deck is named |
-| 사용자 반응·시장 | `hn` | from round 0 |
+| 사용자 반응·시장 | `appstore`, `hn` | from round 0, for each app in scope |
 | 전략·비즈니스 | `hn` for launch and pricing reactions | once a product is named |
 | 여행·동선 · 교육과정 | none | — |
 
 - **`hn`**: query in English, a product name or a short phrase; Korean queries find nothing. 0 results → fewer words, then `"match":"text"`. `"tags":"comment"` returns comments, the closest thing to quotes. The candidate is the discussion, not the linked article.
 - **`github`**: pass the `owner/name` of a repo you found. `q` finds a reason in release notes (a feature name, `breaking`, `removed`). A note that states the reason is `why_basis: official`. It defaults to `channel: rationale`; use `primary` when it proves a fact rather than a reason.
 - **`speakerdeck`**: lists one account's latest decks with dates. It does not search. Use it to branch: after finding a good deck, pass its `url` to see what that company published since. Capture the decks you pick; it opens one page per deck, so keep `limit` low.
+- **`appstore`**: one source per app, holding the rating distribution and the reviews Apple shows. Those reviews are Apple's pick: not a sample, not the latest, and the star is unreliable (people give 5 stars so a complaint rises to the top), so read the text. Never conclude from them alone: back a finding with the distribution and a community channel, and record this bias. Recent reviews are out of reach; communities fill that gap. It counts as a reaction source; `ref store` on the same app is the primary one. Ratings are per country: name the country you cite. Mac apps need `"platform":"mac"`.
 - **Finding GeekNews (긱뉴스) and Speaker Deck pages**: no connector searches them. Use WebSearch with `allowed_domains: ["news.hada.io"]` or `["speakerdeck.com"]` and this year in the query. Those results carry no date: open the page for it.
 - **Record**: pass `via` on the queries and candidates in `ref run round`. Connector queries come on top of the minimums below. Add what you will cite with `ref source add`, using the `type` and `channel` the command prints.
 - **Failures**: 0 results or a failed connector is no evidence of absence. Say nothing more than the line the user already sees, and go on with WebSearch or `ref capture`.

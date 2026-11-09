@@ -1,7 +1,7 @@
 # 채널 커넥터 기획안 (0.1.0-beta.5 · 2026-11-04)
 
 대상: `scripts/connectors.mjs`(새 파일) · `ref.mjs` · `evidence.mjs` · `store.mjs` · `skills/reference-research/SKILL.md` §2
-상태: 기획 확정 (2026-11-04, 8절 결정 4건 반영). 구현 중: A·B·C 묶음과 SKILL.md 중간 반영 완료, D~F 남음.
+상태: 기획 확정 (2026-11-04, 8절 결정 4건 반영). 구현 중: A·B·C·D 묶음과 SKILL.md 반영 완료, E·F 남음.
 배경: 로드맵 "Next version: 0.1.0-beta.5"의 키 없는 커넥터 5종. `RESEARCH-FLOW-REDESIGN.md` §7.3의 후보 목록과 R37 검증 결과(남은 약점: 왜 근거 대부분 추정, 반응·이유 채널 부족)를 잇는다.
 
 ## 0. 결론
@@ -98,6 +98,7 @@ ref fetch speakerdeck '{"url":"https://speakerdeck.com/<계정>/<덱>"}'     # �
 ```bash
 ref fetch appstore '{"app_id":362057947,"country":"kr"}'
 ref fetch appstore '{"app":"카카오톡","country":"kr"}'
+ref fetch appstore '{"app":"Slack","country":"us","platform":"mac"}'
 ```
 
 **리뷰 RSS를 쓰지 않는 이유:**
@@ -109,13 +110,19 @@ ref fetch appstore '{"app":"카카오톡","country":"kr"}'
 
 | 데이터 | 실측 (카카오톡, kr) | 믿을 수 있나 |
 |---|---|---|
-| 평점 분포 | 평균 3.6 · 936,876건 · 5점 525,790 · 4점 66,545 · 3점 36,928 · 2점 17,959 · 1점 289,654 | 믿을 수 있다. 전체 집계다 |
+| 평점 분포 | 평균 3.6 · 937,615건 · 5점 526,426 · 4점 66,592 · 3점 36,959 · 2점 17,962 · 1점 289,676 (2026-11-05) | 믿을 수 있다. 전체 집계다 |
 | 노출 리뷰 | 10건, 날짜 2025-09-28 ~ 2026-10-28 (최신순 아님), **모두 5점** | **표본이 아니다.** 1점이 31%인 앱의 노출 리뷰가 전부 5점이고, 맨 위 리뷰의 제목이 "상단에 뜨라고 5점"이다 |
 
-- 출력에 분포를 먼저 쓰고, 노출 리뷰에는 "Apple이 고른 순서, 최신순 아님"을 항상 붙인다.
+- 출력에 분포를 먼저 쓰고, 노출 리뷰에는 "Apple이 고른 순서, 최신순 아님"을 항상 붙인다. 순서는 Apple이 준 그대로 둔다.
+- 노출 리뷰의 별점도 믿지 않는다. 카카오톡의 10건은 전부 5점인데 내용은 불만이다. 상단에 뜨려고 5점을 준다고 적은 글이 여럿이다. 글을 읽어야 한다.
+- `ratingCounts`는 5점부터 1점 순서다. 어디에도 적혀 있지 않아 분포가 뚜렷한 앱 페이지 9건으로 확인했다. 순서가 뒤집히면 정반대로 읽히므로, 분포로 평균을 다시 계산해 0.1 넘게 어긋나면 "구조가 바뀜"으로 낸다.
+- **없는 국가 코드는 오류가 아니다.** `uk`와 `zz`는 HTTP 200으로 미국 스토어를 보여 준다. 요청한 코드를 믿지 않고 페이지의 `intent.storefront`를 출력과 URL에 쓴다. 다르면 다시 질의하라고 안내한다.
+- **Mac 앱은 `platform=mac`을 붙여야 평점이 나온다.** 없으면 리뷰는 나오는데 분포가 0이다(Xcode kr: 0건 → 2,527건). 그래서 입력에 `platform`을 둔다. 평가가 0건이면 지어내지 않고 분포를 비운다.
+- 평가도 리뷰도 없는 앱(`Daily Notes Planner` kr)은 페이지가 정상이고 분포가 모두 0이다. 진짜 0건으로 낸다. 평가는 있고 리뷰가 없는 앱은 분포만 낸다.
 - '최신 리뷰'는 얻지 못한다. Apple이 안내하는 경로인 App Store Connect API는 자기 앱 전용이다. 경쟁 앱의 최신 리뷰는 커뮤니티 채널로 메운다.
 - 앱 이름을 id로 바꿀 때는 `ref store`와 같은 iTunes Search API를 쓴다(문서 있음, 분당 약 20회 [2]).
-- 자료 등록값: `url`은 위 주소 그대로, `type: community`, `channel: reaction`, `published`는 노출 리뷰의 최신 날짜. `normUrl`이 `see-all`을 남기므로 `ref store`의 화면 자료와 별개로 잡힌다. 작성자 이름은 받아도 버린다.
+- **검색 첫 결과를 믿지 않는다.** Mac에서 "Xcode"의 첫 Mac 결과는 카카오톡이고 Xcode는 결과에 없다. `macSoftware` 검색에는 iPhone 앱도 섞인다. 공백·대소문자를 뺀 이름이 일치하며 시작하는 앱만 읽고, 없으면 페이지를 열지 않고 후보 id를 보여 준다. 다른 앱의 평점이 그 이름으로 나가는 것을 막는다. "노션"처럼 표기가 다르면 호출이 한 번 더 든다.
+- 자료 등록값: 앱 하나가 후보 하나다. 리뷰에는 주소가 없다. `url`은 위 주소(요청한 코드가 아닌 실제 스토어), `type: community`, `channel: reaction`, `published`는 노출 리뷰의 최신 날짜, 없으면 비운다. `normUrl`이 `see-all`을 남기므로 `ref store`의 화면 자료와 별개로 잡힌다. 1차 자료는 같은 앱의 `ref store`다. 작성자 이름은 읽지 않는다.
 
 ### 2.5 GeekNews: 만들지 않는다
 
@@ -276,12 +283,12 @@ hn · "figma" · 최근 365일 · 제목 일치 · 5점 이상 34건 중 20건 (
 1. GitHub Docs, Rate limits for the REST API. https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
 2. Apple, iTunes Search API. https://performance-partners.apple.com/search-api
 
-### 실측 (2026-11-04, 공개 경로 GET)
+### 실측 (2026-11-04 · App Store 페이지는 2026-11-05 재측정, 공개 경로 GET)
 - robots: `speakerdeck.com` · `news.hada.io` · `itunes.apple.com` · `apps.apple.com`. `hn.algolia.com`과 `api.github.com`은 404로 파일이 없다.
 - HN `hn.algolia.com/api/v1/search_by_date`. 공식 페이지 `hn.algolia.com/api`는 제목 외 본문을 읽지 못했다.
 - GitHub `api.github.com/repos/{vercel/next.js, tailwindlabs/tailwindcss, torvalds/linux}/releases`, 헤더 `x-ratelimit-limit: 60`.
 - Speaker Deck: `/p/all.atom`, 분류 피드 3종, 공개 회사 계정 1곳의 계정 페이지·덱 페이지 4건.
-- App Store: 앱 6개 리뷰 RSS, `topfreeapplications` RSS, 카카오톡·토스 앱 페이지.
+- App Store: 앱 6개 리뷰 RSS, `topfreeapplications` RSS, 앱 페이지(iPhone·Mac, kr·us·gb, 평가 0건 앱, 없는 국가 코드 `zz`·`uk`, 없는 앱 404), iTunes Search.
 - GeekNews: `/rss/news`, `/search`, `/sitemap-news`, `/sitemap/2026-10.xml`, `/?page=N`, `/new?page=2`. WebSearch `allowed_domains` 1회.
 - 계정 `.atom` 1회와 리뷰 RSS 측정은 robots를 읽기 전에 했다. 이후 호출하지 않으며, 구현에도 쓰지 않는다.
 

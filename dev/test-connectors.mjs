@@ -10,14 +10,14 @@ process.env.REF_HOME = path.join(scratch, "home"); // announce() writes here, se
 process.env.REF_LIBRARY = path.join(scratch, "lib");
 delete process.env.GITHUB_TOKEN;
 delete process.env.GH_TOKEN;
-const { cleanText, connectorList, connectorNames, connectorStatus, excerpt, fetchCandidates, hnUrl, parseDeckList, parseDeckPage, parseGithub, parseHn } = await import("../scripts/connectors.mjs");
-const { RefError } = await import("../scripts/store.mjs");
+const { cleanText, connectorList, connectorNames, connectorStatus, excerpt, fetchCandidates, hnUrl, parseAppPage, parseDeckList, parseDeckPage, parseGithub, parseHn } = await import("../scripts/connectors.mjs");
+const { RefError, channelOf } = await import("../scripts/store.mjs");
 
 const page = (name) => readFileSync(new URL(`fixtures/connectors/${name}`, import.meta.url), "utf8");
 const fixture = (name) => JSON.parse(page(`${name}.json`));
 const respond = (body, status = 200, headers = {}) => async () => ({ status, ok: status < 400, headers: new Headers(headers), json: async () => body });
 const announced = () => readFileSync(path.join(process.env.REF_HOME, "announce.log"), "utf8");
-const rejects = (promise, pattern) => assert.rejects(promise, (e) => e instanceof RefError && pattern.test(e.message));
+const rejects = (promise, pattern, message) => assert.rejects(promise, (e) => e instanceof RefError && pattern.test(e.message), message);
 
 // text
 assert.equal(cleanText("<p>a &amp; b</p>\n<i>c</i>"), "a & b c");
@@ -214,5 +214,130 @@ assert.match((await fetchCandidates("speakerdeck", { account: "acme", limit: 1 }
 await rejects(fetchCandidates("speakerdeck", { account: "none" }, { get: respond({}, 404), pause }), /계정을 찾지 못함/);
 for (const bad of [{}, { account: "toss.atom" }, { account: "search" }, { account: "c" }, { url: "https://speakerdeck.com/p/all.atom" }, { url: "https://example.com/acme/x" }]) await rejects(fetchCandidates("speakerdeck", bad), /needs account/);
 await rejects(fetchCandidates("speakerdeck", { account: "acme", limit: 19 }), /limit/);
+
+// App Store: the distribution comes first, the shown reviews are labelled, and nothing about the reviewer survives
+const appHtml = page("appstore-page.html");
+const appData = () => JSON.parse(/id="serialized-server-data">([\s\S]*?)<\/script>/.exec(appHtml)[1]);
+const asHtml = (data) => `<script id="serialized-server-data" type="application/json">${JSON.stringify(data)}</script>`;
+const edited = (change) => {
+  const data = appData();
+  change(data.data[0].data.shelfMapping, data.data[0]);
+  return asHtml(data);
+};
+const parsedApp = parseAppPage(appHtml);
+assert.deepEqual(parsedApp, {
+  name: "Fixture App",
+  storefront: "kr",
+  average: 3.6,
+  total: 1000,
+  stars: [560, 70, 40, 20, 310],
+  reviews: [
+    { date: "2026-04-06", rating: 5, title: "Shown first", summary: "An older review that Apple put on top." },
+    { date: "2026-10-28", rating: 5, title: "The newest one", summary: "Five stars so this gets read." },
+  ],
+});
+const appFetch = (body, opened = []) => async (url) => {
+  opened.push(url);
+  return typeof body === "function" ? body(url) : { status: 200, ok: true, headers: new Headers(), text: async () => body };
+};
+const opened = [];
+const app = await fetchCandidates("appstore", { app_id: 1000000001 }, { get: appFetch(appHtml, opened) });
+assert.deepEqual(opened, ["https://apps.apple.com/kr/app/id1000000001?see-all=reviews"]);
+assert.ok(!JSON.stringify(app).includes("fixture-author"), "reviewer names are dropped");
+assert.equal(app.candidates.length, 1, "one source: reviews have no address of their own");
+assert.deepEqual({ ...app.candidates[0], meta: null }, {
+  url: "https://apps.apple.com/kr/app/id1000000001?see-all=reviews",
+  title: "Fixture App — App Store 리뷰",
+  published: "2026-10-28",
+  summary: "평균 3.6 · 1,000건 · 5점 56% · 4점 7% · 3점 4% · 2점 2% · 1점 31%",
+  via: "appstore",
+  type: "community",
+  channel: "reaction",
+  meta: null,
+});
+assert.deepEqual(app.candidates[0].meta.stars, { 5: 560, 4: 70, 3: 40, 2: 20, 1: 310 });
+const appLines = app.text.split("\n");
+assert.equal(appLines[0], "appstore · Fixture App · kr · 앱 id 1000000001");
+assert.equal(appLines[2], "  평균 3.6 · 1,000건 · 5점 56% · 4점 7% · 3점 4% · 2점 2% · 1점 31%", "the distribution comes before the reviews");
+assert.equal(appLines[3], "  노출 리뷰 2건: Apple이 고른 순서, 최신순 아님, 분포를 대표하지 않음");
+assert.equal(appLines[4], "  2026-04-06 · 5점 · Shown first · An older review that Apple put on top.", "Apple's order is kept");
+assert.match(app.text, /고른 것: ref source add \(type community, channel reaction\)/);
+assert.match(announced(), /커넥터 appstore: 평가 1,000건 · 노출 리뷰 2건 \(최신 2026-10-28\)/);
+
+// an unknown country is served another storefront with HTTP 200: the answer has to say which one it is
+const elsewhere = await fetchCandidates("appstore", { app_id: 1000000001, country: "uk" }, { get: appFetch(edited((_, page) => { page.intent.storefront = "us"; })) });
+assert.equal(elsewhere.candidates[0].url, "https://apps.apple.com/us/app/id1000000001?see-all=reviews");
+assert.match(elsewhere.text, /^appstore · Fixture App · us ·/);
+assert.match(elsewhere.text, /country "uk"는 없는 코드라 Apple이 us 스토어를 보여 줌/);
+
+// no ratings: a real 0, and a Mac app read without platform looks the same
+const noCounts = (shelves) => { shelves.productRatings.items[0].ratingCounts = [0, 0, 0, 0, 0]; shelves.productRatings.items[0].ratingAverage = 0; };
+const empty = await fetchCandidates("appstore", { app_id: 1 }, { get: appFetch(edited((shelves) => { noCounts(shelves); delete shelves.allProductReviews; })) });
+assert.deepEqual(empty.candidates, []);
+assert.match(empty.text, /평가와 리뷰가 없음/);
+assert.match(empty.text, /0건은 없다는 증거가 아님/);
+const macMisread = await fetchCandidates("appstore", { app_id: 1 }, { get: appFetch(edited(noCounts)) });
+assert.equal(macMisread.candidates[0].summary, null, "no invented average");
+assert.equal(macMisread.candidates[0].meta.average, null);
+assert.match(macMisread.text, /platform "mac"으로 다시 질의/);
+const macOpened = [];
+const mac = await fetchCandidates("appstore", { app_id: 1, platform: "mac" }, { get: appFetch(appHtml, macOpened) });
+assert.deepEqual(macOpened, ["https://apps.apple.com/kr/app/id1?see-all=reviews&platform=mac"]);
+assert.equal(mac.candidates[0].title, "Fixture App — Mac App Store 리뷰");
+const ratingsOnly = await fetchCandidates("appstore", { app_id: 1 }, { get: appFetch(edited((shelves) => { delete shelves.allProductReviews; })) });
+assert.equal(ratingsOnly.candidates[0].published, null, "no date is invented");
+assert.match(ratingsOnly.text, /미상 · Fixture App/);
+assert.match(ratingsOnly.text, /노출 리뷰 없음/);
+
+// a changed page is an error, never an empty answer
+for (const [what, html] of Object.entries({
+  "no data": "<html></html>",
+  "not json": '<script id="serialized-server-data">{</script>',
+  "no ratings shelf": edited((shelves) => { delete shelves.productRatings; }),
+  "short counts": edited((shelves) => { shelves.productRatings.items[0].ratingCounts = [1, 2]; }),
+  "reversed counts": edited((shelves) => { shelves.productRatings.items[0].ratingCounts.reverse(); }),
+  "no average": edited((shelves) => { delete shelves.productRatings.items[0].ratingAverage; }),
+  "no storefront": edited((_, page) => { delete page.intent; }),
+  "renamed reviews": edited((shelves) => { for (const item of shelves.allProductReviews.items) delete item.review; }),
+})) {
+  await rejects(fetchCandidates("appstore", { app_id: 1 }, { get: appFetch(html) }), /응답 구조가 바뀜/, what);
+}
+await rejects(fetchCandidates("appstore", { app_id: 1 }, { get: appFetch(async () => ({ status: 404, ok: false, headers: new Headers() })) }), /이 스토어에서 앱을 찾지 못함/);
+assert.match(announced(), /커넥터 appstore 건너뜀: 이 스토어에서 앱을 찾지 못함\. 조사는 계속됨/);
+
+// a name goes through the documented search API, and the other matches stay in view
+const itunes = (results) => {
+  const seen = [];
+  const get = async (url) => {
+    seen.push(url);
+    return url.includes("itunes.apple.com") ? { status: 200, ok: true, headers: new Headers(), json: async () => ({ resultCount: results.length, results }) } : { status: 200, ok: true, headers: new Headers(), text: async () => appHtml };
+  };
+  return { get, seen };
+};
+const byName = itunes([{ trackId: 111, trackName: "Second  one" }, { trackId: 222, trackName: "네이버지도 - 장소" }]);
+const named = await fetchCandidates("appstore", { app: "네이버 지도" }, { get: byName.get });
+assert.deepEqual(Object.fromEntries(new URL(byName.seen[0]).searchParams), { term: "네이버 지도", entity: "software", country: "kr", limit: "6" });
+assert.equal(byName.seen[1], "https://apps.apple.com/kr/app/id222?see-all=reviews", "the name decides, not the search rank");
+assert.match(named.text, /다른 앱이면 app_id로 다시 질의: Second one \(111\)/);
+const byMac = itunes([{ trackId: 111, trackName: "Slack phone", kind: "software" }, { trackId: 333, trackName: "SLACK for Desktop", kind: "mac-software" }]);
+await fetchCandidates("appstore", { app: "Slack", platform: "mac" }, { get: byMac.get });
+assert.equal(new URL(byMac.seen[0]).searchParams.get("entity"), "macSoftware");
+assert.equal(byMac.seen[1], "https://apps.apple.com/kr/app/id333?see-all=reviews&platform=mac", "a Mac search can return phone apps");
+const nothing = await fetchCandidates("appstore", { app: "없는 앱" }, { get: itunes([]).get });
+assert.deepEqual(nothing.candidates, []);
+assert.match(nothing.text, /이름이 맞는 앱 0건/);
+assert.match(nothing.text, /앱 이름을 바꾸거나 app_id로 다시 질의/);
+const wrongApp = itunes([{ trackId: 444, trackName: "KakaoTalk", kind: "mac-software" }, { trackId: 555, trackName: "DevCleaner for Xcode", kind: "mac-software" }]);
+const refused = await fetchCandidates("appstore", { app: "Xcode", platform: "mac" }, { get: wrongApp.get });
+assert.deepEqual(refused.candidates, [], "another app's ratings are never returned under this name");
+assert.equal(wrongApp.seen.length, 1, "no page is read");
+assert.match(refused.text, /이 중에 있으면 app_id로 다시 질의: KakaoTalk \(444\) · DevCleaner for Xcode \(555\)/);
+await rejects(fetchCandidates("appstore", { app: "x" }, { get: respond({ error: "x" }) }), /응답 구조가 바뀜/);
+for (const [input, message] of [[{}, /needs app/], [{ app_id: "id123" }, /must be a number/], [{ app: "x", country: "korea" }, /two-letter/], [{ app: "x", platform: "android" }, /platform/]]) await rejects(fetchCandidates("appstore", input), message);
+
+// the store page is the product's own, so it counts as primary; written reviews are reactions
+assert.equal(channelOf({ type: "store" }), "primary");
+assert.equal(channelOf({ type: "community" }), "reaction");
+assert.equal(channelOf({ type: "store", channel: "reaction" }), "reaction", "an old source keeps what was set on it");
 
 console.log("connectors ok");

@@ -312,12 +312,118 @@ async function speakerdeckRun(o, http) {
 
 const speakerdeckLine = (c) => [`${c.published ?? "미상"} · ${c.meta.slides}쪽 · ${c.title ?? "(제목 없음)"} · ${c.url}`, ...(c.summary ? [`  ${c.summary}`] : [])];
 
+// ---------- App Store ----------
+
+const ITUNES_SEARCH = "https://itunes.apple.com/search";
+const APP_HOST = "https://apps.apple.com";
+const STAR_LEVELS = [5, 4, 3, 2, 1];
+
+/** robots.txt disallows the review RSS, so this reads the app page. A Mac app's page shows an empty distribution unless it is asked for platform=mac. */
+function appstoreInput(params) {
+  const app = oneLine(params.app) || null;
+  const appId = params.app_id === undefined ? null : String(params.app_id);
+  if (!app && !appId) bad("appstore needs app or app_id");
+  if (appId && !/^\d+$/.test(appId)) bad("app_id must be a number");
+  const country = String(params.country ?? "kr").toLowerCase();
+  if (!/^[a-z]{2}$/.test(country)) bad("country must be a two-letter code");
+  const platform = params.platform ?? "ios";
+  if (!["ios", "mac"].includes(platform)) bad('platform must be "ios" or "mac"');
+  return { app, appId, country, platform };
+}
+
+const appPageUrl = (id, country, platform) => `${APP_HOST}/${country}/app/id${id}?see-all=reviews${platform === "mac" ? "&platform=mac" : ""}`;
+
+const appstoreError = (res) => (res.status === 404 ? { reason: "이 스토어에서 앱을 찾지 못함", detail: " (app_id · country 확인)" } : null);
+
+/**
+ * Nothing states that ratingCounts runs from 5 stars to 1, so the average is recomputed: reversed counts would read as the opposite reaction.
+ * Reviewer names sit in the same objects and are not read. Apple serves another storefront for an unknown country with HTTP 200, so the storefront comes from the page.
+ */
+export function parseAppPage(html) {
+  const changed = (what) => giveUp("appstore", "응답 구조가 바뀜", ` (${what})`);
+  const body = /<script[^>]+id="serialized-server-data"[^>]*>([\s\S]*?)<\/script>/.exec(String(html))?.[1];
+  let page;
+  try {
+    page = JSON.parse(body).data?.[0];
+  } catch {
+    changed("serialized-server-data 없음");
+  }
+  const storefront = page?.intent?.storefront;
+  const name = oneLine(page?.data?.title);
+  const shelves = page?.data?.shelfMapping;
+  const rating = shelves?.productRatings?.items?.[0];
+  const counts = rating?.ratingCounts;
+  if (!storefront || !name) changed("storefront · title 없음");
+  if (!Array.isArray(counts) || counts.length !== STAR_LEVELS.length || !counts.every(Number.isFinite)) changed("ratingCounts 없음");
+  const stars = counts.map(Math.round);
+  const total = stars.reduce((sum, n) => sum + n, 0);
+  const mean = stars.reduce((sum, n, i) => sum + n * STAR_LEVELS[i], 0) / total;
+  if (total && !(Math.abs(mean - rating.ratingAverage) <= 0.1)) changed("평균이 분포와 맞지 않음");
+  const shelf = shelves.allProductReviews?.items ?? [];
+  const reviews = shelf.flatMap((item) => (item?.review?.date ? [{ date: isoDate(item.review.date), rating: item.review.rating ?? null, title: oneLine(item.review.title) || null, summary: excerpt(item.review.contents) }] : []));
+  if (shelf.length && !reviews.length) changed("review 없음");
+  return { name, storefront, average: total ? rating.ratingAverage : null, total, stars, reviews };
+}
+
+/** The search ranks loosely: "Xcode" on Mac returns KakaoTalk first. A store title has to start with the name, or nothing is read and the agent picks an id. */
+async function findApp(o, http) {
+  const query = new URLSearchParams({ term: o.app, entity: o.platform === "mac" ? "macSoftware" : "software", country: o.country, limit: "6" });
+  const { results } = (await http.json(`${ITUNES_SEARCH}?${query}`)).data;
+  if (!Array.isArray(results)) giveUp("appstore", "응답 구조가 바뀜", " (results 없음)");
+  const apps = results.filter((r) => r.trackId && (o.platform === "ios" || r.kind === "mac-software"));
+  const plain = (s) => oneLine(s).toLowerCase().replace(/\s/g, "");
+  const match = apps.find((r) => plain(r.trackName).startsWith(plain(o.app)));
+  return { id: match ? String(match.trackId) : null, others: apps.filter((r) => r !== match).slice(0, 3) };
+}
+
+const comma = (n) => n.toLocaleString("en-US");
+const appList = (apps) => apps.map((r) => `${oneLine(r.trackName)} (${r.trackId})`).join(" · ");
+
+async function appstoreRun(o, http) {
+  const { id, others } = o.appId ? { id: o.appId, others: [] } : await findApp(o, http);
+  if (!id) return { head: `appstore · "${o.app}" · ${o.country} · 이름이 맞는 앱 0건`, candidates: [], hint: others.length ? `이 중에 있으면 app_id로 다시 질의: ${appList(others)}` : "앱 이름을 바꾸거나 app_id로 다시 질의" };
+  const { name, storefront, average, total, stars, reviews } = parseAppPage((await http.text(appPageUrl(id, o.country, o.platform), { explain: appstoreError })).data);
+  const share = (n) => Math.round((n / total) * 100);
+  const candidates = total || reviews.length
+    ? [{
+        url: appPageUrl(id, storefront, o.platform),
+        title: `${name} — ${o.platform === "mac" ? "Mac App Store" : "App Store"} 리뷰`,
+        published: reviews.map((r) => r.date).filter(Boolean).sort().at(-1) ?? null,
+        summary: total ? `평균 ${average} · ${comma(total)}건 · ${STAR_LEVELS.map((s, i) => `${s}점 ${share(stars[i])}%`).join(" · ")}` : null,
+        via: "appstore",
+        type: "community",
+        channel: "reaction",
+        meta: { app_id: id, country: storefront, average, ratings: total, stars: Object.fromEntries(STAR_LEVELS.map((s, i) => [s, stars[i]])), reviews },
+      }]
+    : [];
+  const hints = [
+    storefront !== o.country && `country "${o.country}"는 없는 코드라 Apple이 ${storefront} 스토어를 보여 줌. ISO 국가 코드로 다시 질의`,
+    !candidates.length && "이 스토어에 평가와 리뷰가 없음. 다른 country로 다시 질의",
+    !total && o.platform === "ios" && 'Mac 앱이면 platform "mac"으로 다시 질의. Mac 앱의 평점은 이때만 나옴',
+    others.length > 0 && `다른 앱이면 app_id로 다시 질의: ${appList(others)}`,
+  ].filter(Boolean);
+  return {
+    head: `appstore · ${name} · ${storefront} · 앱 id ${id}`,
+    candidates,
+    hint: hints.join("\n") || null,
+    brief: candidates.length ? `평가 ${comma(total)}건 · 노출 리뷰 ${reviews.length}건` : null,
+  };
+}
+
+const appstoreLine = (c) => [
+  `${c.published ?? "미상"} · ${c.title} · ${c.url}`,
+  ...(c.summary ? [`  ${c.summary}`] : []),
+  c.meta.reviews.length ? `  노출 리뷰 ${c.meta.reviews.length}건: Apple이 고른 순서, 최신순 아님, 분포를 대표하지 않음` : "  노출 리뷰 없음",
+  ...c.meta.reviews.map((r) => `  ${r.date ?? "미상"} · ${r.rating}점 · ${r.title ?? "(제목 없음)"}${r.summary ? ` · ${r.summary}` : ""}`),
+];
+
 // ---------- registry ----------
 
 const CONNECTORS = {
   hn: { channel: "reaction", type: "community", key: null, about: "Hacker News 최신순 검색. 영어 질의. {q, match, since_days, min_points, tags, limit}", input: hnInput, run: hnRun, line: hnLine },
   github: { channel: "rationale", type: "official", key: "토큰 선택 (GITHUB_TOKEN · GH_TOKEN)", about: "GitHub 릴리스 노트. '왜'의 공식 근거, 사실 근거로 쓰면 channel primary. {repo, q, limit, include_prerelease}", input: githubInput, run: githubRun, line: githubLine },
   speakerdeck: { channel: "primary", type: "capture", key: null, next: "ref capture", about: "회사·발표자 계정의 최신 덱. 좋은 덱을 찾은 뒤 가지치기용. 요청 1 + N회. {account | url, since_days, limit}", input: speakerdeckInput, run: speakerdeckRun, line: speakerdeckLine },
+  appstore: { channel: "reaction", type: "community", key: null, about: "App Store 평점 분포와 노출 리뷰. 최신 리뷰는 못 얻음. 노출 리뷰만으로 결론 금지. {app | app_id, country, platform}", input: appstoreInput, run: appstoreRun, line: appstoreLine },
 };
 
 export const connectorNames = Object.keys(CONNECTORS);
@@ -338,9 +444,9 @@ export async function fetchCandidates(name, params = {}, { get = httpGet, pause 
     await announce(`커넥터 ${name} 건너뜀: ${e.reason ?? e.message}. 조사는 계속됨`);
     bad(`${e.message}. 없다는 증거가 아님, WebSearch로 대체`);
   }
-  const { head, candidates, hint } = result;
+  const { head, candidates, hint, brief } = result;
   const newest = candidates.find((x) => x.published)?.published;
-  await announce(`커넥터 ${name}: ${candidates.length}건${newest ? ` (최신 ${newest})` : ""}`);
+  await announce(`커넥터 ${name}: ${brief ?? `${candidates.length}건`}${newest ? ` (최신 ${newest})` : ""}`);
   const add = c.next ?? `ref source add (type ${c.type}, channel ${c.channel})`;
   const next = candidates.length ? `고른 것: ${add} · ref run round의 후보와 질의에 via "${name}"` : "0건은 없다는 증거가 아님";
   return { candidates, text: [head, ...candidates.flatMap(c.line), next, ...(hint ? [hint] : [])].join("\n") };

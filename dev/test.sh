@@ -30,6 +30,7 @@ node "$ROOT/dev/test-connectors.mjs"
 "$R" fetch list | grep -q '^hn'
 "$R" fetch list | grep -q '^github'
 "$R" fetch list | grep -q '^speakerdeck'
+"$R" fetch list | grep -q '^appstore'
 library_hash() { (cd "$REF_LIBRARY" && find . -path ./.git -prune -o -type f -print0 | sort -z | xargs -0 shasum | shasum); }
 before="$(library_hash)"
 "$R" fetch hn '{"q":"design system","limit":3}' | head -2 || echo "(hn unreachable: read-only check still runs)"

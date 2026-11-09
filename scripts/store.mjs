@@ -51,9 +51,9 @@ export const CRED_SCORE = { A: 3, B: 2, C: 1, D: 0 };
 export const CHANNELS = ["primary", "interpretation", "reaction", "rationale"];
 export const CHANNEL_KO = { primary: "1차", interpretation: "해석", reaction: "반응", rationale: "이유" };
 const TYPE_CHANNEL = {
-  official: "primary", docs: "primary", repo: "primary", paper: "primary", framework: "primary", capture: "primary",
+  official: "primary", docs: "primary", store: "primary", repo: "primary", paper: "primary", framework: "primary", capture: "primary",
   report: "interpretation", press: "interpretation", blog: "interpretation", listicle: "interpretation",
-  store: "reaction", community: "reaction", survey: "reaction", "job-posting": "rationale",
+  community: "reaction", survey: "reaction", "job-posting": "rationale",
 };
 export const channelOf = (r) => r.channel ?? TYPE_CHANNEL[r.type] ?? null;
 

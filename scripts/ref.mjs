@@ -6,7 +6,7 @@
  *   ref capture '<json>' | -          capture URLs (Aside or headless Chrome) → refs (re-encounter: reuse + add category, refresh if stale)
  *   ref store   '<json>' | -          App Store / Mac App Store screens
  *   ref source add '<json>'           text-only refs (articles, docs, papers, threads)
- *   ref fetch <connector> '<json>' [--json] | list   read-only candidates, newest first; writes nothing to the library (hn: {q, match, since_days, min_points, tags, limit} · github: {repo, q, limit, include_prerelease} · speakerdeck: {account | url, since_days, limit})
+ *   ref fetch <connector> '<json>' [--json] | list   read-only candidates, newest first; writes nothing to the library (hn: {q, match, since_days, min_points, tags, limit} · github: {repo, q, limit, include_prerelease} · speakerdeck: {account | url, since_days, limit} · appstore: {app | app_id, country, platform})
  *   ref collect '<json>'              add existing refs to a collection (= add a category)
  *   ref uncollect <collection> <S#>
  *   ref note '<json>'                 note on a ref (attributed to the collection) or on the collection; "fields":{feature,structure,copy,visual,ui,context,why,why_basis,alternatives,result,implication,adopt,avoid}

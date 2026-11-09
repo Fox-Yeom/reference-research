@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""AI 커밋 메시지 검증기 (git commit-msg 훅). 규칙 설명은 docs/02-commit.md."""
+import os
+import re
+import subprocess
+import sys
+import unicodedata
+
+TYPES = ("feat", "fix", "docs", "style", "refactor", "test", "chore", "init")
+WHY_REQUIRED = ("feat", "fix")
+MAX_WIDTH = 72
+MARKER = ".commit-convention"
+
+HEADER = re.compile(rf"^({'|'.join(TYPES)})(\([a-z0-9_-]+\))?!?: (\S.*)$")
+TASK_BRANCH = re.compile(rf"^({'|'.join(TYPES + ('hotfix',))})/([0-9]+)(-[a-z0-9]+)+$")
+REFS = re.compile(r"^Refs: #([0-9]+)$")
+AUTO_GENERATED = re.compile(r'^(Merge |Revert "|Reapply "|fixup! |squash! |amend! )')
+SENTENCE_ENDING = re.compile(r"(니다|했음|됐음|했다|됐다|한다|된다|(?<!포)함|됨)$")
+AI_ATTRIBUTION = re.compile(
+    r"co-authored-by:.*(claude|anthropic)|generated with.*claude|^claude-session:",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+GUIDE = f"""
+형식:
+  <type>(<scope>): <한글 요약>
+
+  왜: <변경 이유>
+
+  Refs: #123
+
+type: {' '.join(TYPES)}  (feat·fix는 `왜:` 필수)
+요약: 명사형으로 끝낸다(추가, 수정, 해결). 마침표 금지.
+폭: 모든 줄 {MAX_WIDTH}칸 이내(한글 2칸, 영문 1칸).
+참조: {MARKER}가 커밋된 저장소의 <type>/<번호>-<slug> 브랜치는 `Refs: #<번호>` 필수.
+
+메시지를 고쳐 다시 커밋한다. --no-verify로 우회하지 않는다."""
+
+
+def display_width(text):
+    return sum(2 if unicodedata.east_asian_width(c) in "WF" else 1 for c in text)
+
+
+def current_branch():
+    """현재 브랜치 이름. rebase와 detached HEAD에서는 빈 문자열이다."""
+    result = subprocess.run(
+        ["git", "branch", "--show-current"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    return result.stdout.strip()
+
+
+def check(message, branch=""):
+    """위반 내용 목록을 돌려준다. 빈 목록이면 통과."""
+    message = unicodedata.normalize("NFC", message)  # macOS NFD 한글 대응
+    lines = [line.rstrip() for line in message.splitlines() if not line.startswith("#")]
+    while lines and not lines[-1]:
+        lines.pop()
+    while lines and not lines[0]:
+        lines.pop(0)
+    if not lines or AUTO_GENERATED.match(lines[0]):
+        return []
+
+    errors = []
+    header, body = lines[0], lines[2:]
+    match = HEADER.match(header)
+
+    if match:
+        commit_type, _, subject = match.groups()
+        if not re.search(r"[가-힣]", subject):
+            errors.append("요약에 한글이 없음")
+        if subject.endswith("."):
+            errors.append("요약 끝에 마침표 사용")
+        if SENTENCE_ENDING.search(subject):
+            errors.append("요약이 서술형으로 끝남 (명사형으로: 추가, 수정, 해결)")
+        if commit_type in WHY_REQUIRED and not any(
+            line.startswith("왜: ") for line in body
+        ):
+            errors.append(f"{commit_type}에 `왜: <이유>` 줄 없음")
+    else:
+        errors.append(f"제목 형식 불일치: {header!r}")
+
+    if display_width(header) > MAX_WIDTH:
+        errors.append(f"제목 폭 {display_width(header)}칸 ({MAX_WIDTH}칸 초과)")
+    if len(lines) > 1 and lines[1]:
+        errors.append("제목 다음 줄은 비워야 함")
+    for line in body:
+        if display_width(line) > MAX_WIDTH and "://" not in line:
+            errors.append(f"본문 줄 폭 {MAX_WIDTH}칸 초과: {line[:30]}...")
+    task_branch = TASK_BRANCH.match(branch)
+    if task_branch:
+        number = task_branch.group(2)
+        refs = [m.group(1) for m in map(REFS.match, body) if m]
+        if number not in refs:
+            errors.append(f"`Refs: #{number}` 줄 없음 (브랜치 {branch})")
+    if AI_ATTRIBUTION.search("\n".join(lines)):
+        errors.append("AI 작성 표기 금지 (Co-Authored-By: Claude 등)")
+    return errors
+
+
+def is_adopted():
+    """전역 훅이 컨벤션을 쓰지 않는 저장소를 막지 않게 표식으로 판정한다.
+
+    로컬 설정은 clone에 복사되지 않으므로 커밋된 파일을 본다. index가 아니라
+    HEAD를 봐야 표식을 지우는 커밋도 검사하고 커밋 전 표식은 인정하지 않는다.
+    """
+    result = subprocess.run(
+        ["git", "cat-file", "-t", f"HEAD:{MARKER}"],
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip() == "blob"
+
+
+def is_enforced():
+    """AI 커밋만 검사한다. 저장소별 해제: git config commitlint.skip true"""
+    if not (os.environ.get("CLAUDECODE") or os.environ.get("COMMIT_LINT_STRICT")):
+        return False
+    skip = subprocess.run(
+        ["git", "config", "--type=bool", "--get", "commitlint.skip"],
+        capture_output=True,
+        text=True,
+    )
+    return skip.stdout.strip() != "true"
+
+
+def main():
+    if not is_enforced():
+        return 0
+    sys.stderr.reconfigure(encoding="utf-8")
+    with open(sys.argv[1], encoding="utf-8", errors="replace") as message_file:
+        branch = current_branch() if is_adopted() else ""
+        errors = check(message_file.read(), branch)
+    if not errors:
+        return 0
+    print("[commit-msg] 커밋 거부:", file=sys.stderr)
+    for error in errors:
+        print(f"  - {error}", file=sys.stderr)
+    print(GUIDE, file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

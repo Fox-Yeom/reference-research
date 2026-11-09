@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PR 검증기. GitHub Actions의 pull_request 이벤트에서 실행한다.
+"""PR 검증기. GitHub Actions의 pull_request_target 이벤트에서 통합 브랜치 판으로 실행한다.
 
 규칙 설명은 docs/03-pull-request.md. 브랜치 이름과 PR 본문은 신뢰할 수 없는 입력이므로
 셸을 거치지 않고 이벤트 파일에서 읽는다.
@@ -133,7 +133,7 @@ def run(rules, event, deploy, integration):
         return ["이력이 잘려 있어 판정할 수 없음. 워크플로에 fetch-depth: 0이 필요함"], [], None
     unreadable = [rev for rev in (base, head) if git("cat-file", "-e", f"{rev}^{{commit}}").returncode]
     if unreadable:  # 미도입으로 처리하면 설정이 틀린 저장소의 검사가 조용히 꺼진다.
-        return [f"커밋을 읽을 수 없음: {rev}. 워크플로의 fetch-depth를 확인" for rev in unreadable], [], None
+        return [f"커밋을 읽을 수 없음: {rev}. 워크플로의 fetch-depth와 PR head fetch 단계를 확인" for rev in unreadable], [], None
     # 대상 브랜치로 판정해야 표식 전에 분기한 브랜치도 검사한다.
     if not has_marker(rules, base):
         return [], [], "도입 저장소가 아님"

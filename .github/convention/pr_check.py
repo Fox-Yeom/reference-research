@@ -18,8 +18,13 @@ COMMON = ("업무", "변경 목적", "영향 범위", "검증 결과", "위험�
 PROMOTION = ("포함 PR", "변경 목적", "영향 범위", "검증 결과", "위험도", "롤백 방안", "승인")
 REMOVAL_LABEL = "marker-removal-approved"
 
-HEADING = re.compile(r"^##\s+(.+?)\s*$")
-COMMENT = re.compile(r"<!--.*?-->", re.S)
+# GitHub 렌더링과 같게 1~3칸 들여쓴 제목도 칸으로 친다. 4칸부터는 코드 블록이다.
+HEADING = re.compile(r"^ {0,3}##\s+(.+?)\s*$")
+FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+# 칸을 채운 것으로 치지 않는 줄: 목록 기호와 체크박스를 뗀 나머지가 비었거나 `<안내문>` 하나뿐인 줄.
+BULLET = re.compile(r"^(?:[-*+]|\d+[.)])(?:\s+\[[ xX]?\])?(?:\s+|$)")
+PLACEHOLDER = re.compile(r"^<[^<>]*>$")
+HTML_TAG = re.compile(r"^</?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?/?>$")  # `<br>`, `<img …>`, `<details>`는 안내문이 아니다.
 EMPTY_MESSAGE = "(빈 메시지)"
 
 
@@ -43,23 +48,86 @@ def has_marker(rules, rev):
     return git("cat-file", "-t", f"{rev}:{rules.MARKER}").stdout.strip() == "blob"
 
 
+def strip_comments(text):
+    """`<!-- -->`를 지운다. 본문 길이에 비례해 끝난다.
+
+    닫히지 않은 `<!--`가 줄 맨 앞(0~3칸)에 있으면 GitHub처럼 본문 끝까지 숨기고, 줄 중간이면 글자로 남긴다.
+    """
+    parts, position = [], 0
+    while True:
+        start = text.find("<!--", position)
+        end = text.find("-->", start + 4) if start >= 0 else -1
+        if end < 0:
+            line_start = text.rfind("\n", 0, start) + 1 if start >= 0 else -1
+            if start >= 0 and len(text[line_start:start]) <= 3 and not text[line_start:start].strip(" "):
+                parts.append(text[position:start])
+            else:
+                parts.append(text[position:])
+            return "".join(parts)
+        parts.append(text[position:start])
+        position = end + 3
+
+
+def fence_open(line):
+    """코드 펜스를 여는 줄이면 (문자, 길이)를 돌려준다. 백틱 펜스의 정보 문자열에는 백틱이 없어야 한다."""
+    match = FENCE.match(line)
+    if not match or (match.group(1)[0] == "`" and "`" in match.group(2)):
+        return None
+    return match.group(1)[0], len(match.group(1))
+
+
+def fence_closes(line, fence):
+    match = FENCE.match(line)
+    return bool(match) and not match.group(2).strip() and match.group(1)[0] == fence[0] and len(match.group(1)) >= fence[1]
+
+
 def sections(body):
-    """`## 제목` 아래 내용을 제목별로 돌려준다. 주석은 내용으로 치지 않는다."""
-    found, current = {}, None
-    text = COMMENT.sub("", unicodedata.normalize("NFC", body or ""))
+    """`## 제목` 아래 내용을 제목별로 돌려준다. 주석은 내용으로 치지 않고, 코드 펜스 안의 줄은 제목으로 치지 않는다."""
+    found, current, fence = {}, None, None
+    text = strip_comments(unicodedata.normalize("NFC", body or ""))
     for line in text.splitlines():
-        heading = HEADING.match(line)
-        if heading:
-            current = heading.group(1)
-            found.setdefault(current, "")
-        elif current:
+        if fence:
+            if fence_closes(line, fence):
+                fence = None
+        elif opened := fence_open(line):
+            fence = opened
+        else:
+            heading = HEADING.match(line)
+            if heading:
+                current = heading.group(1)
+                found.setdefault(current, "")
+                continue
+        if current:
             found[current] += line + "\n"
     return found
 
 
+def is_placeholder(text):
+    return bool(PLACEHOLDER.match(text)) and not HTML_TAG.match(text) and "://" not in text and "@" not in text
+
+
+def has_content(text):
+    """안내문, 목록 기호, 빈 체크박스, 코드 펜스 경계만 있는 칸은 비어 있다. 펜스 안의 줄은 그대로 내용이다."""
+    fence = None
+    for line in text.splitlines():
+        if fence:
+            if fence_closes(line, fence):
+                fence = None
+            elif line.strip():
+                return True
+            continue
+        if opened := fence_open(line):
+            fence = opened
+            continue
+        rest = BULLET.sub("", line.strip(), count=1).strip()
+        if rest and not is_placeholder(rest):
+            return True
+    return False
+
+
 def check_body(body, required):
     found = sections(body)
-    empty = [name for name in required if not found.get(name, "").strip()]
+    empty = [name for name in required if not has_content(found.get(name, ""))]
     return [f"본문 칸이 비어 있음: {name}" for name in empty]
 
 
@@ -92,25 +160,34 @@ def commits(base, head):
     return found
 
 
-def as_recorded(message, parents):
+def as_recorded(message):
     """check()는 작성 중인 메시지를 전제하므로 확정된 메시지에 맞게 고친다.
 
-    확정된 메시지의 `#` 줄은 주석이 아니고, 부모가 1개인 `Merge`는 git이 만든 메시지가
-    아니다. 앞에 공백을 넣으면 주석 제거와 자동 메시지 제외를 피한다.
+    확정된 메시지의 `#` 줄은 주석이 아니다. 앞에 공백을 넣으면 주석 제거를 피한다.
     """
     message = re.sub(r"^#", " #", message, flags=re.M)
-    if parents < 2 and message.startswith("Merge "):
-        message = " " + message
     return message if message.strip() else EMPTY_MESSAGE
 
 
+def is_revert(rules, message):
+    """`git revert`는 훅을 거치지 않으므로 사람이 만든 되돌리기 커밋은 형식과 `Refs`를 검사하지 않는다."""
+    return bool(rules.GENERATED["revert"].match(message))
+
+
 def check_commits(rules, base, head, branch):
-    """브랜치를 넣어야만 나오는 위반이 `Refs`이고 나머지는 형식 위반이다."""
+    """브랜치를 넣어야만 나오는 위반이 `Refs`이고 나머지는 형식 위반이다.
+
+    부모가 2개 이상일 때만 git이 만든 merge 메시지로 본다. `fixup!` 같은 접두어는 인정하지 않는다(05 Rework).
+    """
     errors, warnings = [], []
     for sha, parents, raw in commits(base, head):
-        message = as_recorded(raw, parents)
-        form = rules.check(message)
-        errors += [f"{sha[:7]}: {e}" for e in rules.check(message, branch) if e not in form]
+        if is_revert(rules, raw):
+            if rules.AI_ATTRIBUTION.search(raw):
+                warnings.append(f"{sha[:7]}: AI 작성 표기 금지 (Co-Authored-By: Claude 등)")
+            continue
+        message, generated = as_recorded(raw), ("merge",) if parents >= 2 else ()
+        form = rules.check(message, "", generated)
+        errors += [f"{sha[:7]}: {e}" for e in rules.check(message, branch, generated) if e not in form]
         warnings += [f"{sha[:7]}: {w}" for w in form]
     return errors, warnings
 

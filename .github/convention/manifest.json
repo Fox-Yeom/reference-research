@@ -1,0 +1,7 @@
+{
+  "source": "https://github.com/Fox-Yeom/commit-convention",
+  "commit": "3211845a0ce0087ea88cb347103652bd89fdcd13",
+  "deploy": "main",
+  "integration": "develop",
+  "issue_check": false
+}

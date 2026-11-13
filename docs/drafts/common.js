@@ -133,5 +133,36 @@
     if (e.key === "ArrowLeft") e.shiftKey ? stepRef(-1) : step(-1);
   });
 
-  window.Draft = { D, B, H, esc, ref, claim, col, ctitle, claimsCiting, copy, openViewer, bindSearch, route, viewerHtml, trayHtml, renderTray, continuePrompt };
+  // --- theme: html[data-theme] light/dark, remembered per viewer when storage works
+  function theme(btn, fallback = "light") {
+    let t = fallback;
+    const key = "draft-theme:" + location.pathname.split("/").pop();
+    try { t = localStorage.getItem(key) || fallback; } catch {}
+    const set = (v) => { document.documentElement.dataset.theme = v; btn?.setAttribute("aria-pressed", v === "dark"); if (btn) btn.textContent = v === "dark" ? "밝게" : "어둡게"; };
+    set(t);
+    btn?.addEventListener("click", () => { t = t === "dark" ? "light" : "dark"; set(t); try { localStorage.setItem(key, t); } catch {} });
+  }
+  // --- FLIP: reorder or filter children, then animate each from where it was (skipped under reduced motion)
+  function flip(box, mutate) {
+    const kids = [...box.children], before = new Map(kids.map((k) => [k, k.getBoundingClientRect()]));
+    mutate();
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    kids.forEach((k) => { const a = before.get(k), b = k.getBoundingClientRect(); if (!b.height) return; const dy = a.top - b.top, dx = a.left - b.left; if (dx || dy) k.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: "none" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }); });
+  }
+  // --- days between two ISO dates, and a smooth path through values (for sparklines and timelines)
+  const day = (iso) => Math.round(Date.parse(iso + "T00:00:00Z") / 864e5);
+  function spark(values, w, h, pad = 2) {
+    const max = Math.max(...values, 1), step = (w - pad * 2) / Math.max(values.length - 1, 1);
+    const pts = values.map((v, i) => [pad + i * step, h - pad - (v / max) * (h - pad * 2)]);
+    const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    return { line, area: `${line} L${pts.at(-1)[0].toFixed(1)} ${h} L${pts[0][0].toFixed(1)} ${h} Z`, pts };
+  }
+  // weekly new findings across the home collections, oldest first (8 weeks ending at the board date)
+  function weekly(end = "2026-11-13", weeks = 8) {
+    const e = day(end), out = Array(weeks).fill(0);
+    H.collections.forEach((c) => (c.runsAt || []).forEach((d, i) => { const w = weeks - 1 - Math.floor((e - day(d)) / 7); if (w >= 0 && w < weeks) out[w] += c.newByRun[i]; }));
+    return out;
+  }
+
+  window.Draft = { theme, flip, day, spark, weekly, D, B, H, esc, ref, claim, col, ctitle, claimsCiting, copy, openViewer, bindSearch, route, viewerHtml, trayHtml, renderTray, continuePrompt };
 })();

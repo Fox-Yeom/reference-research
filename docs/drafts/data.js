@@ -552,6 +552,12 @@ window.DEMO = {
  "home": {
   "collections": [
    {
+    "runsAt": [
+     "2026-11-13"
+    ],
+    "newByRun": [
+     6
+    ],
     "id": "note-app-pricing",
     "title": "메모 앱 요금제 비교 (예시)",
     "domain": "디자인·기획",
@@ -572,6 +578,14 @@ window.DEMO = {
     "synthetic": false
    },
    {
+    "runsAt": [
+     "2026-11-03",
+     "2026-11-10"
+    ],
+    "newByRun": [
+     6,
+     3
+    ],
     "id": "weather-app-home",
     "title": "날씨 앱 첫 화면 비교",
     "domain": "디자인·기획",
@@ -586,6 +600,12 @@ window.DEMO = {
     "synthetic": true
    },
    {
+    "runsAt": [
+     "2026-11-06"
+    ],
+    "newByRun": [
+     7
+    ],
     "id": "photo-app-onboarding",
     "title": "사진 정리 앱 온보딩",
     "domain": "디자인·기획",
@@ -600,6 +620,16 @@ window.DEMO = {
     "synthetic": true
    },
    {
+    "runsAt": [
+     "2026-10-08",
+     "2026-10-18",
+     "2026-10-29"
+    ],
+    "newByRun": [
+     6,
+     5,
+     3
+    ],
     "id": "indie-app-revenue",
     "title": "1인 개발 앱 수익 모델 자료",
     "domain": "전략·비즈니스",
@@ -615,6 +645,14 @@ window.DEMO = {
     "mixed": true
    },
    {
+    "runsAt": [
+     "2026-10-14",
+     "2026-10-21"
+    ],
+    "newByRun": [
+     8,
+     3
+    ],
     "id": "memo-app-reviews",
     "title": "메모 앱 리뷰 불만 모음",
     "domain": "사용자 반응",

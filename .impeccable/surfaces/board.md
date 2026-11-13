@@ -26,3 +26,16 @@ OWN-WORLD: section hues (orange, yellow, green, teal, ultramarine, sienna; no vi
 FIRST VIEWPORT: command-first header (search and Claude prompts), leaf with conclusion, right-edge stepped tab rail.
 
 Declined challengers: character goods catalogue, labanotation, Emigre bitmap specimen, exposure record (lost both axes). Boarding pass and gate board: competitive (change state), kept as a raise in A.
+
+## Round 2 (maintainer feedback, 2026-11-13)
+
+Feedback: A's feel and layout and B's composition and shapes work; all three read too static. Reference the ponytail board (dark dashboard: KPI cards with sparklines, hover crosshair chart, toggleable legend chips, searchable table, activity heatmap, theme switch). Three more drafts mix interaction with legibility. Rule kept for all: state changes animate in 150-250 ms, nothing moves at rest, dimming never lowers text contrast (tone change instead of opacity).
+
+### D — live proof galley (A + B's line in the margin)
+A's galley and margin marks; evidence rows joined by a green line in the margin with a red dashed counter branch. Hovering a row lights the captures it cites in a sticky capture rail. KPI cards jump and filter; captures flip through frames on hover; claim sort and filters animate in place (FLIP). Home: sparkline KPIs, run-day calendar, collection-to-shared-reference rail that lights on hover. Light and dark.
+
+### E — metro dashboard (B + ponytail board)
+Dark by default. Sidebar of collections as coloured lines; KPI cards with sparklines and bars; one big card switching between the evidence line (stations open details) and pattern lines (hover a stop for its capture, legend chips hide lines); sortable claim table with strength pills; home timeline of collections on a date axis with a hover crosshair, period switch and legend toggles.
+
+### F — evidence map (node-link explorer)
+A's paper and margin marks for the detail panel, B's lines for edges. Columns question/answer, evidence, claims, captures; selecting a node lights its connected chain and recedes the rest by tone; arrow keys walk the columns. Home: topic, collection, shared pattern, shared reference columns.

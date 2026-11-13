@@ -573,7 +573,8 @@ function hexes() {
   ["일", "", "화", "", "목", "", "토"].forEach((t, i) => { if (t) s += `<text x="0" y="${16 + i * dy + 4}" font-size="11" fill="var(--faint)">${t}</text>`; });
   for (let i = 0; i < days; i++) {
     const d = start + i, slot = i + first, wk = Math.floor(slot / 7), wd = slot % 7, cx = pad + wk * dx + (wd % 2 ? dx / 2 : 0), cy = 16 + wd * dy, n = by[d + "n"] || 0;
-    const c = n >= 7 ? "#ffd75e" : n >= 5 ? "#ff6048" : n >= 1 ? "#6a4bc4" : "#18181c";
+    // one green ramp: brighter (and glowing) as more findings were recorded that day
+    const c = n >= 7 ? "#4fe3a5" : n >= 5 ? "#2fae78" : n >= 1 ? "#1f6a4c" : "#18181c";
     const pts = [0, 60, 120, 180, 240, 300].map((a) => `${(cx + R * Math.cos(((a + 30) * Math.PI) / 180)).toFixed(1)},${(cy + R * Math.sin(((a + 30) * Math.PI) / 180)).toFixed(1)}`).join(" ");
     s += `<polygon points="${pts}" fill="${c}" class="${n ? "on" : ""}" style="--c:${c}"><title>${new Date(d * 864e5).toISOString().slice(5, 10)} ${n ? esc(by[d].join(" / ")) : "회차 없음"}</title></polygon>`;
   }
@@ -588,7 +589,7 @@ function drawHome() {
 <div class="kpis" id="hk"></div>
 <section class="card" id="tl"><div class="cardh"><h2>조사 타임라인</h2><p>세로선이 마우스를 따라가며 그 주의 회차 표시, 칩으로 조사 숨김.</p></div><div class="dgwrap" id="tlw" style="position:relative"></div><div class="legend" id="tlleg"></div></section>
 <div class="grid2"><section class="card" id="list" data-group><div class="cardh"><h2>조사 목록<span>${C.length}</span></h2><div class="seg" role="group" aria-label="정렬">${[["date", "최근"], ["refs", "레퍼런스"], ["claims", "발견"]].map(([k, t]) => `<button type="button" data-ls="${k}" aria-pressed="${k === listSort}">${t}</button>`).join("")}</div></div><ul class="glist" id="glist"></ul></section>
-<section class="card" id="act"><div class="cardh"><h2>활동<span>12주</span></h2></div><div class="hex">${hexes()}</div><div class="hexleg">적음 <i style="--c:#18181c"></i><i style="--c:#6a4bc4"></i><i style="--c:#ff6048"></i><i style="--c:#ffd75e"></i> 많음</div>
+<section class="card" id="act"><div class="cardh"><h2>활동<span>12주</span></h2></div><div class="hex">${hexes()}</div><div class="hexleg">적음 <i style="--c:#18181c"></i><i style="--c:#1f6a4c"></i><i style="--c:#2fae78"></i><i style="--c:#4fe3a5"></i> 많음</div>
 <ul class="statl"><li>조사 일수<b>${days}</b></li><li>최근 조사<b>11.13</b></li><li>회차당 신규 발견<b>${(newSum / runs).toFixed(1)}</b></li></ul></section></div>
 <section class="card" id="shared"><div class="cardh"><h2>공유 레퍼런스<span>${H.shared.length}</span></h2><p>조사 목록의 줄에 마우스를 올리면 그 조사의 선이 밝아짐.</p></div><div class="dgwrap" id="shw">${sharedGraph()}</div></section>
 <div class="grid2"><section class="card" id="across" data-group><div class="cardh"><h2>교차 패턴<span>${H.patterns.length}</span></h2></div><ul class="glist">${H.patterns.map((p) => `<li data-search="${esc(p.label + " " + p.question)}" style="--c:${p.verdict ? "var(--n-green)" : "var(--n-orange)"}"><span class="t"><b>${esc(p.question)}</b>${p.verdict ? `<span class="pill good">결론 있음</span>` : `<span class="pill mid">결론 없음</span>`}</span><span class="m">${esc(p.label)}${p.verdict ? " · " + esc(p.verdict) : ""}</span><span class="m">${Object.entries(p.in).map(([k, n]) => `<span style="color:${HX[k]}">●</span> ${ctitle(k)} ${n}`).join(" · ")}</span><span class="gbar" style="width:${Object.values(p.in).reduce((a, b) => a + b, 0) * 8}%"></span></li>`).join("")}</ul></section>

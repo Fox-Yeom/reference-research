@@ -21,6 +21,9 @@ REMOVAL_LABEL = "marker-removal-approved"
 # GitHub 렌더링과 같게 1~3칸 들여쓴 제목도 칸으로 친다. 4칸부터는 코드 블록이다.
 HEADING = re.compile(r"^ {0,3}##\s+(.+?)\s*$")
 FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+# 목록 항목 안의 펜스는 항목이 끝나면 닫힌다. 항목 내용이 시작하는 칸을 잰다. 구분선(`- - -`)은 항목이 아니다.
+LIST_ITEM = re.compile(r"^( {0,3})([-*+]|\d{1,9}[.)])( +|$)")
+THEMATIC_BREAK = re.compile(r"^ {0,3}([-*_])(?: *\1){2,} *$")
 # 칸을 채운 것으로 치지 않는 줄: 목록 기호와 체크박스를 뗀 나머지가 비었거나 `<안내문>` 하나뿐인 줄.
 BULLET = re.compile(r"^(?:[-*+]|\d+[.)])(?:\s+\[[ xX]?\])?(?:\s+|$)")
 PLACEHOLDER = re.compile(r"^<[^<>]*>$")
@@ -48,24 +51,33 @@ def has_marker(rules, rev):
     return git("cat-file", "-t", f"{rev}:{rules.MARKER}").stdout.strip() == "blob"
 
 
-def strip_comments(text):
-    """`<!-- -->`를 지운다. 본문 길이에 비례해 끝난다.
+def strip_inline(line, closes_later):
+    """줄 중간의 주석을 지운다. 인라인 코드 안은 그대로 둔다. (보이는 글자, 다음 줄로 이어지는 주석이 열렸는지)를 돌려준다.
 
-    닫히지 않은 `<!--`가 줄 맨 앞(0~3칸)에 있으면 GitHub처럼 본문 끝까지 숨기고, 줄 중간이면 글자로 남긴다.
+    `<!-->`와 `<!--->`도 닫힌 주석이다(GitHub). 닫히지 않은 `<!--`는 뒤 줄에 `-->`가 없으면 글자로 남는다.
     """
-    parts, position = [], 0
+    parts, position, start, tick = [], 0, line.find("<!--"), line.find("`")
     while True:
-        start = text.find("<!--", position)
-        end = text.find("-->", start + 4) if start >= 0 else -1
-        if end < 0:
-            line_start = text.rfind("\n", 0, start) + 1 if start >= 0 else -1
-            if start >= 0 and len(text[line_start:start]) <= 3 and not text[line_start:start].strip(" "):
-                parts.append(text[position:start])
-            else:
-                parts.append(text[position:])
-            return "".join(parts)
-        parts.append(text[position:start])
-        position = end + 3
+        if 0 <= start < position:
+            start = line.find("<!--", position)
+        if 0 <= tick < position:
+            tick = line.find("`", position)
+        if 0 <= tick and (start < 0 or tick < start):
+            run = re.compile("`+").match(line, tick).end() - tick
+            close = re.compile(f"(?<!`)`{{{run}}}(?!`)").search(line, tick + run)
+            parts.append(line[position:close.end() if close else tick + run])
+            position = close.end() if close else tick + run
+            continue
+        end = line.find("-->", start + 2) if start >= 0 else -1
+        if end >= 0:
+            parts.append(line[position:start])
+            position = end + 3
+            continue
+        if start >= 0 and closes_later:
+            parts.append(line[position:start])
+            return "".join(parts), True
+        parts.append(line[position:])
+        return "".join(parts), False
 
 
 def fence_open(line):
@@ -81,25 +93,67 @@ def fence_closes(line, fence):
     return bool(match) and not match.group(2).strip() and match.group(1)[0] == fence[0] and len(match.group(1)) >= fence[1]
 
 
-def sections(body):
-    """`## 제목` 아래 내용을 제목별로 돌려준다. 주석은 내용으로 치지 않고, 코드 펜스 안의 줄은 제목으로 치지 않는다."""
-    found, current, fence = {}, None, None
-    text = strip_comments(unicodedata.normalize("NFC", body or ""))
-    for line in text.splitlines():
-        if fence:
+def parse(body):
+    """(`## 제목`별 내용, 닫히지 않아 본문 끝까지 숨긴 줄 맨 앞 `<!--`의 줄 번호)를 돌려준다.
+
+    GitHub 화면과 같게 주석은 내용으로 치지 않고, 코드 펜스 안의 줄과 줄 맨 앞 주석이 있는 줄은 제목으로 치지 않는다.
+    """
+    lines = unicodedata.normalize("NFC", body or "").splitlines()
+    # 줄마다 같은 문단의 뒤 줄에 `-->`가 있는지. 빈 줄에서 문단이 끝나면 줄 중간 주석도 닫히지 않는다. 본문 길이에 비례해 끝난다.
+    closes_later, later = [False] * len(lines), False
+    for index in range(len(lines) - 1, -1, -1):
+        closes_later[index], later = later, bool(lines[index].strip()) and (later or "-->" in lines[index])
+    found, current, fence, items, comment, hidden, paragraph = {}, None, None, [], False, None, False
+    for number, line in enumerate(lines, start=1):
+        indent, is_text = len(line) - len(line.lstrip(" ")), False
+        if comment:
+            end = line.find("-->")
+            if end < 0:
+                continue
+            rest, hidden = line[end + 3:], None
+        elif fence and not (line.strip() and indent < fence[2]):
             if fence_closes(line, fence):
                 fence = None
-        elif opened := fence_open(line):
-            fence = opened
+            if current:
+                found[current] += line + "\n"
+            continue
         else:
-            heading = HEADING.match(line)
-            if heading:
-                current = heading.group(1)
-                found.setdefault(current, "")
+            fence = None
+            if line.strip():
+                in_list = bool(items)
+                while items and indent < items[-1]:
+                    items.pop()
+                item = None if THEMATIC_BREAK.match(line) else LIST_ITEM.match(line)
+                # 문단 바로 다음 줄은 내용이 있는 `-`, `*`, `+`, `1.`만 새 목록을 연다(GitHub). `2. x`와 빈 `-`는 문단이다.
+                if item and (in_list or not paragraph or (line[item.end():].strip() and item.group(2)[:-1] in ("", "1"))):
+                    spaces = len(item.group(3))
+                    items.append(len(item.group(1)) + len(item.group(2)) + (spaces if 1 <= spaces <= 4 else 1))
+            if opened := fence_open(line):
+                fence, paragraph = (*opened, items[-1] if items else 0), False
+                if current:
+                    found[current] += line + "\n"
                 continue
-        if current:
-            found[current] += line + "\n"
-    return found
+            if indent <= 3 and line[indent:].startswith("<!--"):  # GitHub의 HTML 블록. 이 줄은 제목이 아니다.
+                end = line.find("-->", indent + 2)
+                if end < 0:
+                    comment, hidden, paragraph = True, (number, current), False
+                    continue
+                rest = line[end + 3:]
+            else:
+                rest, is_text = line, True
+        visible, comment = strip_inline(rest, closes_later[number - 1])
+        heading = is_text and HEADING.match(visible)
+        paragraph = is_text and not heading and bool(visible.strip())
+        if heading:
+            current = heading.group(1)
+            found.setdefault(current, "")
+        elif current:
+            found[current] += visible + "\n"
+    return found, hidden
+
+
+def sections(body):
+    return parse(body)[0]
 
 
 def is_placeholder(text):
@@ -125,10 +179,14 @@ def has_content(text):
     return False
 
 
-def check_body(body, required):
-    found = sections(body)
+def check_body(body, required, kind="본문"):
+    """빠진 칸마다 오류. 닫히지 않은 줄 맨 앞 `<!--`가 칸을 숨겼으면 그 줄을 알려 준다."""
+    found, hidden = parse(body)
     empty = [name for name in required if not has_content(found.get(name, ""))]
-    return [f"본문 칸이 비어 있음: {name}" for name in empty]
+    errors = [f"{kind} 칸이 비어 있음: {name}" for name in empty]
+    if hidden and any(name not in found or name == hidden[1] for name in empty):
+        errors.append(f"{hidden[0]}번째 줄의 `<!--`가 닫히지 않아 그 아래가 모두 숨겨짐. `-->`로 닫는다")
+    return errors
 
 
 def is_hotfix(rules, branch):

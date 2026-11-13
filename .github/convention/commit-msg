@@ -26,11 +26,6 @@ AI_ATTRIBUTION = re.compile(
     r"co-authored-by:.*(claude|anthropic)|generated with.*claude|^claude-session:",
     re.IGNORECASE | re.MULTILINE,
 )
-# `>8` 선 아래의 diff 줄은 `+`, `-`, 공백 같은 접두로 시작한다. 줄 맨 앞의 표기는 꾸민 경우뿐이다.
-AI_ATTRIBUTION_LINE = re.compile(
-    r"^(co-authored-by:.*(claude|anthropic)|generated with.*claude|claude-session:)",
-    re.IGNORECASE | re.MULTILINE,
-)
 
 GUIDE = f"""
 형식:
@@ -63,19 +58,30 @@ def current_branch():
     return result.stdout.strip()
 
 
+def scissors_index(lines):
+    """`>8` 선이 있는 줄 번호. 없으면 None.
+
+    git commit -v의 diff는 메시지가 아니다. git은 이 선 다음에 주석 줄을 붙이므로 다음 줄이 주석일 때만 선으로 본다.
+    """
+    for index, line in enumerate(lines[:-1]):
+        if line == SCISSORS and lines[index + 1].startswith("#"):
+            return index
+    return None
+
+
 def check(message, branch="", in_progress=()):
     """위반 내용 목록을 돌려준다. 빈 목록이면 통과.
 
     in_progress: 진행 중인 git 작업("merge", "revert"). 그 작업이 만든 메시지는 형식 검사를 건너뛴다.
     merge는 `Refs`도 건너뛰고, revert는 Task 브랜치의 `Refs`를 검사한다(05 Rework 변경 분리).
+    `>8` 선 아래는 형식을 검사하지 않는다. 커밋에 남을 수 있으므로 AI 작성 표기는 찾는다.
+    편집기를 쓴 커밋은 main()이 선 아래를 먼저 잘라 낸다.
     """
     message = unicodedata.normalize("NFC", message)  # macOS NFD 한글 대응
     raw, below = message.splitlines(), []
-    for index, line in enumerate(raw[:-1]):
-        # git commit -v의 diff는 메시지가 아니다. git은 이 선 다음에 주석 줄을 붙인다.
-        if line == SCISSORS and raw[index + 1].startswith("#"):
-            raw, below = raw[:index], raw[index:]
-            break
+    cut = scissors_index(raw)
+    if cut is not None:
+        raw, below = raw[:cut], raw[cut:]
     lines = [line.rstrip() for line in raw if not COMMENT.match(line)]
     while lines and not lines[-1]:
         lines.pop()
@@ -87,7 +93,7 @@ def check(message, branch="", in_progress=()):
     extra = []
     if COMMENT.match(next(line for line in raw if line.strip())):
         extra.append("제목 앞에 `#` 줄이 있음 (`-m`으로 쓰면 그 줄이 그대로 제목이 됨)")
-    if AI_ATTRIBUTION.search("\n".join(raw)) or AI_ATTRIBUTION_LINE.search("\n".join(below)):
+    if AI_ATTRIBUTION.search("\n".join(raw + below)):
         extra.append("AI 작성 표기 금지 (Co-Authored-By: Claude 등)")
     generated = {name for name in in_progress if name in GENERATED and GENERATED[name].match(lines[0])}
     if "merge" in generated:
@@ -180,14 +186,29 @@ def is_enforced():
     return skip.stdout.strip() != "true"
 
 
+def above_scissors(message):
+    """`>8` 선 위의 메시지. 선이 없으면 None. git이 `-v`에서 잘라 내는 자리와 같다."""
+    cut = scissors_index(message.splitlines())
+    return None if cut is None else "".join(message.splitlines(keepends=True)[:cut])
+
+
 def main():
     if not is_enforced():
         return 0
-    sys.stderr.reconfigure(encoding="utf-8")
-    with open(sys.argv[1], encoding="utf-8", errors="replace") as message_file:
-        branch = current_branch() if is_adopted() else ""
-        errors = check_branch(branch) + check(message_file.read(), branch, in_progress())
+    sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
+    # UTF-8이 아닌 바이트도 다시 쓸 때 그대로 돌아가게 읽는다.
+    with open(sys.argv[1], "rb") as message_file:
+        message = message_file.read().decode("utf-8", errors="surrogateescape")
+    # git은 편집기를 띄우지 않는 커밋(-m, -F, -C, --no-edit)의 훅에 GIT_EDITOR=: 를 준다.
+    # 편집기를 쓴 커밋의 `>8` 선 아래는 git이 붙인 diff일 수 있다. 검사하지 않고 메시지 파일에서 지운다.
+    # `-v` 없이 선을 직접 넣으면 git이 그 아래를 커밋에 남기므로, 지워야 검사하지 않은 줄이 남지 않는다.
+    kept = above_scissors(message) if os.environ.get("GIT_EDITOR") != ":" else None
+    branch = current_branch() if is_adopted() else ""
+    errors = check_branch(branch) + check(message if kept is None else kept, branch, in_progress())
     if not errors:
+        if kept is not None:
+            with open(sys.argv[1], "wb") as message_file:
+                message_file.write(kept.encode("utf-8", errors="surrogateescape"))
         return 0
     print("[commit-msg] 커밋 거부:", file=sys.stderr)
     for error in errors:

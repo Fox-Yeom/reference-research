@@ -1,0 +1,862 @@
+{
+ "a-proof": {
+  "board-390": {
+   "texts": 287,
+   "minBody": 4.52,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 8022
+  },
+  "viewer-390": {
+   "texts": 319,
+   "minBody": 4.52,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 8022
+  },
+  "board-768": {
+   "texts": 287,
+   "minBody": 4.52,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 5998
+  },
+  "board-1280": {
+   "texts": 287,
+   "minBody": 4.5,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4651
+  },
+  "viewer-1280": {
+   "texts": 319,
+   "minBody": 4.5,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4651
+  },
+  "board-1600": {
+   "texts": 287,
+   "minBody": 4.5,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4302
+  },
+  "home-390": {
+   "texts": 173,
+   "minBody": 4.52,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4106
+  },
+  "home-768": {
+   "texts": 173,
+   "minBody": 4.52,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3335
+  },
+  "home-1280": {
+   "texts": 173,
+   "minBody": 4.52,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2914
+  },
+  "home-1600": {
+   "texts": 173,
+   "minBody": 4.52,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2914
+  }
+ },
+ "b-metro": {
+  "board-390": {
+   "texts": 244,
+   "minBody": 4.77,
+   "minLarge": 4.77,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 8103
+  },
+  "viewer-390": {
+   "texts": 276,
+   "minBody": 4.77,
+   "minLarge": 4.77,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 8103
+  },
+  "board-768": {
+   "texts": 264,
+   "minBody": 4.77,
+   "minLarge": 4.77,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 5572
+  },
+  "board-1280": {
+   "texts": 269,
+   "minBody": 4.77,
+   "minLarge": 4.77,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4593
+  },
+  "viewer-1280": {
+   "texts": 301,
+   "minBody": 4.77,
+   "minLarge": 4.77,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4593
+  },
+  "board-1600": {
+   "texts": 269,
+   "minBody": 4.77,
+   "minLarge": 4.77,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4508
+  },
+  "home-390": {
+   "texts": 156,
+   "minBody": 4.77,
+   "minLarge": 14.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3731
+  },
+  "home-768": {
+   "texts": 156,
+   "minBody": 4.77,
+   "minLarge": 14.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2908
+  },
+  "home-1280": {
+   "texts": 161,
+   "minBody": 4.77,
+   "minLarge": 14.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2608
+  },
+  "home-1600": {
+   "texts": 161,
+   "minBody": 4.77,
+   "minLarge": 14.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2391
+  }
+ },
+ "c-tabs": {
+  "board-390": {
+   "texts": 248,
+   "minBody": 4.83,
+   "minLarge": 4.83,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 6374
+  },
+  "viewer-390": {
+   "texts": 280,
+   "minBody": 4.83,
+   "minLarge": 4.83,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 6374
+  },
+  "board-768": {
+   "texts": 248,
+   "minBody": 4.83,
+   "minLarge": 4.83,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 5163
+  },
+  "board-1280": {
+   "texts": 255,
+   "minBody": 4.83,
+   "minLarge": 4.83,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4015
+  },
+  "viewer-1280": {
+   "texts": 287,
+   "minBody": 4.83,
+   "minLarge": 4.83,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4015
+  },
+  "board-1600": {
+   "texts": 255,
+   "minBody": 4.83,
+   "minLarge": 4.83,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4259
+  },
+  "home-390": {
+   "texts": 163,
+   "minBody": 4.83,
+   "minLarge": 5.34,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3517
+  },
+  "home-768": {
+   "texts": 163,
+   "minBody": 4.83,
+   "minLarge": 5.34,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2641
+  },
+  "home-1280": {
+   "texts": 167,
+   "minBody": 4.83,
+   "minLarge": 5.34,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2207
+  },
+  "home-1600": {
+   "texts": 167,
+   "minBody": 4.83,
+   "minLarge": 5.34,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2114
+  }
+ },
+ "d-live-proof": {
+  "board-390": {
+   "texts": 272,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7225
+  },
+  "board-dark-390": {
+   "texts": 272,
+   "minBody": 6.11,
+   "minLarge": 13.3,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7225
+  },
+  "viewer-390": {
+   "texts": 304,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7225
+  },
+  "board-768": {
+   "texts": 272,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 5588
+  },
+  "board-dark-768": {
+   "texts": 272,
+   "minBody": 6.11,
+   "minLarge": 13.3,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 5588
+  },
+  "board-1280": {
+   "texts": 279,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4352
+  },
+  "board-dark-1280": {
+   "texts": 279,
+   "minBody": 6.11,
+   "minLarge": 13.3,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4352
+  },
+  "viewer-1280": {
+   "texts": 311,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4352
+  },
+  "board-1600": {
+   "texts": 279,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4210
+  },
+  "board-dark-1600": {
+   "texts": 279,
+   "minBody": 6.11,
+   "minLarge": 13.3,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4210
+  },
+  "home-390": {
+   "texts": 170,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4257
+  },
+  "home-dark-390": {
+   "texts": 170,
+   "minBody": 6.11,
+   "minLarge": 13.3,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4257
+  },
+  "home-768": {
+   "texts": 170,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3538
+  },
+  "home-dark-768": {
+   "texts": 170,
+   "minBody": 6.11,
+   "minLarge": 13.3,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3538
+  },
+  "home-1280": {
+   "texts": 179,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3042
+  },
+  "home-dark-1280": {
+   "texts": 179,
+   "minBody": 6.11,
+   "minLarge": 13.3,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3042
+  },
+  "home-1600": {
+   "texts": 179,
+   "minBody": 4.66,
+   "minLarge": 15.32,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3016
+  },
+  "home-dark-1600": {
+   "texts": 179,
+   "minBody": 6.11,
+   "minLarge": 13.3,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3016
+  }
+ },
+ "e-metro-dash": {
+  "board-390": {
+   "texts": 137,
+   "minBody": 6.05,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3852
+  },
+  "board-light-390": {
+   "texts": 137,
+   "minBody": 4.73,
+   "minLarge": 16.31,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3852
+  },
+  "viewer-390": {
+   "texts": 169,
+   "minBody": 6.05,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3852
+  },
+  "board-768": {
+   "texts": 140,
+   "minBody": 6.05,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3435
+  },
+  "board-light-768": {
+   "texts": 140,
+   "minBody": 4.73,
+   "minLarge": 16.31,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3435
+  },
+  "board-1280": {
+   "texts": 156,
+   "minBody": 5.72,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2902
+  },
+  "board-light-1280": {
+   "texts": 156,
+   "minBody": 4.73,
+   "minLarge": 16.31,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2902
+  },
+  "viewer-1280": {
+   "texts": 188,
+   "minBody": 5.72,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2902
+  },
+  "board-1600": {
+   "texts": 156,
+   "minBody": 5.72,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2122
+  },
+  "board-light-1600": {
+   "texts": 156,
+   "minBody": 4.73,
+   "minLarge": 16.31,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2122
+  },
+  "home-390": {
+   "texts": 117,
+   "minBody": 5.72,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2873
+  },
+  "home-light-390": {
+   "texts": 117,
+   "minBody": 4.77,
+   "minLarge": 16.31,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2873
+  },
+  "home-768": {
+   "texts": 121,
+   "minBody": 5.72,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2452
+  },
+  "home-light-768": {
+   "texts": 121,
+   "minBody": 4.77,
+   "minLarge": 16.31,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2452
+  },
+  "home-1280": {
+   "texts": 137,
+   "minBody": 5.72,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2233
+  },
+  "home-light-1280": {
+   "texts": 137,
+   "minBody": 4.77,
+   "minLarge": 16.31,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2233
+  },
+  "home-1600": {
+   "texts": 137,
+   "minBody": 5.72,
+   "minLarge": 16.19,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 1880
+  },
+  "home-light-1600": {
+   "texts": 137,
+   "minBody": 4.77,
+   "minLarge": 16.31,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 1880
+  }
+ },
+ "f-evidence-map": {
+  "board-390": {
+   "texts": 161,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4753
+  },
+  "board-dark-390": {
+   "texts": 161,
+   "minBody": 6.11,
+   "minLarge": 14.99,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4753
+  },
+  "viewer-390": {
+   "texts": 193,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4753
+  },
+  "board-768": {
+   "texts": 161,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3502
+  },
+  "board-dark-768": {
+   "texts": 161,
+   "minBody": 6.11,
+   "minLarge": 14.99,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3502
+  },
+  "board-1280": {
+   "texts": 161,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2618
+  },
+  "board-dark-1280": {
+   "texts": 161,
+   "minBody": 6.11,
+   "minLarge": 14.99,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2618
+  },
+  "viewer-1280": {
+   "texts": 193,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2618
+  },
+  "board-1600": {
+   "texts": 161,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2583
+  },
+  "board-dark-1600": {
+   "texts": 161,
+   "minBody": 6.11,
+   "minLarge": 14.99,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2583
+  },
+  "home-390": {
+   "texts": 87,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3253
+  },
+  "home-dark-390": {
+   "texts": 87,
+   "minBody": 6.11,
+   "minLarge": 14.99,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3253
+  },
+  "home-768": {
+   "texts": 87,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2697
+  },
+  "home-dark-768": {
+   "texts": 87,
+   "minBody": 6.11,
+   "minLarge": 14.99,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2697
+  },
+  "home-1280": {
+   "texts": 87,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 1776
+  },
+  "home-dark-1280": {
+   "texts": 87,
+   "minBody": 6.11,
+   "minLarge": 14.99,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 1776
+  },
+  "home-1600": {
+   "texts": 87,
+   "minBody": 4.99,
+   "minLarge": 16.57,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 1776
+  },
+  "home-dark-1600": {
+   "texts": 87,
+   "minBody": 6.11,
+   "minLarge": 14.99,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 1776
+  }
+ },
+ "g-neon-mix": {
+  "board-390": {
+   "texts": 237,
+   "minBody": 5.62,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 5940
+  },
+  "viewer-390": {
+   "texts": 269,
+   "minBody": 5.62,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 5940
+  },
+  "board-768": {
+   "texts": 240,
+   "minBody": 5.62,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4849
+  },
+  "board-1280": {
+   "texts": 257,
+   "minBody": 5.62,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4580
+  },
+  "viewer-1280": {
+   "texts": 289,
+   "minBody": 5.62,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4580
+  },
+  "board-1600": {
+   "texts": 257,
+   "minBody": 5.62,
+   "minLarge": 16.43,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3664
+  },
+  "home-390": {
+   "texts": 167,
+   "minBody": 5.62,
+   "minLarge": 16.59,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3847
+  },
+  "home-768": {
+   "texts": 167,
+   "minBody": 5.62,
+   "minLarge": 16.59,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3535
+  },
+  "home-1280": {
+   "texts": 184,
+   "minBody": 5.62,
+   "minLarge": 16.59,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3249
+  },
+  "home-1600": {
+   "texts": 184,
+   "minBody": 5.62,
+   "minLarge": 16.59,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2492
+  }
+ }
+}

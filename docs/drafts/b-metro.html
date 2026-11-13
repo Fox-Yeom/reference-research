@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="ko" data-view="board">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>시안 B 노선도 — 레퍼런스 보드</title>
+<style>
+:root{
+  --bg:#fff;--rail:#f3f5f8;--ink:#111827;--ink-2:#414b5a;--ink-3:#5b6575;--rule:#dfe3ea;--rule-2:#eef1f5;
+  --l1:#13843f;--l1-soft:#e2f4e8;--l2:#b45309;--l3:#1660c7;--l4:#c2255c;--l5:#8a5a2b;
+  --red:#cf2a1d;--red-soft:#fde8e5;--amber:#9a5a00;--amber-soft:#fcf0dc;--link:#1660c7;
+  --sans:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{scroll-padding-top:16px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 var(--sans);word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased}
+::selection{background:#cdeedd}
+a{color:var(--link);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--l3);outline-offset:2px;border-radius:3px}
+button{font:inherit;color:inherit;cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+.frame{display:grid;grid-template-columns:268px minmax(0,1fr);min-height:100vh}
+/* rail: section links as stations on a line */
+.rail{position:sticky;top:0;height:100vh;overflow:auto;background:var(--rail);border-right:1px solid var(--rule);padding:22px 20px;display:flex;flex-direction:column;gap:18px}
+.brand{font-weight:800;color:var(--ink);text-decoration:none;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.brand i{width:14px;height:14px;border-radius:50%;border:3px solid var(--ink);background:#fff}
+.views{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#e4e8ee;padding:3px;border-radius:9px}
+.views a{text-align:center;color:var(--ink-2);text-decoration:none;padding:6px 4px;border-radius:7px;font-size:13.5px}
+.views a[aria-current=page]{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(17,24,39,.1)}
+.search{position:relative}
+.search input{width:100%;font:inherit;font-size:14px;padding:9px 34px 9px 12px;border:1px solid var(--rule);border-radius:9px;background:#fff;color:var(--ink);outline:none}
+.search input:focus{border-color:var(--l3);box-shadow:0 0 0 3px #d6e4fa}
+.search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:12px var(--mono);color:var(--ink-3);border:1px solid var(--rule);border-radius:4px;padding:0 5px}
+.line-nav{position:relative;margin:0;padding:0;list-style:none;--lc:var(--l1)}
+.line-nav::before{content:"";position:absolute;left:9px;top:12px;bottom:12px;width:6px;border-radius:3px;background:var(--lc)}
+.line-nav li{position:relative}
+.line-nav a{display:flex;align-items:center;gap:12px;padding:7px 0;color:var(--ink-2);text-decoration:none;font-size:14.5px}
+.line-nav a::before{content:"";flex:none;width:24px;height:24px;border-radius:50%;background:#fff;border:4px solid var(--lc);position:relative;z-index:1;transition:transform .15s ease-out}
+.line-nav a:hover{color:var(--ink)}.line-nav a:hover::before{transform:scale(1.12)}
+.line-nav a[aria-current=true]{color:var(--ink);font-weight:700}
+.line-nav a[aria-current=true]::before{background:var(--lc)}
+.line-nav small{margin-left:auto;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.rail .foot{margin-top:auto;font-size:12.5px;color:var(--ink-3);line-height:1.6}
+.legend{display:grid;gap:6px;font-size:12.5px;color:var(--ink-2)}
+.legend span{display:flex;align-items:center;gap:8px}
+/* stations used inline */
+.st{display:inline-block;width:16px;height:16px;border-radius:50%;border:3.5px solid var(--lc,var(--l1));background:#fff;flex:none;vertical-align:-3px}
+.st.full{background:var(--lc,var(--l1))}
+.st.half{background:linear-gradient(90deg,var(--lc,var(--l1)) 50%,#fff 50%)}
+.st.xfer{border-color:var(--ink);box-shadow:0 0 0 2.5px #fff,0 0 0 5px var(--ink);width:14px;height:14px}
+.st.red{--lc:var(--red)}
+main{min-width:0}
+#searchinfo{margin:0;padding:10px 40px;color:var(--ink-2);font-size:14px;border-bottom:1px solid var(--rule)}
+/* header band in the collection's line colour */
+.band{background:var(--lc,var(--l1));color:#fff;padding:28px 40px 24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,420px);gap:20px 40px;align-items:end}
+.band .meta{margin:0 0 6px;font-size:13.5px;color:#fff;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 8px;border-radius:15px;background:#fff;color:var(--lc,var(--l1));font-weight:800;font-size:14px}
+.band h1{margin:0 0 8px;font-size:30px;line-height:1.25;letter-spacing:-.02em}
+.band .goal{margin:0;max-width:64ch;font-size:15.5px;color:#fff}
+.band .goal b{font-weight:600;color:#fff;margin-right:6px}
+.runline{background:rgba(0,0,0,.16);border-radius:12px;padding:14px 16px}
+.runline h2{margin:0 0 10px;font-size:13.5px;font-weight:600;color:#e3f5ea}
+.runline ol{display:flex;margin:0;padding:0;list-style:none;position:relative}
+.runline ol::before{content:"";position:absolute;left:8px;right:8px;top:8px;height:5px;border-radius:3px;background:#fff}
+.runline li{flex:1;position:relative;font-size:12.5px;line-height:1.4;color:#f1fbf4;padding-right:6px}
+.runline li i{display:block;width:21px;height:21px;border-radius:50%;background:var(--lc,var(--l1));border:4px solid #fff;margin-bottom:6px;position:relative}
+.runline li b{display:block;color:#fff;font-size:13px}
+.runline li.stop i{background:#fff}
+.counts{display:flex;gap:6px 22px;flex-wrap:wrap;margin:14px 0 0;padding:0;list-style:none;font-size:14px;color:#fff}
+.counts b{color:#fff;font-size:18px;margin-right:3px}
+/* sections */
+.sec{padding:30px 40px 8px}
+.sec>h2{font-size:21px;margin:0 0 4px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.sec>p.desc{margin:0 0 16px;color:var(--ink-2);font-size:14px;max-width:80ch}
+.concl{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;border:1px solid var(--rule);border-radius:14px;padding:22px 24px}
+.qa dt{font-size:13px;color:var(--ink-3);margin:12px 0 2px}.qa dt:first-child{margin-top:0}
+.qa dd{margin:0}
+.qa .ans{font-size:20px;font-weight:700;line-height:1.45;letter-spacing:-.01em}
+/* evidence as a line with stations, counter-evidence as a red branch */
+.evline{margin:0;padding:0;list-style:none;position:relative;--lc:var(--l1)}
+.evline>li{position:relative;padding:0 0 14px 34px}
+.evline>li::before{content:"";position:absolute;left:8px;top:6px;bottom:-6px;width:5px;background:var(--lc)}
+.evline>li:last-child::before{display:none}
+.evline>li>.st{position:absolute;left:2px;top:3px}
+.evline .t{display:block}
+.evline .s{font-size:12.5px;font-weight:700}
+.evline .s.strong{color:var(--l1)}.evline .s.medium{color:var(--amber)}
+.branch{margin:8px 0 0 0;padding:10px 12px 10px 34px;position:relative;background:var(--red-soft);border-radius:10px}
+.branch::before{content:"";position:absolute;left:-24px;top:-4px;width:36px;height:22px;border-left:5px solid var(--red);border-bottom:5px solid var(--red);border-bottom-left-radius:14px}
+.branch .st{position:absolute;left:8px;top:12px}
+.branch b{color:#a61b10;font-size:13px;display:block}
+.id{white-space:nowrap;font:700 12px/1 var(--mono);color:var(--link);background:#e6eefb;border:0;border-radius:5px;padding:4px 6px;margin:0 2px;vertical-align:1px;text-decoration:none;display:inline-block}
+.id:hover{background:#d3e1f8}
+.id.c{color:var(--ink-2);background:var(--rule-2)}
+.pick{font-size:12.5px;border:1px solid var(--rule);background:#fff;border-radius:999px;padding:3px 10px;color:var(--ink-2);white-space:nowrap}
+.pick:hover{border-color:var(--ink);color:var(--ink)}
+.pick.is-on{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn{font-size:14px;font-weight:700;border:0;border-radius:10px;padding:10px 16px;background:var(--ink);color:#fff;transition:transform .12s ease-out,background .15s}
+.btn:hover{background:#2b3444}.btn:active{transform:translateY(1px)}
+.btn.line{background:var(--l1)}.btn.line:hover{background:#0e6c33}
+.btn.out{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}.btn.out:hover{background:var(--rule-2)}
+.btn.is-done{background:var(--l1);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.chip{font-size:13px;border:1.5px solid var(--rule);background:#fff;border-radius:999px;padding:4px 12px;color:var(--ink-2)}
+.chip[aria-pressed=true]{border-color:var(--ink);color:var(--ink);font-weight:700}
+/* captures: big frames first, the user skims these */
+.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.gal{min-width:0}
+.gal .shot{display:block;width:100%;padding:0;border:0;border-radius:12px;overflow:hidden;background:var(--rule-2);aspect-ratio:3/2;box-shadow:0 1px 2px rgba(17,24,39,.08),0 0 0 1px var(--rule)}
+.gal .shot img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;transition:transform .25s ease-out}
+.gal .shot:hover img{transform:scale(1.025)}
+.gal .strip{display:flex;gap:6px;margin-top:8px}
+.gal .strip button{flex:1;padding:0;border:0;background:none;border-radius:6px;overflow:hidden;aspect-ratio:16/10;box-shadow:0 0 0 1px var(--rule)}
+.gal .strip img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.gal h3{margin:10px 0 2px;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.gal h3 small{font-weight:400;color:var(--ink-3);font-size:13px}
+.gal .line{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
+.role{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700}
+.role.indirect .st{background:#fff;border-style:dashed}
+.tag{display:inline-block;font-size:12.5px;color:var(--ink-2);background:var(--rule-2);border-radius:5px;padding:1px 7px;margin:4px 4px 0 0}
+/* pattern lines: one line per question, a stop per product, filled where the product uses it */
+.pline{border:1px solid var(--rule);border-radius:14px;padding:18px 22px;margin:0 0 14px}
+.pline h3{margin:0;font-size:17px}
+.pline .lbl{font-size:13px;color:var(--ink-3)}
+.pline .verdict{margin:8px 0 0;font-size:14px;font-weight:600;color:var(--l1)}
+.stops{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:16px 0 0;padding:0;list-style:none;position:relative;--lc:var(--l1)}
+.stops::before{content:"";position:absolute;left:10%;right:10%;top:92px;height:6px;border-radius:3px;background:var(--lc)}
+.stops li{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;font-size:13px;min-width:0;padding:0 4px}
+.stops li button{padding:0;border:0;background:none;border-radius:6px;overflow:hidden;width:100%;max-width:150px;aspect-ratio:16/10;box-shadow:0 0 0 1px var(--rule)}
+.stops li img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.stops li .st{width:22px;height:22px;border-width:4.5px;position:relative;z-index:1}
+.stops li.off{color:var(--ink-3)}.stops li.off button{opacity:.38}
+.stops li.off .st{border-color:#b9c0cc}
+.stops b{font-size:13.5px}
+.stops small{color:var(--ink-2);line-height:1.4}
+.cover{font-size:13px;color:var(--ink-2);margin-left:auto;font-weight:400}.cover b{color:var(--ink);font-size:17px}
+/* claims table */
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12.5px;color:var(--ink-3);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--ink)}
+.tbl td{padding:11px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.tbl tr:hover td{background:#f8fafc}
+.tbl .str{white-space:nowrap;font-weight:700;font-size:13px}
+.tbl .str.strong{color:var(--l1)}.tbl .str.medium{color:var(--amber)}
+.tbl .x{display:block;color:var(--red);font-size:12.5px;font-weight:700}
+.nomatch{margin:0 0 16px;padding:12px 14px;background:var(--rule-2);border-radius:10px;color:var(--ink-2);font-size:14px}
+[data-group].is-empty .gallery,[data-group].is-empty .tbl,[data-group].is-empty .chips,[data-group].is-empty .pline,[data-group].is-empty .cards,[data-group].is-empty .list{display:none}
+.list{margin:0;padding:0;list-style:none}
+.list li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--rule)}
+.list li .st{margin-top:5px}
+.list p{margin:0}.list .small{font-size:13.5px;color:var(--ink-2)}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.twocol h3{font-size:15px;margin:0 0 4px}
+.rounds{display:flex;gap:0;margin:0;padding:0;list-style:none;position:relative;--lc:var(--l1)}
+.rounds::before{content:"";position:absolute;left:11px;right:11px;top:9px;height:6px;border-radius:3px;background:var(--lc)}
+.rounds li{flex:1;position:relative;padding-right:14px;font-size:13.5px;color:var(--ink-2)}
+.rounds li .st{width:24px;height:24px;border-width:5px;margin-bottom:8px;position:relative}
+.rounds li b{display:block;color:var(--ink)}
+/* home network */
+.net{border:1px solid var(--rule);border-radius:14px;padding:16px 18px 10px;overflow:hidden}
+.net svg{display:block;width:100%;height:auto}
+.net svg text{font-family:var(--sans)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{border:1px solid var(--rule);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card .top{display:flex;align-items:center;gap:10px;padding:14px 16px 0}
+.card .top .badge{background:var(--lc);color:#fff}
+.card h3{margin:0;font-size:16px;line-height:1.35}
+.card h3 a{color:var(--ink);text-decoration:none}.card h3 a:hover{text-decoration:underline}
+.card .body{padding:8px 16px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card .sub{font-size:12.5px;color:var(--ink-3)}
+.card .q{margin:0;font-size:14px;color:var(--ink-2)}
+.card .a{margin:0;font-weight:700}
+.card .a.mixed{color:var(--red)}
+.card .foot2{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--ink-2);margin-top:auto;padding-top:8px;border-top:1px solid var(--rule-2)}
+.card .foot2 b{color:var(--ink)}
+.card .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--rule)}
+.card .thumbs button{padding:0;border:0;aspect-ratio:16/10;overflow:hidden;background:none}
+.card .thumbs img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.synth{font-size:12px;font-weight:700;color:var(--ink-3);border:1.5px dashed #9aa3b1;border-radius:999px;padding:1px 8px;margin-left:auto;white-space:nowrap}
+.prompts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.hband{--lc:#1f2937}
+.hband .meta{color:#cfd6e0}.hband .goal{color:#e5e9ef}.hband .counts{color:#cfd6e0}
+/* tray */
+.tray{position:fixed;left:calc(50% + 134px);transform:translateX(-50%);bottom:16px;z-index:40;display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:calc(100vw - 300px);background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 10px 30px rgba(17,24,39,.3)}
+.tray-n{font-weight:700;font-size:14px}.tray-ids{display:flex;gap:4px;flex-wrap:wrap}
+.tray-id{font:700 12px var(--mono);background:rgba(255,255,255,.15);border-radius:5px;padding:3px 4px 3px 7px}
+.tray-id button{border:0;background:none;color:#cbd2dc;padding:0 3px;font-size:14px;line-height:1}
+.tray-copy{border:0;border-radius:8px;background:var(--l1);color:#fff;font-weight:700;padding:7px 12px}
+.tray-clear{border:0;background:none;color:#cbd2dc;font-size:13px}
+/* viewer */
+.vw{border:0;padding:0;width:100vw;height:100vh;max-width:none;max-height:none;background:#0e1116;color:#eef1f5}
+.vw::backdrop{background:rgba(0,0,0,.7)}
+.vw[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.vw-top{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:4px solid var(--l1);flex-wrap:wrap}
+.vw-title{margin-right:auto}.vw-count{color:#aab3c0;font-size:13px}
+.vw-top button,.vw-top a{font-size:13px;color:#eef1f5;background:#1e242d;border:0;border-radius:999px;padding:6px 12px;text-decoration:none}
+.vw-top button:hover,.vw-top a:hover{background:#2c3440}.vw-top button:disabled{opacity:.4}
+.vw-body{display:grid;grid-template-columns:minmax(0,1fr) 360px;min-height:0}
+.vw-stage{position:relative;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:16px}
+.vw-stage img{max-width:100%;height:auto;border-radius:6px}
+.vw-prev,.vw-next{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:4px solid var(--l1);background:#fff;color:var(--ink);font-size:22px;font-weight:700}
+.vw-prev{left:14px}.vw-next{right:14px}
+.vw-side{overflow:auto;border-left:1px solid #262d38;padding:16px 20px;font-size:14px;color:#d3d9e1}
+.vw-side h3{font-size:13px;color:#aab3c0;margin:18px 0 6px}
+.vw-side dl{margin:0}.vw-side dt{color:#93a0b2;font-size:12.5px;margin-top:8px}.vw-side dd{margin:0}
+.vw-side ul{padding-left:18px;margin:0}.vw-side li{margin:4px 0}
+.vw-meta{margin:0;color:#aab3c0;font-size:13px}
+.vw-tags span{display:inline-block;font-size:12px;background:#1e242d;border-radius:5px;padding:1px 7px;margin:6px 4px 0 0}
+.vw-side .pick{margin-top:14px;background:#1e242d;border-color:#384252;color:#eef1f5}.vw-side .pick.is-on{background:var(--l1);border-color:var(--l1)}
+.vw-strip{display:flex;gap:8px;padding:10px 16px;border-top:1px solid #262d38;overflow-x:auto}
+.vw-strip button{padding:0;border:2px solid transparent;border-radius:6px;background:none;opacity:.5}
+.vw-strip button.is-on{opacity:1;border-color:#4fd18a}
+.vw-strip img{height:56px;display:block;border-radius:4px}
+footer{padding:30px 40px 90px;color:var(--ink-3);font-size:13px}
+@media (min-width:1500px){.gallery{grid-template-columns:repeat(4,minmax(0,1fr))}.sec,.band{padding-left:56px;padding-right:56px}}
+@media (max-width:1100px){
+  .frame{display:block}
+  .rail{position:sticky;height:auto;z-index:30;flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:10px 20px;border-right:0;border-bottom:1px solid var(--rule)}
+  .rail .legend,.rail .foot{display:none}
+  .search{flex:1 1 220px}
+  .line-nav{flex-basis:100%;display:flex;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .line-nav::before{left:12px;right:12px;top:16px;bottom:auto;width:auto;height:5px}
+  .line-nav a{flex-direction:column;gap:2px;padding:4px 10px;font-size:12.5px;white-space:nowrap}
+  .line-nav small{margin:0}
+  .tray{left:50%;max-width:calc(100vw - 32px)}
+  .band{grid-template-columns:1fr}
+  .gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .band,.sec{padding-left:16px;padding-right:16px}.rail{padding:10px 16px}
+  .band h1{font-size:24px}
+  .concl{grid-template-columns:1fr;padding:16px}
+  .gallery{grid-template-columns:1fr}
+  .twocol{grid-template-columns:1fr}
+  .stops{grid-template-columns:repeat(5,minmax(0,1fr))}.stops small{display:none}.stops::before{top:48px}.stops li button{aspect-ratio:1}
+  .tbl thead{display:none}.tbl tr{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:10px 0;border-bottom:1px solid var(--rule)}.tbl td{border:0;padding:0}.tbl td:nth-child(2){grid-column:2}.tbl td:nth-child(n+3){grid-column:2}
+  .rounds{flex-direction:column;gap:12px}.rounds::before{left:9px;right:auto;top:10px;bottom:10px;width:6px;height:auto}.rounds li{display:grid;grid-template-columns:24px 1fr;gap:10px}
+  .vw-body{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 38vh}.vw-side{border-left:0;border-top:1px solid #262d38}
+  #searchinfo,footer{padding-left:16px;padding-right:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="frame">
+<aside class="rail">
+  <a class="brand" href="#"><i aria-hidden="true"></i>References</a>
+  <nav class="views" aria-label="화면"><a href="#" data-view-link="board">조사 보드</a><a href="#home" data-view-link="home">라이브러리 홈</a></nav>
+  <label class="search"><input id="q" type="search" placeholder="레퍼런스·발견·패턴 검색" aria-label="검색" autocomplete="off"><kbd>/</kbd></label>
+  <nav aria-label="구역"><ol class="line-nav" id="linenav"></ol></nav>
+  <div class="legend" aria-label="표시 읽는 법"><span><i class="st full"></i>근거 강함 · 쓰는 제품</span><span><i class="st half"></i>근거 보통</span><span><i class="st red full"></i>반대 근거</span><span><i class="st xfer"></i>여러 조사에 걸친 레퍼런스</span></div>
+  <div class="foot" id="railfoot"></div>
+</aside>
+<main>
+  <p id="searchinfo" hidden></p>
+  <div id="app"></div>
+  <footer>시안 B · 노선도. 데이터: <code>dev/demo.sh</code> 예시 조사, 홈의 다른 조사는 가상 예시입니다.</footer>
+</main>
+</div>
+<script src="data.js"></script>
+<script src="common.js"></script>
+<script>
+const { B, H, esc, ref, claim, col, ctitle, claimsCiting } = Draft;
+const LINE = { "note-app-pricing": "var(--l1)", "weather-app-home": "var(--l2)", "photo-app-onboarding": "var(--l3)", "indie-app-revenue": "var(--l4)", "memo-app-reviews": "var(--l5)" };
+const HEX = { "note-app-pricing": "#13843f", "weather-app-home": "#b45309", "photo-app-onboarding": "#1660c7", "indie-app-revenue": "#c2255c", "memo-app-reviews": "#8a5a2b" };
+const id = (x) => (x.startsWith("S") ? `<button type="button" class="id" data-open="${x}" title="${esc(ref(x)?.product)} 캡처 보기">${x}</button>` : `<a class="id c" href="#${x}" title="${esc(claim(x)?.text)}">${x}</a>`);
+const ids = (a) => (a || []).map(id).join("");
+const pick = (x) => `<button type="button" class="pick" data-pick="${x}" aria-pressed="false">${x} 담기</button>`;
+const sec = (sid, title, desc, inner, group = true) => `<section class="sec" id="${sid}"${group ? " data-group" : ""}><h2>${title}</h2>${desc ? `<p class="desc">${desc}</p>` : ""}${inner}</section>`;
+const strength = (s) => `<span class="s ${s === "강함" ? "strong" : "medium"}">근거 ${s}</span>`;
+let io;
+function setNav(items, lc) {
+  const nav = document.getElementById("linenav"); nav.style.setProperty("--lc", lc);
+  nav.innerHTML = items.map(([h, t, n]) => `<li><a href="#${h}" data-sec="${h}">${t}${n != null ? `<small>${n}</small>` : ""}</a></li>`).join("");
+  io?.disconnect();
+  io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) nav.querySelectorAll("a").forEach((a) => a.setAttribute("aria-current", a.dataset.sec === e.target.id)); }), { rootMargin: "-20% 0px -70% 0px" });
+  items.forEach(([h]) => { const el = document.getElementById(h); if (el) io.observe(el); });
+}
+function drawBoard() {
+  const band = `<header class="band" id="top" style="--lc:var(--l1)"><div><p class="meta"><span class="badge">1</span>${B.kind} · ${B.domain} · 마지막 조사 ${B.date}</p>
+<h1>${esc(B.title)}</h1><p class="goal"><b>왜 조사했나</b>${esc(B.goal)}</p>
+<ul class="counts num"><li><b>${B.refs.length}</b>레퍼런스</li><li><b>${B.claims.length}</b>발견</li><li><b>${B.evidence.length}</b>근거</li><li><b>1</b>반대 근거</li></ul></div>
+<div class="runline"><h2>조사 회차 R1 · 검색 ${B.rounds.length}바퀴</h2><ol>${B.rounds.map((r) => `<li class="${r.stopped ? "stop" : ""}"><i></i><b>${r.n}바퀴</b>검색어 ${r.queries.length} · 후보 ${r.found.length}${r.stopped ? `<br>멈춤: ${esc(r.stopped)}` : r.newAxes.length ? `<br>새 패턴 ${r.newAxes.length}` : ""}</li>`).join("")}</ol></div></header>`;
+  const concl = sec("key", "핵심 결론", "질문에 대한 답과, 그 답을 받치는 근거입니다. 근거 노선에서 빨간 갈래는 반대 근거입니다.",
+    `<div class="concl"><dl class="qa"><dt>질문</dt><dd>${esc(B.question)}</dd><dt>답</dt><dd class="ans">${esc(B.answer.text)}</dd><dd style="margin-top:6px">${ids(B.answer.claims)} ${pick("C2")}</dd>
+<dt>제안</dt><dd>${esc(B.proposal.text)} ${ids(B.proposal.claims)}</dd></dl>
+<ol class="evline">${B.evidence.map((e, i) => `<li><span class="st ${e.strength === "강함" ? "full" : "half"}"></span><span class="t"><b>근거 ${i + 1}</b> ${esc(e.text)} ${ids(e.claims)}${ids(e.refs)}</span>${strength(e.strength)}
+${e.countered ? `<div class="branch"><span class="st red full"></span><b>반대 근거 — 근거 ${i + 1}에 걸림</b>${esc(B.counter.text)} ${ids(B.counter.claims)}${ids(B.counter.refs)}</div>` : ""}</li>`).join("")}</ol></div>`, false);
+  const roles = ["전체", "직접 경쟁", "간접 경쟁"];
+  const gallery = sec("refs", "캡처한 화면", "큰 화면을 누르면 페이지 안 뷰어가 열립니다. 아래 작은 화면은 같은 페이지의 다른 부분입니다.",
+    `<div class="chips" role="group" aria-label="경쟁 관계">${roles.map((r, i) => `<button type="button" class="chip" data-role="${r}" aria-pressed="${i === 0}">${r} ${i ? B.refs.filter((x) => x.role === r).length : B.refs.length}</button>`).join("")}</div>
+<div class="gallery">${B.refs.map((r) => `<article class="gal" data-search="${esc([r.id, r.product, r.page, r.role, ...r.tags.map((t) => t.label)].join(" "))}" data-r="${r.role}">
+<button type="button" class="shot" data-open="${r.id}" aria-label="${esc(r.product)} 캡처 열기"><img loading="lazy" src="${r.images[0]}" alt=""></button>
+<div class="strip">${r.images.slice(1).map((s, k) => `<button type="button" data-open="${r.id}" data-frame="${k + 1}" aria-label="${esc(r.product)} 화면 ${k + 2}"><img loading="lazy" src="${s}" alt=""></button>`).join("")}</div>
+<h3>${esc(r.product)} <small>${esc(r.page)}</small></h3>
+<div class="line"><span class="role ${r.role === "직접 경쟁" ? "" : "indirect"}"><i class="st full"></i>${r.role}</span><span>발견 ${claimsCiting(r.id).length}개 ${id(r.id)}</span></div>
+<div>${r.tags.map((t) => `<span class="tag">${esc(t.label)}</span>`).join("")}</div></article>`).join("")}</div>`);
+  const axes = sec("axes", "패턴 비교", "질문 하나가 노선 하나입니다. 제품 5곳이 정거장이고, 그 해법을 쓰는 곳만 채워져 있습니다.",
+    B.axes.filter((a) => a.members.length).sort((a, b) => b.members.length - a.members.length).map((a) => {
+      const used = new Map(a.members.map((m) => [m.ref, m.tags]));
+      return `<div class="pline" data-search="${esc([a.label, a.question, a.verdict, ...a.members.map((m) => ref(m.ref).product)].join(" "))}"><h3 style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">${esc(a.question)}<span class="cover num"><b>${a.members.length}</b> / ${B.refs.length} 제품</span></h3><span class="lbl">${esc(a.label)}</span>
+${a.verdict ? `<p class="verdict">결론: ${esc(a.verdict.replace(/\s*\[C\d+\]/, ""))} ${id("C1")}</p>` : ""}
+<ol class="stops">${B.refs.map((r) => `<li class="${used.has(r.id) ? "" : "off"}"><button type="button" data-open="${r.id}" aria-label="${esc(r.product)} 캡처"><img loading="lazy" src="${r.images[0]}" alt=""></button><span class="st ${used.has(r.id) ? "full" : ""}"></span><b>${esc(r.product)}</b><small>${used.has(r.id) ? used.get(r.id).map(esc).join(" · ") : "쓰지 않음"}</small></li>`).join("")}</ol></div>`;
+    }).join(""));
+  const kinds = ["전체", ...new Set(B.claims.map((c) => c.kind))];
+  const claims = sec("claims", "발견과 근거", "조사에서 나온 주장입니다. 담기를 누르면 아래 칸에 모이고, 한 번에 Claude 프롬프트로 복사됩니다.",
+    `<div class="chips" role="group" aria-label="발견 종류">${kinds.map((k, i) => `<button type="button" class="chip" data-kind="${k}" aria-pressed="${i === 0}">${k}</button>`).join("")}</div>
+<table class="tbl"><thead><tr><th>번호</th><th>발견</th><th>종류</th><th>근거 세기</th><th>출처</th><th></th></tr></thead><tbody>${B.claims.map((c) => `<tr id="${c.id}" data-search="${esc([c.id, c.text, c.kind, c.subject].join(" "))}" data-k="${c.kind}">
+<td>${id(c.id)}</td><td>${esc(c.text)}${c.key ? ` <b style="color:var(--l1);font-size:12.5px">핵심</b>` : ""}</td><td class="num">${c.kind}<br><span style="color:var(--ink-3);font-size:12.5px">${esc(c.subject)}</span></td>
+<td><span class="str ${c.strength === "강함" ? "strong" : "medium"}">${c.strength}</span>${c.id === "C6" ? `<span class="x">근거 2 반박</span>` : ""}</td><td>${ids(c.sources)}</td><td>${pick(c.id)}</td></tr>`).join("")}</tbody></table>`);
+  const why = sec("why", "기획 의도와 공통·차별", "공식은 회사가 직접 밝힌 것, 정황은 여러 단서로 본 것입니다.",
+    `<div class="twocol"><ul class="list">${B.refs.filter((r) => r.basis).map((r) => `<li data-search="${esc(r.product)}"><i class="st ${r.basis === "공식" ? "full" : "half"}"></i><div><h3>${esc(r.product)} · ${r.basis}</h3><p>${esc(r.note.find((n) => n[0] === "의도")?.[1] || "")}</p><p class="small">결과: ${esc(r.note.find((n) => n[0] === "결과")?.[1] || "")}</p></div></li>`).join("")}</ul>
+<ul class="list">${B.common.map(([k, t, c]) => `<li data-search="${esc(k + " " + t)}"><i class="st ${k === "기본기" ? "full" : k === "선택지" ? "half" : ""}"></i><div><h3>${k}</h3><p>${esc(t)} ${id(c)}</p></div></li>`).join("")}</ul></div>`);
+  const open = sec("open", "피할 것과 추가 질문", "답에 따라 결론이 달라질 수 있는 질문입니다.",
+    `<ul class="list">${B.avoid.map((a) => `<li data-search="${esc(a.text)}"><i class="st red"></i><div><p><b>피할 것</b> ${esc(a.text)} ${ids(a.claims)}</p></div></li>`).join("")}${B.open.map((o) => `<li data-search="${esc(o.text + " " + o.why)}"><i class="st"></i><div><p><b>${esc(o.text)}</b></p><p class="small">확인할 이유: ${esc(o.why)} ${ids(o.claims)}</p></div></li>`).join("")}</ul>
+<div class="prompts"><button type="button" class="btn line" data-copy="continue">이 조사 이어서 하기 — 프롬프트 복사</button></div>`);
+  const proc = sec("process", "조사 과정", esc(B.process),
+    `<ol class="rounds">${B.rounds.map((r) => `<li><span class="st ${r.stopped ? "" : "full"}"></span><div><b>${r.n}바퀴 · 검색어 ${r.queries.length}개</b>${r.queries.map(esc).join(" · ")}<br>후보: ${r.found.length ? r.found.map(esc).join(", ") : "없음"}${r.newAxes.length ? ` · 새 패턴: ${r.newAxes.map(esc).join(", ")}` : ""}${r.stopped ? ` · 멈춘 이유: ${esc(r.stopped)}` : ""}</div></li>`).join("")}</ol>`, false);
+  document.getElementById("app").innerHTML = band + concl + gallery + axes + claims + why + open + proc + Draft.trayHtml() + Draft.viewerHtml();
+  document.getElementById("railfoot").textContent = `${B.refs.length}개 레퍼런스 · ${B.claims.length}개 발견 · 마지막 조사 ${B.date}`;
+  setNav([["key", "핵심 결론", B.evidence.length], ["refs", "캡처", B.refs.length], ["axes", "패턴 비교", B.axes.filter((a) => a.members.length).length], ["claims", "발견", B.claims.length], ["why", "의도·공통·차별", null], ["open", "추가 질문", B.open.length], ["process", "조사 과정", B.rounds.length]], "var(--l1)");
+  filters("data-role", ".gal", "r"); filters("data-kind", "#claims tr[data-k]", "k");
+}
+function filters(attr, sel, key) {
+  document.querySelectorAll(`[${attr}]`).forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(`[${attr}]`).forEach((x) => x.setAttribute("aria-pressed", x === b));
+    const v = b.getAttribute(attr);
+    document.querySelectorAll(sel).forEach((el) => { el.style.display = v === "전체" || el.dataset[key] === v ? "" : "none"; });
+  }));
+}
+// the network: one line per collection, stops = runs, double-ring transfer where a reference is shared
+function network(w) {
+  const C = H.collections, narrow = w < 640, labelW = narrow ? 0 : 230, rowH = narrow ? 74 : 62, top = 18;
+  const x0 = labelW + 20, x1 = w - 30, h = top + C.length * rowH + 10;
+  const y = (i) => top + i * rowH + (narrow ? 40 : 22);
+  const xfers = H.shared.map((s, k) => ({ s, x: x0 + (x1 - x0) * (0.45 + k * 0.28) }));
+  let svg = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="조사 노선도: 조사 ${C.length}개, 여러 조사에 걸친 레퍼런스 ${H.shared.length}개">`;
+  xfers.forEach(({ s, x }) => { const ys = s.in.map((c) => y(C.findIndex((k) => k.id === c))); svg += `<line x1="${x}" x2="${x}" y1="${Math.min(...ys)}" y2="${Math.max(...ys)}" stroke="#111827" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round"/>`; });
+  C.forEach((c, i) => {
+    const yy = y(i), col = HEX[c.id];
+    svg += narrow ? `<text x="${x0 - 20}" y="${yy - 18}" font-size="13" font-weight="700" fill="#111827">${esc(c.title)}${c.synthetic ? " (가상)" : ""}</text>` : `<text x="0" y="${yy + 5}" font-size="14" font-weight="700" fill="#111827">${esc(c.title.length > 13 ? c.title.slice(0, 13) + "…" : c.title)}${c.synthetic ? " (가상)" : ""}</text>`;
+    svg += `<line x1="${x0}" x2="${x1}" y1="${yy}" y2="${yy}" stroke="${col}" stroke-width="7" stroke-linecap="round"/>`;
+    for (let r = 0; r < c.runs; r++) { const xx = x0 + 12 + r * 46; svg += `<circle cx="${xx}" cy="${yy}" r="8" fill="#fff" stroke="${col}" stroke-width="4"/>`; }
+    svg += `<text x="${x0 + 12 + c.runs * 46 - 8}" y="${yy - 13}" font-size="11.5" fill="#414b5a">R${c.runs} · ${c.date.slice(5).replace("-", ".")}</text>`;
+    svg += `<text x="${x1}" y="${yy + 22}" font-size="12" fill="#414b5a" text-anchor="end">레퍼런스 ${c.refs} · 발견 ${c.claims}${c.open ? ` · 질문 ${c.open}` : ""}</text>`;
+  });
+  xfers.forEach(({ s, x }) => s.in.forEach((c) => { const yy = y(C.findIndex((k) => k.id === c)); svg += `<circle cx="${x}" cy="${yy}" r="9" fill="#fff" stroke="#111827" stroke-width="3"/><circle cx="${x}" cy="${yy}" r="4" fill="#111827"/>`; }));
+  xfers.forEach(({ s, x }) => { svg += `<text x="${x + 13}" y="${top + 4}" font-size="12" font-weight="700" fill="#111827">${s.ref} ${esc(s.product)} 환승</text>`; });
+  return svg + "</svg>";
+}
+function drawHome() {
+  const C = H.collections;
+  const totals = { refs: C.reduce((n, c) => n + c.refs, 0), claims: C.reduce((n, c) => n + c.claims, 0), open: C.reduce((n, c) => n + c.open, 0) };
+  const band = `<header class="band hband" id="top"><div><p class="meta">레퍼런스 라이브러리 · 2026-11-13 기준</p><h1>조사해 둔 레퍼런스</h1>
+<p class="goal">조사 하나가 노선 하나입니다. 여러 조사에 함께 쓰인 레퍼런스는 환승역으로 이어집니다.</p>
+<ul class="counts num"><li><b>${C.length}</b>조사</li><li><b>${totals.refs}</b>레퍼런스</li><li><b>${totals.claims}</b>발견</li><li><b>${totals.open}</b>추가 질문</li></ul>
+<div class="prompts"><button type="button" class="btn line" data-copy="new">새 조사 시작 — 프롬프트 복사</button><button type="button" class="btn out" style="background:#fff" data-copy="ask">라이브러리에 묻기 — 프롬프트 복사</button></div></div>
+<div class="runline"><h2>최근 활동</h2><ol>${H.recent.map((r) => `<li><i style="background:${HEX[r.collection]}"></i><b>${r.date.slice(5).replace("-", ".")}</b>${ctitle(r.collection)} · 새 발견 ${r.newClaims}</li>`).join("")}</ol></div></header>`;
+  const map = sec("map", "조사 노선도", "선 위의 정거장은 조사 회차, 검은 이중 원은 여러 조사에 걸친 레퍼런스입니다.", `<div class="net" id="net"></div>`, false);
+  const topics = ["전체", ...new Set(C.map((c) => c.topic))];
+  const cards = sec("cols", "조사", "최근 조사순입니다. 점선 표시는 홈 배치를 보기 위한 가상 예시입니다.",
+    `<div class="chips" role="group" aria-label="주제">${topics.map((t, i) => `<button type="button" class="chip" data-topic="${t}" aria-pressed="${i === 0}">${t} ${i ? C.filter((c) => c.topic === t).length : C.length}</button>`).join("")}</div>
+<div class="cards">${C.map((c, i) => `<article class="card" style="--lc:${LINE[c.id]}" data-search="${esc([c.title, c.question, c.answer, c.topic].join(" "))}" data-t="${c.topic}">
+${c.thumbs ? `<div class="thumbs">${c.thumbs.map((t, k) => `<button type="button" data-open="${B.refs[[0, 1, 3][k]].id}" aria-label="캡처 열기"><img src="${t}" alt=""></button>`).join("")}</div>` : ""}
+<div class="top"><span class="badge num">${i + 1}</span><h3>${c.synthetic ? esc(c.title) : `<a href="#">${esc(c.title)}</a>`}</h3>${c.synthetic ? `<span class="synth">가상 예시</span>` : ""}</div>
+<div class="body"><span class="sub">${esc(c.topic)} · ${esc(c.domain)} · ${c.date}</span><p class="q">${esc(c.question)}</p><p class="a ${c.mixed ? "mixed" : ""}">${esc(c.answer)}</p>
+<div class="foot2 num"><span><b>${c.refs}</b> 레퍼런스</span><span><b>${c.claims}</b> 발견</span><span><b>${c.runs}</b> 회차</span><span><b>${c.open}</b> 질문</span></div></div></article>`).join("")}</div>`);
+  const across = sec("across", "조사 사이에 겹치는 것", "두 조사 이상에서 나온 해법입니다. 색 점은 그 패턴이 나온 조사와 제품 수입니다.",
+    `<ul class="list">${H.patterns.map((p) => `<li data-search="${esc(p.label + " " + p.question)}"><i class="st ${p.verdict ? "full" : ""}"></i><div><p><b>${esc(p.question)}</b> <span class="small">${esc(p.label)}</span></p>
+<p class="small">${p.verdict ? `결론: ${esc(p.verdict)}` : "결론 없음 — 아직 verdict를 기록하지 않음"}</p><p class="small" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">${Object.entries(p.in).map(([k, n]) => `<span style="display:inline-flex;gap:6px;align-items:center"><i class="st full" style="--lc:${LINE[k]}"></i>${ctitle(k)} ${n}</span>`).join("")}</p></div></li>`).join("")}
+${H.shared.map((s) => `<li data-search="${esc(s.product)}"><i class="st xfer"></i><div><p><b>${s.ref} ${esc(s.product)}</b> <span class="small">환승 레퍼런스 · 조사 ${s.in.length}개</span></p><p class="small">${s.in.map((k) => ctitle(k)).join(" · ")}</p></div></li>`).join("")}</ul>`);
+  const openq = sec("openq", "추가 질문", "아직 답하지 않은 질문입니다.",
+    `<ul class="list">${B.open.map((o) => `<li data-search="${esc(o.text)}"><i class="st" style="--lc:var(--l1)"></i><div><p><b>${esc(o.text)}</b></p><p class="small">메모 앱 요금제 비교 · ${esc(o.why)}</p></div></li>`).join("")}</ul><div class="prompts"><button type="button" class="btn line" data-copy="continue">이 질문들로 이어서 하기 — 프롬프트 복사</button></div>`);
+  document.getElementById("app").innerHTML = band + map + cards + across + openq + Draft.trayHtml() + Draft.viewerHtml();
+  const net = document.getElementById("net"); const draw = () => { net.innerHTML = network(net.clientWidth - 36); }; draw();
+  window.onresize = () => { if (document.getElementById("net")) draw(); };
+  document.getElementById("railfoot").textContent = `${C.length}개 조사 · ${totals.refs}개 레퍼런스 · 2026-11-13 기준`;
+  setNav([["map", "노선도", null], ["cols", "조사", C.length], ["across", "겹치는 것", H.patterns.length + H.shared.length], ["openq", "추가 질문", totals.open]], "#1f2937");
+  filters("data-topic", ".card[data-t]", "t");
+}
+Draft.route(drawBoard, drawHome);
+Draft.bindSearch(document.getElementById("q"));
+</script>
+</body>
+</html>

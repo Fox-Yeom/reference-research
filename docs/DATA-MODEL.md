@@ -322,3 +322,159 @@ flowchart TD
 2. 개인 조사와 업무 조사를 주제보다 위에서 한 번 더 나눌 것인가? 지금 제안은 나누지 않는다. 주제만으로 홈이 정리되는지 시안으로 확인한다.
 3. `domain`의 화면 이름을 "조사 형식"으로 할 것인가, 칩에서 아예 숨길 것인가?
 4. 멤버 수가 270개를 넘는 큰 조사 3개는 주제 안에서 조사를 나눌 것인가, 보드 안의 필터로 충분한가?
+
+---
+
+# 관계 모델 (Issue #16 · 2026-11-13)
+
+§1–§8은 묶음(주제)과 분류(형식) 모델이다. 이 장은 레퍼런스, 제품, 발행처, 발견 사이의 **관계**에 이름을 붙이는 방식을 다룬다. 기존 데이터를 초기화하지 않고, 지금 구조에 필드와 등록부를 더하는 것을 전제로 한다. 캡처는 그 시점의 페이지 상태라 다시 얻을 수 없고, 다른 저장소가 이 라이브러리를 참조하기 때문이다.
+
+## 9. 관계 실측
+
+집계 기준일과 방법은 §2와 같다. 추가 정의:
+- "제품 문자열"은 레퍼런스 `product` 값을 앞뒤 공백을 지우고 소문자로 바꾼 것이다. 개체 해소를 하지 않은 값이므로 실제 제품 수는 이보다 적다.
+- "발행처 문자열"은 `publisher` 값을 소문자로 바꾼 것이다.
+- "논문 호스트"는 `type: paper`인 레퍼런스 URL의 호스트(`www.` 제거)다.
+
+| 항목 | 값 | 뜻 |
+|---|---|---|
+| 그래프 규모 | 노드 약 3,100(레퍼런스 1,979 · 발견 834 · 축 290 · 조사 37) · 간선 약 8,000(멤버 2,128 · 발견→출처 2,420 · 태그 사용 2,474 · 그 밖) | 빅데이터 규모가 아니다. 파일 전체를 읽어도 1초 안팎이다 |
+| 제품 문자열 | 1,411종. 그중 223종이 레퍼런스 2개 이상에 나옴(레퍼런스 791개, 40%) | 같은 제품의 페이지·시점을 잇는 키가 문자열뿐이다 |
+| 발행처 문자열 | 1,126종 / 레퍼런스 1,979 | 근거 세기의 "독립 발행처" 계산이 문자열 일치에 기댄다 |
+| 논문 호스트 | 논문 426개 중 arXiv 97, NCBI 계열 3개 호스트(pubmed · pmc · www.ncbi) 112 | 같은 논문이 호스트·경로를 달리해 들어올 수 있다. 지금 정규화 라벨 중복은 0인데, 사람이 적재 전에 손으로 걸러서다(교훈 2026-10-15, 2026-10-20) |
+| 발견 주어(`subject`) | 834개 발견에 632종. 2번 이상 쓰인 주어는 29종 | 주어가 자유 입력이라 "이 제품에 대한 발견"을 모을 수 없다 |
+| 발견 사이 관계 | `revises` 25 · `refutes` 2 · `replacedBy` 27(발견 48개) · 확인 이벤트 15 | 정정은 기록되지만 지지·반박 관계는 거의 없다 |
+| 출처별 입장 | 없음. `sources`는 모두 지지로 읽힌다. 반대는 반박 발견(`refutes`)이나 기획 위치(`contradicts`)로만 표현된다 | 한 발견 안의 반대 근거를 보일 수 없다 |
+| 열람 수준 | 없음 | 검색 요약만 보고 등록한 출처를 인용한 사례가 기록됨(교훈 2026-10-30) |
+
+## 10. 방법론 조사와 대입
+
+| 방법론 | 출처 | 핵심 | 우리 데이터에 대입 | 판단 |
+|---|---|---|---|---|
+| SKOS | [W3C SKOS Reference (2009 권고안)](https://www.w3.org/TR/skos-reference/) | 개념 체계: `prefLabel`/`altLabel`, 위계 `broader`(비이행), 연관 `related` | `axes.json`이 이미 거의 SKOS다(`label` = prefLabel, `tags` = altLabel). 위계가 없어 pattern 축 256개가 평면이다 | **채택(일부):** `axis.broader`만 더한다(M9). `related`는 공동 출현으로 계산하고 저장하지 않는다 |
+| 패싯 분석 | [ISKO 백과 · Facet analysis](https://isko.org/cyclo/facet_analysis) (Ranganathan 1937 이래) | 한 기준으로 나눈 서로 배타적인 패싯 | 주제 · 형식 · 역할 · 자료 유형을 독립된 패싯으로 둔다 | **채택(이미 반영):** §4의 M1–M3와 같다. 새 필드 없음 |
+| IFLA LRM (저작·표현·구현·개별) | [ISKO 백과 · LRM](https://isko.org/cyclo/lrm), [Wikipedia 요약](https://en.wikipedia.org/wiki/IFLA_Library_Reference_Model) | 같은 저작이 여러 판·형식으로 나온다는 4층 모델 | 같은 논문의 초록·전문·PDF·저장소 URL | **4층은 기각, 식별 키만 채택(M8):** 4층을 다 쓰면 서지 목록을 만들게 된다. 필요한 것은 "같은 저작이면 같은 레퍼런스" 하나다 |
+| 개체 해소(record linkage) | [Fellegi & Sunter 1969, JASA 64(328)](https://doi.org/10.2307/2286061) | 비교 벡터와 두 임계값으로 일치 · 검토 필요 · 불일치 3구간 판정 | 제품 문자열 1,411종, 발행처 문자열 1,126종 | **채택(판정 방식만, M7):** 확률 모델은 규모에 비해 무겁다. 규칙으로 3구간을 나누고 "검토 필요"만 사람이 확인한다(`ref axes suggest`와 같은 방식) |
+| 형식 있는 관계 그래프(property graph) | [ISO/IEC 39075:2024 GQL](https://webstore.iec.ch/publication/94107) | 노드와 간선에 유형과 속성을 둔다 | 레퍼런스→제품, 제품→기관, 발견→주어, 발견→출처(입장) | **모델 개념은 채택, 그래프 DB는 기각:** 간선은 JSONL 필드(외래 키)로 저장하고 보고서·MCP가 메모리에서 잇는다. 그래프 DB를 쓰면 설치가 무거워지고 git으로 변경을 비교할 수 없다. 3천 노드에는 이득이 없다 |
+| Wikibase 진술 모델 | [Wikibase/DataModel](https://www.mediawiki.org/wiki/Wikibase/DataModel) | 진술 = 주어 + 주장 + 한정자(시점 등) + 참조 + 등급(우선·보통·폐기) | 발견이 이미 비슷하다: `subject` · `text` · `asOf`·`scope`(한정자) · `sources`(참조) · `status` active/superseded/refuted(등급) | **채택(주어 연결만, M10):** 빠진 것은 주어가 개체를 가리키는 것뿐이다 |
+| Micropublications | [Clark, Ciccarese, Goble 2014, J Biomed Semantics 5:28](https://doi.org/10.1186/2041-1480-5-28) | 주장 + 지지·반박 근거 + 해석을 한 단위로 | 출처별 입장 없음 | **채택(입장만, M11):** `against`(반대 출처) 목록을 더한다. 해석·논증 층은 메모(`note`)가 이미 맡는다 |
+| W3C PROV-O | [PROV-O (2013 권고안)](https://www.w3.org/TR/prov-o/) | Entity · Activity · Agent, `wasGeneratedBy`·`wasDerivedFrom` | 레퍼런스·스냅숏 = Entity, 회차 = Activity, 발견 `run` = 생성 활동, `revises` = 파생 | **대응표만 남기고 필드는 더하지 않음:** 이미 같은 구조다. Agent(어느 서브에이전트가 찾았나)는 기록 가치가 낮다 |
+| ClaimReview | [Google 팩트체크 구조화 데이터](https://developers.google.com/search/docs/appearance/structured-data/factcheck) | 웹에 게시하는 사실 확인 표기 | 보드는 로컬 문서다 | **기각:** 게시용 표기라 목적이 다르다 |
+| GraphRAG(그래프 + 군집 요약) | [Edge et al. 2024, arXiv:2404.16130](https://arxiv.org/abs/2404.16130) | LLM으로 개체·관계를 뽑고 Leiden 군집마다 요약해 말뭉치 전체 질문에 답 | "라이브러리 전체에서 무엇을 알았나" 같은 질문 | **전체 파이프라인은 기각, 생각만 채택:** 군집 요약의 역할은 주제(§4 M1)의 요약과 조사 `SUMMARY`가 맡는다. LLM 추출 비용과 군집 의존성이 3천 노드 규모에 비해 크다. 주제 제안은 이미 있는 임베딩(`ref categories`)으로 한다 |
+
+규모 기준(빅데이터 관점): 지금 구조는 파일 전체를 읽어서 처리한다. 레퍼런스가 약 10만 개를 넘거나 보고서 생성이 눈에 띄게 느려지면, 그때 파생 색인(`.graph/`, `.vectors/`처럼 git 제외)을 둔다. 정본을 DB로 옮기는 것은 그다음 단계로 미룬다.
+
+## 11. 제안 관계 모델
+
+```mermaid
+erDiagram
+  ENTITY ||--o{ ENTITY : "org (제품→만든 기관) · parent (기관→모기관)"
+  REFERENCE }o--o| ENTITY : "entity (제품, 신규)"
+  REFERENCE }o--o| ENTITY : "org (발행 기관, 신규)"
+  AXIS }o--o| AXIS : "broader (신규)"
+  CLAIM }o--|{ REFERENCE : "sources (지지)"
+  CLAIM }o--o{ REFERENCE : "against (반대, 신규)"
+  CLAIM }o--o{ ENTITY : "about (신규)"
+  CLAIM }o--o{ AXIS : "about (신규)"
+  CLAIM }o--o| CLAIM : "revises · refutes (그대로)"
+  TOPIC ||--o{ COLLECTION : "topic (§4 M1)"
+  COLLECTION ||--o{ MEMBER : "members"
+  MEMBER }o--|| REFERENCE : "ref"
+
+  ENTITY {
+    string id PK "E#, entities.json"
+    enum kind "product, org"
+    string label
+    list aliases "다른 이름·도메인"
+    string org FK "제품을 만든 기관"
+    string parent FK "모기관"
+    string access "접근 메모: 403·봇 차단·대체 경로"
+  }
+  REFERENCE {
+    string id PK "S#"
+    string product "표시용 문자열, 그대로"
+    string entity FK "신규"
+    string publisher "표시용 문자열, 그대로"
+    string org FK "신규: 독립성 계산 기준"
+    object ids "신규: doi, pmid, pmcid, arxiv, appId"
+    enum read "신규: snippet, full"
+  }
+  CLAIM {
+    string id PK "C#"
+    string subject "표시용 문자열, 그대로"
+    list about "신규: E#, 축 id, 주제 id"
+    list sources "지지 출처"
+    list against "신규: 반대 출처"
+  }
+  AXIS {
+    string id PK
+    string broader FK "신규: 상위 축"
+  }
+```
+
+| # | 바꾸는 것 | 방식 | 푸는 문제(§9) | 채택한 방법론 |
+|---|---|---|---|---|
+| M7 | **개체 등록부** `entities.json` | 제품과 기관을 `E#`로 등록한다. 레퍼런스에 `entity`(제품)와 `org`(발행 기관)를 단다. 문자열 `product`·`publisher`는 표시용으로 남긴다. 기관에는 접근 메모(`access`)를 둔다 | 제품 문자열 1,411종 / 다중 223종, 발행처 문자열 1,126종, 같은 회사의 여러 브랜드를 독립 발행처로 세는 문제(교훈 2026-10-15) | 개체 해소(3구간 판정), property graph |
+| M8 | **저작물 식별자** `ref.ids` | DOI·PMID·PMCID·arXiv·앱 ID를 저장한다. 같은 식별자면 같은 레퍼런스로 보고 URL은 `aliases`에 더한다. 다시 만나면 재사용한다는 규칙의 키를 URL에서 식별자까지 넓힌다 | 논문 URL이 호스트별로 갈림(arXiv 97, NCBI 112). 지금은 손으로 걸러 냄 | LRM(식별 키만) |
+| M9 | **축 위계** `axis.broader` | 축 하나에 상위 축 하나. 상위 축도 같은 `axes.json`에 둔다 | pattern 축 256개가 평면. 홈의 "겹치는 패턴"을 묶을 수 없다 | SKOS |
+| M10 | **발견 주어 연결** `claim.about` | 발견이 다루는 개체·축·주제의 id 목록. `subject` 문자열은 표시용으로 남긴다 | 주어 632종 중 재사용 29종. 830/834 발견이 조사 1개에 갇힘 | Wikibase 진술 모델 |
+| M11 | **출처 입장과 열람 수준** `claim.against`, `ref.read` | 반대 출처를 따로 적는다. 레퍼런스에는 요약만 읽었는지(`snippet`) 원문을 읽었는지(`full`) 적는다. `snippet` 출처만으로는 근거 세기 "강함"이 되지 않게 하는 안을 함께 검토한다 | 반대 근거를 한 발견 안에 보일 수 없음. 읽지 않은 출처 인용(교훈 2026-10-30) | Micropublications |
+
+기각한 것(다시 검토할 조건):
+- 그래프 DB, GQL 저장소: 레퍼런스 10만 개 이상, 또는 여러 사람이 동시에 쓰게 될 때
+- PROV Agent 기록: 서브에이전트별 품질을 비교해야 할 때
+- GraphRAG 군집 요약: 주제 요약으로 전체 질문에 답하지 못한다는 증거가 쌓일 때
+- LRM 4층: 같은 저작의 판 차이(번역·개정판)가 근거 판단을 바꾸는 사례가 생길 때
+
+### 11.1 개체 해소 판정 흐름(M7·M8 이전 작업)
+
+```mermaid
+flowchart TD
+  A["레퍼런스 1개"] --> B{"ids(DOI·PMID·arXiv·앱 ID)가<br/>기존 레퍼런스와 같나"}
+  B -->|"같음"| M1["같은 레퍼런스로 합침<br/>URL은 aliases에"]
+  B -->|"없음·다름"| C{"정규화 제품명 + 등록 도메인이<br/>기존 개체와 같나"}
+  C -->|"둘 다 같음"| E1["확정 일치<br/>entity 연결"]
+  C -->|"하나만 같음 또는 이름 유사"| E2["검토 필요 목록<br/>사람이 확인"]
+  C -->|"둘 다 다름"| E3["새 개체 E# 등록"]
+  E2 -->|"같다"| E1
+  E2 -->|"다르다"| E3
+  E1 --> F["기관(org) 연결<br/>parent 따라 독립성 계산"]
+  E3 --> F
+```
+
+## 12. 라벨과 화면 요소 연결(관계 모델 추가분)
+
+| 필드 | #13 시안의 화면 요소 | 비어 있을 때 |
+|---|---|---|
+| `ref.entity` → `ENTITY.label` | 보드 "제품별" 보기의 묶음 기준, 홈 "여러 조사에 나온 제품" | 지금처럼 `product` 문자열로 묶는다 |
+| `ref.org` → `parent` | 근거 세기 설명의 "독립 발행처 n곳", 출처 칩의 기관 이름 | `publisher` 문자열로 센다(지금 동작) |
+| `ENTITY.access` | 조사 중 Claude에게 주는 정보(화면에는 보이지 않음) | 없음 |
+| `ref.ids` | 출처 목록의 DOI·PMID 링크 | 링크를 그리지 않는다 |
+| `axis.broader` | 홈 "겹치는 패턴"의 상위 묶음, 보드 패턴 비교의 묶음 제목 | 상위 묶음 없이 축만 나열 |
+| `claim.about` | 레퍼런스 뷰어 "이 제품에 대한 발견", 축 카드 "이 패턴에 대한 발견" | 그 영역을 그리지 않는다 |
+| `claim.against` | 발견 카드의 "반대 근거 n" 칩과 펼침 목록 | 칩을 그리지 않는다 |
+| `ref.read` | 출처 칩의 "요약만 읽음" 표시 | 표시하지 않는다(미상) |
+
+## 13. 향후 계획(§7 갱신)
+
+```mermaid
+flowchart TD
+  A["#14 묶음·분류 모델"] --> C["#16 관계 모델 · 방법론 재구성<br/>(이 장, docs/METHODOLOGY.md)"]
+  C --> D["#13 보드 시안 3종<br/>주제·제품·반대 근거까지 담은 데모 데이터"]
+  D --> E{"메인테이너<br/>시안 선택 + 라벨 확정<br/>§8 열린 질문 + M11 근거 세기 규칙"}
+  E --> F1["Task: 저장 모델 1<br/>topics.json · entities.json · ref.ids<br/>다시 만난 자료 규칙 확장"]
+  E --> F2["Task: 저장 모델 2<br/>axis.broader · claim.about/against · ref.read<br/>근거 세기 계산 갱신"]
+  F1 --> G["Task: 라이브러리 이전<br/>주제 부여 · 개체 해소(검토 목록) ·<br/>식별자 채우기 · 축 위계"]
+  F2 --> G
+  E --> H["Task: board.mjs 교체"]
+  F1 --> H
+  F2 --> H
+  G --> I["재측정: §2·§9 집계 다시 실행<br/>여러 화면 폭 스크린샷"]
+  H --> I
+  I --> J["릴리스"]
+```
+
+순서의 이유:
+- 저장 모델 1(등록부·식별자)은 다른 Task의 바탕이므로 먼저 한다.
+- 저장 모델 2는 근거 세기 계산을 바꾼다. 그래서 따로 리뷰한다.
+- 이전 작업은 두 저장 모델이 끝난 뒤 한 번에 한다. 라이브러리 git 커밋 하나로 되돌릴 수 있게 하기 위해서다.

@@ -9,6 +9,8 @@
   const col = (id) => H.collections.find((c) => c.id === id);
   const ctitle = (id) => { const c = col(id); return esc(c.title) + (c.synthetic ? " (가상)" : ""); };
   const claimsCiting = (refId) => B.claims.filter((c) => c.sources.includes(refId));
+  // viewer wording; a draft may override these before opening the viewer
+  const L = { notes: "분석 노트", citing: "이 화면을 근거로 쓴 발견", pick: "담기" };
 
   const continuePrompt = () =>
     `reference-research 스킬로 "${B.title}" 조사(컬렉션 ${B.id})를 이어서 해줘. 추가 질문 항목: ${B.open.map((q, i) => `${i + 1}) ${q.text}`).join(" ")}`;
@@ -57,9 +59,9 @@
     const cites = claimsCiting(r.id);
     v.querySelector(".vw-side").innerHTML = `<p class="vw-meta">${esc(r.role)} · ${esc(r.type)} 출처 · 등급 ${esc(r.cred)}</p>
 <div class="vw-tags">${r.tags.map((t) => `<span>${esc(t.label)}</span>`).join("")}</div>
-<h3>분석 노트</h3><dl>${r.note.map(([k, val]) => `<dt>${esc(k)}</dt><dd>${esc(val)}</dd>`).join("")}</dl>
-<h3>이 화면을 근거로 쓴 발견 ${cites.length}개</h3><ul>${cites.map((c) => `<li><b>${c.id}</b> ${esc(c.text)}</li>`).join("")}</ul>
-<button type="button" data-pick="${r.id}" aria-pressed="false" class="pick">${r.id} 담기</button>`;
+<h3>${L.notes}</h3><dl>${r.note.map(([k, val]) => `<dt>${esc(k)}</dt><dd>${esc(val)}</dd>`).join("")}</dl>
+<h3>${L.citing} ${cites.length}개</h3><ul>${cites.map((c) => `<li><b>${c.id}</b> ${esc(c.text)}</li>`).join("")}</ul>
+<button type="button" data-pick="${r.id}" aria-pressed="false" class="pick">${r.id} ${L.pick}</button>`;
     renderTray();
     const idx = B.refs.indexOf(r);
     v.querySelector(".vw-pref").disabled = idx === 0;
@@ -164,5 +166,5 @@
     return out;
   }
 
-  window.Draft = { theme, flip, day, spark, weekly, D, B, H, esc, ref, claim, col, ctitle, claimsCiting, copy, openViewer, bindSearch, route, viewerHtml, trayHtml, renderTray, continuePrompt };
+  window.Draft = { L, theme, flip, day, spark, weekly, D, B, H, esc, ref, claim, col, ctitle, claimsCiting, copy, openViewer, bindSearch, route, viewerHtml, trayHtml, renderTray, continuePrompt };
 })();

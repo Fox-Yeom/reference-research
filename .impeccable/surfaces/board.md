@@ -39,3 +39,10 @@ Dark by default. Sidebar of collections as coloured lines; KPI cards with sparkl
 
 ### F — evidence map (node-link explorer)
 A's paper and margin marks for the detail panel, B's lines for edges. Columns question/answer, evidence, claims, captures; selecting a node lights its connected chain and recedes the rest by tone; arrow keys walk the columns. Home: topic, collection, shared pattern, shared reference columns.
+
+## Round 3 (maintainer choice, 2026-11-13)
+
+Maintainer chose to merge D and E with a neon look taken from ponytail screenshots (glowing hex activity heatmap, list rows with glowing gradient underline bars, sparkline cards with glowing strokes and faded fills, glowing status dots). Diagrams and node-link views follow the diagram-design skill. Titles, section names and labels are glossary-style nouns, never descriptive phrases.
+
+### G — neon mix (D + E)
+E's dark sidebar, KPI sparkline cards, pattern lines, sortable claim table; D's galley with margin marks as the conclusion, with cited captures lighting beside it. Glow on shapes only, never on text; inside diagrams only the 1-2 accents glow (counter-evidence edge, latest real collection bar) — the maintainer picked this over glowing everything. Evidence map split into overview (6 nodes) and detail (selected node, its claims and captures, at most 9) to stay within the diagram-design node budget; home timeline as a Gantt, shared references as a dependency graph with one hop. Dark only for now.

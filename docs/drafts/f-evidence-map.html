@@ -220,14 +220,19 @@ function explorer(root, nodes, edges, detail, first) {
       const x1 = L.right - box.left, y1 = L.top + L.height / 2 - box.top, x2 = R.left - box.left, y2 = R.top + R.height / 2 - box.top, mx = (x1 + x2) / 2;
       return `<path class="${k}" data-a="${a}" data-b="${b}" d="M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}"/>`;
     }).join("");
-    if (cur) select(cur, false);
+    if (cur) highlight(cur);
   }
   let cur = null;
-  function select(nid, focus = true) {
-    cur = nid; const on = reach(nid);
+  // redraws only re-apply the highlight; the detail panel is rebuilt on a real selection, so its buttons stay put
+  function highlight(nid) {
+    const on = reach(nid);
     map.classList.add("has-sel");
     map.querySelectorAll("[data-node]").forEach((n) => { n.classList.toggle("on", on.has(n.dataset.node)); n.classList.toggle("sel", n.dataset.node === nid); n.setAttribute("aria-pressed", n.dataset.node === nid); });
     svg.querySelectorAll("path").forEach((p) => p.classList.toggle("on", on.has(p.dataset.a) && on.has(p.dataset.b)));
+    return on;
+  }
+  function select(nid, focus = true) {
+    cur = nid; const on = highlight(nid);
     root.querySelector(".stick").innerHTML = detail(nid, on);
     Draft.renderTray();
     if (focus) map.querySelector(`[data-node="${nid}"]`)?.focus({ preventScroll: true });

@@ -126,7 +126,7 @@ h1{font-size:28px;line-height:1.25;margin:0 0 8px;letter-spacing:-.02em}
 .qrow p{margin:0}.qrow .src{font-size:13px;color:var(--ink-3);margin-top:3px}
 .qrow .mg{border-left:1px dashed var(--rule);padding-left:14px}
 .nomatch{margin:0;padding:12px 26px 18px;color:var(--ink-2);font-size:14px}
-[data-group].is-empty>.caps,[data-group].is-empty>.prow,[data-group].is-empty>.qrow,[data-group].is-empty>.toolbar{display:none}
+[data-group].is-empty>.caps,[data-group].is-empty>.prow,[data-group].is-empty>.qrow,[data-group].is-empty>.toolbar,[data-group].is-empty>.explore{display:none}
 .synth{font-size:11.5px;color:var(--ink-3);border:1px dashed var(--rule);border-radius:4px;padding:0 5px;margin-left:4px}
 .tray{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:40;display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:calc(100vw - 32px);background:#13202a;color:#fff;border-radius:10px;padding:10px 12px 10px 16px;box-shadow:0 8px 28px rgba(0,0,0,.3)}
 .tray-n{font-weight:600;font-size:14px}.tray-ids{display:flex;gap:4px;flex-wrap:wrap}
@@ -244,6 +244,8 @@ function explorer(root, nodes, edges, detail, first) {
     if (t) select(t.dataset.node);
   });
   new ResizeObserver(draw).observe(map);
+  // search hides nodes; redraw so edges to hidden nodes disappear
+  document.getElementById("q").addEventListener("input", () => requestAnimationFrame(draw));
   addEventListener("load", draw);
   draw(); select(first, false);
 }
@@ -261,7 +263,7 @@ function drawBoard() {
   const node = (nid, label, text, cls = "", extra = "") => `<button type="button" class="node ${cls}" data-node="${nid}" aria-pressed="false" data-search="${esc(label + " " + text)}"><b>${label}</b><span class="tx">${esc(text)}</span>${extra}</button>`;
   const lede = `<section class="sheet lede" id="top"><div><p class="meta">${B.kind} · ${B.domain} · 마지막 조사 ${B.date}</p><h1>${esc(B.title)}</h1><p class="goal"><b>왜 조사했나</b>${esc(B.goal)}</p></div>
 <ul class="how"><li>칸을 누르면 이어진 근거·발견·화면만 밝아집니다</li><li><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 로 칸 사이를 옮겨 다닙니다</li><li>오른쪽 칸에서 담기·화면 보기를 합니다</li></ul></section>`;
-  const mapSheet = `<section class="sheet" id="key"><header><h2>근거 지도</h2><p>결론에서 근거, 발견, 캡처까지 이어진 선입니다. 초록은 근거 강함, 주황은 보통, 빨간 점선은 반대 근거입니다.</p></header>
+  const mapSheet = `<section class="sheet" id="key" data-group><header><h2>근거 지도</h2><p>결론에서 근거, 발견, 캡처까지 이어진 선입니다. 초록은 근거 강함, 주황은 보통, 빨간 점선은 반대 근거입니다.</p></header>
 <div class="explore"><div class="map"><svg class="edges" aria-hidden="true"></svg><div class="cols4">
 <div class="col"><p class="colh">결론</p>${node("question", "질문", B.question)}${node("answer", "답", B.answer.text, "ans")}${node("proposal", "제안", B.proposal.text)}</div>
 <div class="col"><p class="colh">근거 <span>${E.length} · 반대 1</span></p>${E.map((e, i) => node("e" + i, `근거 ${i + 1}`, e.text, "", `<i class="s ${e.strength === "강함" ? "" : "mid"}"></i>`)).join("")}${node("counter", `반대 근거 · 근거 ${B.counter.against}`, B.counter.text, "counter")}</div>
@@ -301,7 +303,7 @@ function drawHome() {
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button type="button" class="btn" data-copy="new">새 조사 시작 — 프롬프트 복사</button><button type="button" class="btn ghost" data-copy="ask">라이브러리에 묻기 — 프롬프트 복사</button></div></div>
 <ul class="how"><li>칸을 누르면 이어진 것만 밝아집니다</li><li><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 로 옮겨 다닙니다</li></ul></section>`;
   const node = (nid, label, text, extra = "") => `<button type="button" class="node" data-node="${nid}" aria-pressed="false" data-search="${esc(label + " " + text)}"><b>${label}</b><span class="tx">${text}</span>${extra}</button>`;
-  const mapSheet = `<section class="sheet" id="map"><header><h2>조사 지도</h2><p>주제 → 조사 → 겹치는 패턴 → 겹치는 레퍼런스. 초록 선은 결론이 있는 패턴, 주황 선은 결론이 아직 없는 패턴입니다.</p></header>
+  const mapSheet = `<section class="sheet" id="map" data-group><header><h2>조사 지도</h2><p>주제 → 조사 → 겹치는 패턴 → 겹치는 레퍼런스. 초록 선은 결론이 있는 패턴, 주황 선은 결론이 아직 없는 패턴입니다.</p></header>
 <div class="explore"><div class="map"><svg class="edges" aria-hidden="true"></svg><div class="cols4">
 <div class="col"><p class="colh">주제 <span>${topics.length}</span></p>${topics.map((t) => node("t:" + t, "주제", `${esc(t)} · 조사 ${C.filter((c) => c.topic === t).length}개`)).join("")}</div>
 <div class="col"><p class="colh">조사 <span>${C.length}</span></p>${C.map((c) => node(c.id, `${c.date.slice(5).replace("-", ".")} · 레퍼런스 ${c.refs}${c.synthetic ? " · 가상 예시" : ""}`, esc(c.title))).join("")}</div>

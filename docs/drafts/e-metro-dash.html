@@ -31,10 +31,11 @@ button{font:inherit;color:inherit;cursor:pointer}
 .brand i{width:16px;height:16px;border-radius:50%;border:3.5px solid var(--text);box-shadow:0 0 0 2.5px var(--side),0 0 0 5px var(--l1)}
 .grp{font-size:12.5px;color:var(--faint);padding:0 8px;margin:0 0 4px}
 .cols{display:flex;flex-direction:column;gap:2px}
-.cols a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--muted);text-decoration:none;font-size:14px;transition:background .15s,color .15s}
+.cols a,.cols .ci{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--muted);text-decoration:none;font-size:14px;transition:background .15s,color .15s}
+.cols em{flex:none;font-style:normal;font-size:11px;color:var(--faint);border:1px dashed var(--line2);border-radius:5px;padding:0 5px}
 .cols a:hover,.cols a[aria-current=page]{background:var(--track);color:var(--text)}
-.cols a i{width:9px;height:9px;border-radius:50%;flex:none;background:var(--c)}
-.cols a span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cols a i,.cols .ci i{width:9px;height:9px;border-radius:50%;flex:none;background:var(--c)}
+.cols a span,.cols .ci span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cols small{color:var(--faint);font-variant-numeric:tabular-nums}
 .views{display:grid;grid-template-columns:1fr 1fr;gap:3px;background:var(--track);border:1px solid var(--line);padding:3px;border-radius:10px}
 .views a{text-align:center;color:var(--muted);text-decoration:none;padding:6px;border-radius:7px;font-size:13.5px}
@@ -226,7 +227,7 @@ const id = (x) => (x.startsWith("S") ? `<button type="button" class="id" data-op
 const ids = (a) => (a || []).map(id).join("");
 const pick = (x) => `<button type="button" class="pick" data-pick="${x}" aria-pressed="false">${x} 담기</button>`;
 const pill = (s) => (s === "강함" ? `<span class="pill good">근거 강함</span>` : s === "보통" ? `<span class="pill mid">근거 보통</span>` : s === "반대" ? `<span class="pill bad">반대 근거</span>` : `<span class="pill none">${s}</span>`);
-const sideCols = (cur) => { document.getElementById("cols").innerHTML = H.collections.map((c) => `<a href="${c.synthetic ? "#home" : "#"}" style="--c:${LC[c.id]}"${c.id === cur ? ' aria-current="page"' : ""} title="${esc(c.title)}"><i></i><span>${esc(c.title)}${c.synthetic ? " (가상)" : ""}</span><small>${c.refs}</small></a>`).join(""); };
+const sideCols = (cur) => { document.getElementById("cols").innerHTML = H.collections.map((c) => c.synthetic ? `<span class="ci" style="--c:${LC[c.id]}" title="${esc(c.title)} (가상)"><i></i><span>${esc(c.title)}</span><em>가상</em><small>${c.refs}</small></span>` : `<a href="#" style="--c:${LC[c.id]}"${c.id === cur ? ' aria-current="page"' : ""} title="${esc(c.title)}"><i></i><span>${esc(c.title)}</span><small>${c.refs}</small></a>`).join(""); };
 const roleOk = (r, f) => f === "전체" || r.role === f;
 let filter = "전체", tab = "ev", sel = "answer", hiddenAxes = new Set();
 function drawBoard() {
@@ -239,7 +240,7 @@ function drawBoard() {
 <div class="chart" id="chart"></div><div id="below"></div></section>
 <section class="card" id="refs" data-group><div class="filmh"><h2>캡처한 화면<span id="filmn"></span></h2><span class="m" style="font-size:13px;color:var(--faint)">누르면 페이지 안에서 크게 봅니다</span></div><div class="film" id="film"></div></section>
 <div class="grid2"><section class="card" id="claims" data-group><div class="tblh"><h2>발견<span>${B.claims.length}</span></h2><input id="cq" type="search" placeholder="발견 안에서 찾기" aria-label="발견 안에서 찾기"></div>
-<table class="tbl"><thead><tr><th><button type="button" data-sort="n" aria-sort="ascending">발견</button></th><th><button type="button" data-sort="s">근거</button></th><th><button type="button" data-sort="c">출처 수</button></th><th></th></tr></thead><tbody id="tb"></tbody></table></section>
+<table class="tbl"><thead><tr><th><button type="button" data-sort="n" aria-sort="ascending">발견</button></th><th><button type="button" data-sort="s">근거</button></th><th><button type="button" data-sort="c">출처 수</button></th><th></th></tr></thead><tbody id="tb"></tbody></table><p class="nomatch" id="cnone" hidden>조건에 맞는 발견 없음</p></section>
 <section class="card panel" id="open" data-group><h2>추가 질문과 피할 것</h2><p>답에 따라 결론이 달라질 수 있는 것들</p><ul class="qlist">${B.open.map((o) => `<li data-search="${esc(o.text + " " + o.why)}"><span class="st"></span><div><p>${esc(o.text)}</p><p class="m">${esc(o.why)} ${ids(o.claims)}</p></div></li>`).join("")}${B.avoid.map((a) => `<li data-search="${esc(a.text)}"><span class="st" style="--c:var(--red)"></span><div><p>${esc(a.text)}</p><p class="m">피할 것 · 추정 ${ids(a.claims)}</p></div></li>`).join("")}</ul>
 <ul class="statlist"><li>검색 바퀴<b>${B.rounds.length}</b></li><li>검색어<b>${B.rounds.reduce((n, r) => n + r.queries.length, 0)}</b></li><li>멈춘 이유<b style="font-family:var(--sans)">${esc(B.rounds.at(-1).stopped)}</b></li><li>기획 의도 공식 · 정황<b>1 · 1</b></li></ul></section></div>
 ${Draft.trayHtml()}${Draft.viewerHtml()}`;
@@ -253,8 +254,10 @@ ${Draft.trayHtml()}${Draft.viewerHtml()}`;
     const okRefs = new Set(B.refs.filter((r) => roleOk(r, filter)).map((r) => r.id));
     const val = { n: (c) => +c.id.slice(1), s: (c) => (c.strength === "강함" ? 0 : 1), c: (c) => c.sources.length }[sort.k];
     const rows = B.claims.filter((c) => c.sources.some((s) => okRefs.has(s)) && (!q || (c.id + c.text + c.subject).toLowerCase().includes(q))).sort((a, b) => (val(a) - val(b)) * sort.dir || +a.id.slice(1) - +b.id.slice(1));
+    tb.closest("table").hidden = !rows.length;
+    document.getElementById("cnone").hidden = !!rows.length;
     Draft.flip(tb, () => {
-      tb.innerHTML = rows.map((c) => `<tr id="${c.id}" data-search="${esc(c.id + " " + c.text + " " + c.subject)}"><td><span class="t">${esc(c.text)}</span><span class="m">${c.id} · ${c.kind} · ${esc(c.subject)}</span><span class="barline" style="width:${(c.sources.length / 5) * 100}%;--c:${c.strength === "강함" ? "var(--good)" : "var(--mid)"}"></span></td><td>${pill(c.strength)}${c.id === "C6" ? `<br><span class="pill bad" style="margin-top:4px">근거 2 반박</span>` : ""}</td><td class="num">${ids(c.sources)}</td><td>${pick(c.id)}</td></tr>`).join("") || `<tr><td colspan="4" style="color:var(--muted)">이 조건에 맞는 발견이 없습니다.</td></tr>`;
+      tb.innerHTML = rows.map((c) => `<tr id="${c.id}" data-search="${esc(c.id + " " + c.text + " " + c.subject)}"><td><span class="t">${esc(c.text)}</span><span class="m">${c.id} · ${c.kind} · ${esc(c.subject)}</span><span class="barline" style="width:${(c.sources.length / 5) * 100}%;--c:${c.strength === "강함" ? "var(--good)" : "var(--mid)"}"></span></td><td>${pill(c.strength)}${c.id === "C6" ? `<br><span class="pill bad" style="margin-top:4px">근거 2 반박</span>` : ""}</td><td class="num">${ids(c.sources)}</td><td>${pick(c.id)}</td></tr>`).join("");
     });
     Draft.renderTray();
   }

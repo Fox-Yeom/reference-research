@@ -10,7 +10,7 @@
    "height": 8022
   },
   "viewer-390": {
-   "texts": 320,
+   "texts": 319,
    "minBody": 4.52,
    "minLarge": 16.43,
    "fails": 0,
@@ -37,7 +37,7 @@
    "height": 4651
   },
   "viewer-1280": {
-   "texts": 320,
+   "texts": 319,
    "minBody": 4.52,
    "minLarge": 16.43,
    "fails": 0,
@@ -61,7 +61,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 4001
+   "height": 4106
   },
   "home-768": {
    "texts": 173,
@@ -102,7 +102,7 @@
    "height": 8103
   },
   "viewer-390": {
-   "texts": 277,
+   "texts": 276,
    "minBody": 4.77,
    "minLarge": 4.77,
    "fails": 0,
@@ -129,7 +129,7 @@
    "height": 4593
   },
   "viewer-1280": {
-   "texts": 302,
+   "texts": 301,
    "minBody": 4.77,
    "minLarge": 4.77,
    "fails": 0,
@@ -147,16 +147,16 @@
    "height": 4508
   },
   "home-390": {
-   "texts": 139,
+   "texts": 156,
    "minBody": 4.77,
    "minLarge": 14.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 3662
+   "height": 3731
   },
   "home-768": {
-   "texts": 139,
+   "texts": 156,
    "minBody": 4.77,
    "minLarge": 14.68,
    "fails": 0,
@@ -165,7 +165,7 @@
    "height": 2908
   },
   "home-1280": {
-   "texts": 144,
+   "texts": 161,
    "minBody": 4.77,
    "minLarge": 14.68,
    "fails": 0,
@@ -174,7 +174,7 @@
    "height": 2608
   },
   "home-1600": {
-   "texts": 144,
+   "texts": 161,
    "minBody": 4.77,
    "minLarge": 14.68,
    "fails": 0,
@@ -194,7 +194,7 @@
    "height": 6374
   },
   "viewer-390": {
-   "texts": 281,
+   "texts": 280,
    "minBody": 4.83,
    "minLarge": 4.83,
    "fails": 0,
@@ -221,7 +221,7 @@
    "height": 4015
   },
   "viewer-1280": {
-   "texts": 288,
+   "texts": 287,
    "minBody": 4.83,
    "minLarge": 4.83,
    "fails": 0,
@@ -245,7 +245,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 3499
+   "height": 3517
   },
   "home-768": {
    "texts": 163,
@@ -263,7 +263,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 2186
+   "height": 2207
   },
   "home-1600": {
    "texts": 167,

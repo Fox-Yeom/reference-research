@@ -259,7 +259,7 @@ footer{padding:30px 40px 90px;color:var(--ink-3);font-size:13px}
 <script src="data.js"></script>
 <script src="common.js"></script>
 <script>
-const { B, H, esc, ref, claim, col, claimsCiting } = Draft;
+const { B, H, esc, ref, claim, col, ctitle, claimsCiting } = Draft;
 const LINE = { "note-app-pricing": "var(--l1)", "weather-app-home": "var(--l2)", "photo-app-onboarding": "var(--l3)", "indie-app-revenue": "var(--l4)", "memo-app-reviews": "var(--l5)" };
 const HEX = { "note-app-pricing": "#13843f", "weather-app-home": "#b45309", "photo-app-onboarding": "#1660c7", "indie-app-revenue": "#c2255c", "memo-app-reviews": "#8a5a2b" };
 const id = (x) => (x.startsWith("S") ? `<button type="button" class="id" data-open="${x}" title="${esc(ref(x)?.product)} 캡처 보기">${x}</button>` : `<a class="id c" href="#${x}" title="${esc(claim(x)?.text)}">${x}</a>`);
@@ -337,7 +337,7 @@ function network(w) {
   xfers.forEach(({ s, x }) => { const ys = s.in.map((c) => y(C.findIndex((k) => k.id === c))); svg += `<line x1="${x}" x2="${x}" y1="${Math.min(...ys)}" y2="${Math.max(...ys)}" stroke="#111827" stroke-width="3" stroke-dasharray="2 5" stroke-linecap="round"/>`; });
   C.forEach((c, i) => {
     const yy = y(i), col = HEX[c.id];
-    svg += narrow ? `<text x="${x0 - 20}" y="${yy - 18}" font-size="13" font-weight="700" fill="#111827">${esc(c.title)}</text>` : `<text x="0" y="${yy + 5}" font-size="14" font-weight="700" fill="#111827">${esc(c.title.length > 15 ? c.title.slice(0, 15) + "…" : c.title)}</text>`;
+    svg += narrow ? `<text x="${x0 - 20}" y="${yy - 18}" font-size="13" font-weight="700" fill="#111827">${esc(c.title)}${c.synthetic ? " (가상)" : ""}</text>` : `<text x="0" y="${yy + 5}" font-size="14" font-weight="700" fill="#111827">${esc(c.title.length > 13 ? c.title.slice(0, 13) + "…" : c.title)}${c.synthetic ? " (가상)" : ""}</text>`;
     svg += `<line x1="${x0}" x2="${x1}" y1="${yy}" y2="${yy}" stroke="${col}" stroke-width="7" stroke-linecap="round"/>`;
     for (let r = 0; r < c.runs; r++) { const xx = x0 + 12 + r * 46; svg += `<circle cx="${xx}" cy="${yy}" r="8" fill="#fff" stroke="${col}" stroke-width="4"/>`; }
     svg += `<text x="${x0 + 12 + c.runs * 46 - 8}" y="${yy - 13}" font-size="11.5" fill="#414b5a">R${c.runs} · ${c.date.slice(5).replace("-", ".")}</text>`;
@@ -354,20 +354,20 @@ function drawHome() {
 <p class="goal">조사 하나가 노선 하나입니다. 여러 조사에 함께 쓰인 레퍼런스는 환승역으로 이어집니다.</p>
 <ul class="counts num"><li><b>${C.length}</b>조사</li><li><b>${totals.refs}</b>레퍼런스</li><li><b>${totals.claims}</b>발견</li><li><b>${totals.open}</b>추가 질문</li></ul>
 <div class="prompts"><button type="button" class="btn line" data-copy="new">새 조사 시작 — 프롬프트 복사</button><button type="button" class="btn out" style="background:#fff" data-copy="ask">라이브러리에 묻기 — 프롬프트 복사</button></div></div>
-<div class="runline"><h2>최근 활동</h2><ol>${H.recent.map((r) => `<li><i style="background:${HEX[r.collection]}"></i><b>${r.date.slice(5).replace("-", ".")}</b>${esc(col(r.collection).title)} · 새 발견 ${r.newClaims}</li>`).join("")}</ol></div></header>`;
+<div class="runline"><h2>최근 활동</h2><ol>${H.recent.map((r) => `<li><i style="background:${HEX[r.collection]}"></i><b>${r.date.slice(5).replace("-", ".")}</b>${ctitle(r.collection)} · 새 발견 ${r.newClaims}</li>`).join("")}</ol></div></header>`;
   const map = sec("map", "조사 노선도", "선 위의 정거장은 조사 회차, 검은 이중 원은 여러 조사에 걸친 레퍼런스입니다.", `<div class="net" id="net"></div>`, false);
   const topics = ["전체", ...new Set(C.map((c) => c.topic))];
   const cards = sec("cols", "조사", "최근 조사순입니다. 점선 표시는 홈 배치를 보기 위한 가상 예시입니다.",
     `<div class="chips" role="group" aria-label="주제">${topics.map((t, i) => `<button type="button" class="chip" data-topic="${t}" aria-pressed="${i === 0}">${t} ${i ? C.filter((c) => c.topic === t).length : C.length}</button>`).join("")}</div>
 <div class="cards">${C.map((c, i) => `<article class="card" style="--lc:${LINE[c.id]}" data-search="${esc([c.title, c.question, c.answer, c.topic].join(" "))}" data-t="${c.topic}">
 ${c.thumbs ? `<div class="thumbs">${c.thumbs.map((t, k) => `<button type="button" data-open="${B.refs[[0, 1, 3][k]].id}" aria-label="캡처 열기"><img src="${t}" alt=""></button>`).join("")}</div>` : ""}
-<div class="top"><span class="badge num">${i + 1}</span><h3><a href="${c.synthetic ? "#home" : "#"}">${esc(c.title)}</a></h3>${c.synthetic ? `<span class="synth">가상 예시</span>` : ""}</div>
+<div class="top"><span class="badge num">${i + 1}</span><h3>${c.synthetic ? esc(c.title) : `<a href="#">${esc(c.title)}</a>`}</h3>${c.synthetic ? `<span class="synth">가상 예시</span>` : ""}</div>
 <div class="body"><span class="sub">${esc(c.topic)} · ${esc(c.domain)} · ${c.date}</span><p class="q">${esc(c.question)}</p><p class="a ${c.mixed ? "mixed" : ""}">${esc(c.answer)}</p>
 <div class="foot2 num"><span><b>${c.refs}</b> 레퍼런스</span><span><b>${c.claims}</b> 발견</span><span><b>${c.runs}</b> 회차</span><span><b>${c.open}</b> 질문</span></div></div></article>`).join("")}</div>`);
   const across = sec("across", "조사 사이에 겹치는 것", "두 조사 이상에서 나온 해법입니다. 색 점은 그 패턴이 나온 조사와 제품 수입니다.",
     `<ul class="list">${H.patterns.map((p) => `<li data-search="${esc(p.label + " " + p.question)}"><i class="st ${p.verdict ? "full" : ""}"></i><div><p><b>${esc(p.question)}</b> <span class="small">${esc(p.label)}</span></p>
-<p class="small">${p.verdict ? `결론: ${esc(p.verdict)}` : "결론 없음 — 아직 verdict를 기록하지 않음"}</p><p class="small" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">${Object.entries(p.in).map(([k, n]) => `<span style="display:inline-flex;gap:6px;align-items:center"><i class="st full" style="--lc:${LINE[k]}"></i>${esc(col(k).title)} ${n}</span>`).join("")}</p></div></li>`).join("")}
-${H.shared.map((s) => `<li data-search="${esc(s.product)}"><i class="st xfer"></i><div><p><b>${s.ref} ${esc(s.product)}</b> <span class="small">환승 레퍼런스 · 조사 ${s.in.length}개</span></p><p class="small">${s.in.map((k) => esc(col(k).title)).join(" · ")}</p></div></li>`).join("")}</ul>`);
+<p class="small">${p.verdict ? `결론: ${esc(p.verdict)}` : "결론 없음 — 아직 verdict를 기록하지 않음"}</p><p class="small" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">${Object.entries(p.in).map(([k, n]) => `<span style="display:inline-flex;gap:6px;align-items:center"><i class="st full" style="--lc:${LINE[k]}"></i>${ctitle(k)} ${n}</span>`).join("")}</p></div></li>`).join("")}
+${H.shared.map((s) => `<li data-search="${esc(s.product)}"><i class="st xfer"></i><div><p><b>${s.ref} ${esc(s.product)}</b> <span class="small">환승 레퍼런스 · 조사 ${s.in.length}개</span></p><p class="small">${s.in.map((k) => ctitle(k)).join(" · ")}</p></div></li>`).join("")}</ul>`);
   const openq = sec("openq", "추가 질문", "아직 답하지 않은 질문입니다.",
     `<ul class="list">${B.open.map((o) => `<li data-search="${esc(o.text)}"><i class="st" style="--lc:var(--l1)"></i><div><p><b>${esc(o.text)}</b></p><p class="small">메모 앱 요금제 비교 · ${esc(o.why)}</p></div></li>`).join("")}</ul><div class="prompts"><button type="button" class="btn line" data-copy="continue">이 질문들로 이어서 하기 — 프롬프트 복사</button></div>`);
   document.getElementById("app").innerHTML = band + map + cards + across + openq + Draft.trayHtml() + Draft.viewerHtml();

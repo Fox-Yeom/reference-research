@@ -36,7 +36,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* fore-edge tab rail: height follows how much each section holds */
 .rail{position:fixed;top:0;right:0;bottom:0;width:var(--rail);display:flex;flex-direction:column;gap:3px;padding:10px 0 10px 6px;background:var(--desk);z-index:30}
 .rail a{flex:var(--n) 1 44px;min-height:44px;display:flex;align-items:center;justify-content:center;background:var(--hue);color:#fff;text-decoration:none;border-radius:8px 0 0 8px;writing-mode:vertical-rl;font-size:13px;font-weight:700;letter-spacing:.02em;position:relative;transition:margin .09s steps(2);overflow:hidden}
-.rail a small{font-weight:600;opacity:.85;margin-top:6px;font-variant-numeric:tabular-nums}
+.rail a small{font-size:12px;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}
 .rail a.dark{color:var(--ink)}
 .rail a:hover{margin-left:-4px}
 .rail a[aria-current=true]{margin-left:-12px;box-shadow:-3px 0 0 var(--ink)}
@@ -45,8 +45,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .leaf>header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:14px 16px 12px;color:#fff}
 .leaf.dark>header{color:var(--ink)}
 .leaf>header h2{margin:0;font-size:19px;letter-spacing:-.01em}
-.leaf>header p{margin:0;font-size:13.5px;opacity:.92;flex:1 1 320px}
-.leaf>header .n{font:700 13px var(--mono);opacity:.9}
+.leaf>header p{margin:0;font-size:13.5px;flex:1 1 320px}
+.leaf>header .n{font:700 13px var(--mono)}
 .leaf>.in{background:var(--leaf);border-radius:8px;padding:18px 20px}
 .lede{max-width:1400px;margin:0 auto 18px;background:var(--leaf);border-radius:12px;padding:22px 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 28px;align-items:end}
 .lede .meta{margin:0 0 4px;font-size:13.5px;color:var(--ink-3)}
@@ -205,7 +205,7 @@ footer{max-width:1400px;margin:0 auto;color:var(--ink-3);font-size:13px}
 <script src="data.js"></script>
 <script src="common.js"></script>
 <script>
-const { B, H, esc, ref, claim, col, claimsCiting } = Draft;
+const { B, H, esc, ref, claim, col, ctitle, claimsCiting } = Draft;
 const id = (x) => (x.startsWith("S") ? `<button type="button" class="id" data-open="${x}" title="${esc(ref(x)?.product)} 캡처 보기">${x}</button>` : `<a class="id c" href="#${x}" title="${esc(claim(x)?.text)}">${x}</a>`);
 const ids = (a) => (a || []).map(id).join("");
 const pick = (x) => `<button type="button" class="pick" data-pick="${x}" aria-pressed="false">${x} 담기</button>`;
@@ -296,14 +296,14 @@ ${extent(C.map((c) => ({ hue: TOPIC[c.topic][0], size: c.refs })), "조사별 �
 <div class="cards">${C.map((c) => `<article class="card" style="--hue:var(${TOPIC[c.topic][0]});--w:${Math.round((c.refs / maxRefs) * 100)}%" data-search="${esc([c.title, c.question, c.answer, c.topic].join(" "))}" data-t="${c.topic}">
 <span class="tab">${esc(c.topic)} · 레퍼런스 ${c.refs}</span>
 ${c.thumbs ? `<div class="thumbs">${c.thumbs.map((t, k) => `<button type="button" data-open="${B.refs[[0, 1, 3][k]].id}" aria-label="캡처 열기"><img src="${t}" alt=""></button>`).join("")}</div>` : ""}
-<h3><a href="${c.synthetic ? "#home" : "#"}">${esc(c.title)}</a></h3>${c.synthetic ? `<span class="synth">가상 예시</span>` : ""}<p class="q">${esc(c.question)}</p><p class="a ${c.mixed ? "mixed" : ""}">${esc(c.answer)}</p>
+<h3>${c.synthetic ? esc(c.title) : `<a href="#">${esc(c.title)}</a>`}</h3>${c.synthetic ? `<span class="synth">가상 예시</span>` : ""}<p class="q">${esc(c.question)}</p><p class="a ${c.mixed ? "mixed" : ""}">${esc(c.answer)}</p>
 <div class="nums num"><span><b>${c.claims}</b> 발견</span><span><b>${c.runs}</b> 회차</span><span><b>${c.open}</b> 질문</span><span>${c.date}</span></div></article>`).join("")}</div>`);
   const across = leaf(sx.across, "행은 두 조사 이상에서 나온 해법, 열은 조사입니다. 숫자는 그 해법을 쓴 제품 수입니다.",
-    `<div class="mx-wrap"><table class="mx" data-search="${esc(H.patterns.map((p) => p.label + " " + p.question).join(" ") + " " + H.shared.map((x) => x.ref + " " + x.product).join(" "))}"><thead><tr><th>해법</th>${C.map((c) => `<th>${esc(c.title)}</th>`).join("")}<th>결론</th></tr></thead><tbody>
+    `<div class="mx-wrap"><table class="mx" data-search="${esc(H.patterns.map((p) => p.label + " " + p.question).join(" ") + " " + H.shared.map((x) => x.ref + " " + x.product).join(" "))}"><thead><tr><th>해법</th>${C.map((c) => `<th>${ctitle(c.id)}</th>`).join("")}<th>결론</th></tr></thead><tbody>
 ${H.patterns.map((p) => `<tr><th style="white-space:normal">${esc(p.question)}<br><span class="small" style="font-weight:400">${esc(p.label)}</span></th>${C.map((c) => (p.in[c.id] ? `<td class="on num"><b>${p.in[c.id]}</b></td>` : `<td class="off">—</td>`)).join("")}<td>${p.verdict ? esc(p.verdict) : `<span class="small">아직 없음</span>`}</td></tr>`).join("")}
 ${H.shared.map((s) => `<tr><th>${id(s.ref)} ${esc(s.product)}<br><span class="small" style="font-weight:400">겹치는 레퍼런스</span></th>${C.map((c) => (s.in.includes(c.id) ? `<td class="on">씀</td>` : `<td class="off">—</td>`)).join("")}<td><span class="small">조사 ${s.in.length}개</span></td></tr>`).join("")}</tbody></table></div>`);
   const recent = leaf(sx.recent, "조사 회차마다 무엇을 얻었는지입니다.",
-    `<ul class="cl">${H.recent.map((r) => `<li data-search="${esc(col(r.collection).title + " " + r.result)}"><span class="num small" style="font-weight:700">${r.date.slice(5).replace("-", ".")}</span><div><p><b>${esc(col(r.collection).title)}</b> <span class="small">${r.run}</span></p><p class="small">${esc(r.result)}</p></div><span class="small">새 발견 ${r.newClaims}</span></li>`).join("")}</ul>`);
+    `<ul class="cl">${H.recent.map((r) => `<li data-search="${esc(col(r.collection).title + " " + r.result)}"><span class="num small" style="font-weight:700">${r.date.slice(5).replace("-", ".")}</span><div><p><b>${ctitle(r.collection)}</b> <span class="small">${r.run}</span></p><p class="small">${esc(r.result)}</p></div><span class="small">새 발견 ${r.newClaims}</span></li>`).join("")}</ul>`);
   const openq = leaf(sx.openq, "아직 답하지 않은 질문입니다.",
     `<ul class="cl">${B.open.map((o, i) => `<li data-search="${esc(o.text)}"><span class="small" style="font-weight:700">질문 ${i + 1}</span><div><p><b>${esc(o.text)}</b></p><p class="small">메모 앱 요금제 비교 · ${esc(o.why)}</p></div><span></span></li>`).join("")}</ul><div style="margin-top:12px"><button type="button" class="btn" data-copy="continue">이 질문들로 이어서 하기 — 프롬프트 복사</button></div>`);
   document.getElementById("app").innerHTML = lede + cards + across + recent + openq + Draft.trayHtml() + Draft.viewerHtml();

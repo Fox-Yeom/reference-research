@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Screenshots + measurements for the board drafts (issue #13): node dev/draft-shots.mjs [docs/drafts]
 // For every draft x view (board, home) x width: a capped full-page JPEG, text contrast (WCAG 2.x), sideways overflow.
-// Writes <dir>/shots/*.jpg and <dir>/measure.json.
+// Writes <dir>/shots/*.webp and <dir>/measure.json.
 import { writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -10,7 +10,7 @@ import { findChrome } from "../scripts/capture.mjs";
 
 const dir = path.resolve(process.argv[2] ?? "docs/drafts");
 const WIDTHS = [390, 768, 1280, 1600];
-const CAP = 4200; // px of page height kept per screenshot; keeps the repo light
+const CAP = 9000; // px of page height kept per screenshot: whole page at every width, still bounded
 const drafts = readdirSync(dir).filter((f) => /^[a-z]-.+\.html$/.test(f)).sort();
 mkdirSync(path.join(dir, "shots"), { recursive: true });
 
@@ -28,13 +28,19 @@ const AUDIT = () => {
   };
   const out = [];
   for (const el of document.querySelectorAll("body *")) {
-    if (el.closest("dialog:not([open]), [hidden], script, style, svg")) continue;
+    // disabled controls are exempt from WCAG 1.4.3 (inactive UI components)
+    if (el.closest("dialog:not([open]), [hidden], script, style, :disabled")) continue;
+    const svgText = el.tagName === "text" || el.tagName === "tspan";
+    if (el.closest("svg") && !svgText) continue;
     const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
     if (!own) continue;
     const r = el.getBoundingClientRect(); const cs = getComputedStyle(el);
     if (!r.width || !r.height || cs.visibility === "hidden" || cs.display === "none" || +cs.opacity === 0) continue;
-    const fg0 = parse(cs.color); if (!fg0) continue;
-    const bg = bgOf(el), fg = mix(fg0, bg);
+    // svg text paints with fill, html text with color
+    const fg0 = parse(svgText ? cs.fill : cs.color); if (!fg0) continue;
+    // opacity on the element or any ancestor fades the text toward what is behind it
+    for (let e = el; e; e = e.parentElement) fg0.a *= +getComputedStyle(e).opacity;
+    const bg = bgOf(svgText ? el.closest("svg").parentElement : el), fg = mix(fg0, bg);
     const L1 = lum(fg), L2 = lum(bg), ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
     const size = parseFloat(cs.fontSize), bold = +cs.fontWeight >= 700;
     const large = size >= 24 || (bold && size >= 18.66);
@@ -61,14 +67,23 @@ for (const f of drafts) {
       await new Promise((r) => setTimeout(r, 300));
       const m = await p.evaluate(AUDIT);
       const h = Math.min(m.height, CAP);
-      await p.screenshot({ path: path.join(dir, "shots", `${name}-${view}-${w}.jpg`), type: "jpeg", quality: 62, clip: { x: 0, y: 0, width: w, height: h }, captureBeyondViewport: true });
+      await p.screenshot({ path: path.join(dir, "shots", `${name}-${view}-${w}.webp`), type: "webp", quality: 55, clip: { x: 0, y: 0, width: w, height: h }, captureBeyondViewport: true });
       (result[name] ??= {})[`${view}-${w}`] = m;
+      // drafts with a theme switch: measure the dark theme too (contrast only, no screenshot)
+      if (await p.$("#theme")) {
+        const cur = await p.evaluate(() => document.documentElement.dataset.theme);
+        await p.evaluate((t) => { document.documentElement.dataset.theme = t; }, cur === "dark" ? "light" : "dark");
+        await new Promise((r) => setTimeout(r, 300));
+        result[name][`${view}-${cur === "dark" ? "light" : "dark"}-${w}`] = await p.evaluate(AUDIT);
+        await p.evaluate((t) => { document.documentElement.dataset.theme = t; }, cur);
+        await new Promise((r) => setTimeout(r, 300));
+      }
       if (view === "board" && (w === 1280 || w === 390)) {
         await p.evaluate(() => document.querySelector("[data-open]")?.click());
         await new Promise((r) => setTimeout(r, 400));
         const vm = await p.evaluate(AUDIT);
         result[name][`viewer-${w}`] = vm;
-        await p.screenshot({ path: path.join(dir, "shots", `${name}-viewer-${w}.jpg`), type: "jpeg", quality: 62 });
+        await p.screenshot({ path: path.join(dir, "shots", `${name}-viewer-${w}.webp`), type: "webp", quality: 55 });
       }
       await p.close();
       console.log(`${name} ${view} ${w}: minBody ${m.minBody} fails ${m.fails} overflowX ${m.overflowX} height ${m.height}`);
@@ -77,3 +92,5 @@ for (const f of drafts) {
 }
 await browser.close();
 writeFileSync(path.join(dir, "measure.json"), JSON.stringify(result, null, 1) + "\n");
+const failing = Object.entries(result).flatMap(([d, v]) => Object.entries(v).filter(([, m]) => m.fails || m.overflowX).map(([k]) => `${d} ${k}`));
+if (failing.length) { console.error(`AA 미달 또는 가로 넘침: ${failing.join(", ")}`); process.exitCode = 1; }

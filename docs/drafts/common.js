@@ -7,6 +7,7 @@
   const ref = (id) => B.refs.find((r) => r.id === id);
   const claim = (id) => B.claims.find((c) => c.id === id);
   const col = (id) => H.collections.find((c) => c.id === id);
+  const ctitle = (id) => { const c = col(id); return esc(c.title) + (c.synthetic ? " (가상)" : ""); };
   const claimsCiting = (refId) => B.claims.filter((c) => c.sources.includes(refId));
 
   const continuePrompt = () =>
@@ -132,5 +133,5 @@
     if (e.key === "ArrowLeft") e.shiftKey ? stepRef(-1) : step(-1);
   });
 
-  window.Draft = { D, B, H, esc, ref, claim, col, claimsCiting, copy, openViewer, bindSearch, route, viewerHtml, trayHtml, renderTray, continuePrompt };
+  window.Draft = { D, B, H, esc, ref, claim, col, ctitle, claimsCiting, copy, openViewer, bindSearch, route, viewerHtml, trayHtml, renderTray, continuePrompt };
 })();

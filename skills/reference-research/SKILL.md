@@ -60,6 +60,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | `ref date <S#\|url> [--at YYYY-MM[-DD]]` | first web-archive snapshot (lower bound of an unknown date) · closest snapshot to a date (유지 여부) |
 | `ref capture '<json>'` / `ref store '<json>'` | capture pages / App Store screens (reuse · refresh · new) |
 | `ref source add '<json>'` | text-only refs (articles, docs, papers, threads read via WebFetch) |
+| `ref source merge '{"keep":"S#","drop":"S#"}' [--dry-run]` | fold a duplicate ref (same work under two records, e.g. listed under "Same work" by `ref migrate v3`) into another: URL, ids, notes, snapshots, members and claim citations move to `keep`; `drop` stays as a pointer. Dry-run first, confirm with the user, then `ref report` the collections it names |
 | `ref collect '<json>'` / `ref uncollect <collection> <S#>` | add / remove existing refs in a category |
 | `ref note '<json>'` | note on a ref (`ref`) or on the category; attributed to the category |
 | `ref claim add '<json>'` / `ref claim list [collection] [--status] [--kind] [--run]` | findings (create / confirm / revise / refute) |

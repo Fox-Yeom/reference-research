@@ -259,11 +259,15 @@ try {
     case "source": {
       const sub = args.shift();
       if (sub === "add") print(await ev.addSources(await jsonArg(args[0])));
-      else if (sub === "merge") print(await mergeRefs(await jsonArg(args.find((a) => !a.startsWith("--"))), { dryRun: bool(args, "--dry-run") }));
+      else if (sub === "merge") {
+        const j = args.find((a) => !a.startsWith("--"));
+        if (!j) fail('usage: ref source merge \'{"keep":"S#","drop":"S#"}\' [--dry-run]');
+        print(await mergeRefs(await jsonArg(j), { dryRun: bool(args, "--dry-run") }));
+      }
       else if (sub === "list") {
         const refs = await readRefs();
         const name = args[0] ? collectionName(args[0]) : null;
-        print(refs.filter((r) => !r.mergedInto && (!name || (r.categories ?? []).includes(name))).map((r) => `- ${r.id} [${r.type}/${r.credibility}] ${r.label ?? r.title ?? ""} — ${r.url} ‹${(r.categories ?? []).join(", ")}›`).join("\n") || "(none)");
+        print(refs.filter((r) => !name || (r.categories ?? []).includes(name)).map((r) => `- ${r.id} [${r.type}/${r.credibility}] ${r.label ?? r.title ?? ""} — ${r.url} ‹${(r.categories ?? []).join(", ")}›`).join("\n") || "(none)");
       } else fail("usage: ref source add '<json>' | ref source list [collection] | ref source merge '{\"keep\":\"S#\",\"drop\":\"S#\"}' [--dry-run]");
       break;
     }

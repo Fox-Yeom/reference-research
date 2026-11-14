@@ -182,7 +182,7 @@ export function freshness(r) {
 export const cites = (ids) => (ids?.length ? `[${ids.join(", ")}]` : "");
 
 export function nextId(prefix, items) {
-  const n = items.reduce((m, x) => {
+  const n = [...items, ...(items.retired ?? [])].reduce((m, x) => {
     const k = String(x.id ?? "").match(new RegExp(`^${prefix}(\\d+)$`));
     return k ? Math.max(m, Number(k[1])) : m;
   }, 0);
@@ -220,7 +220,23 @@ export async function writeJsonl(f, objs) {
   await fs.writeFile(f, objs.map((o) => JSON.stringify(o)).join("\n") + (objs.length ? "\n" : ""));
 }
 
-export const readRefs = () => readJsonl(FILES.refs);
+/**
+ * Live references only. A merged ref (#22, `ref source merge`) is stored as a pointer {id, mergedInto}: it never shows up as a
+ * reference, its id resolves to the ref it was folded into (resolveRefId), and new ids still count it (nextId reads `retired`).
+ */
+export async function readRefs() {
+  const all = await readJsonl(FILES.refs);
+  const live = all.filter((r) => !r.mergedInto);
+  const retired = all.filter((r) => r.mergedInto);
+  Object.defineProperties(live, { retired: { value: retired }, pointers: { value: new Map(retired.map((r) => [r.id, r.mergedInto])) } });
+  return live;
+}
+/** an S# from a user, a summary or an old record → the live ref id, following merges (chains included) */
+export function resolveRefId(refs, id) {
+  let cur = id;
+  for (let i = 0; i < 50 && refs.pointers?.has(cur); i++) cur = refs.pointers.get(cur);
+  return cur;
+}
 export const saveRefs = (list) => appendJsonl(FILES.refs, list);
 export const readClaims = () => readJsonl(FILES.claims);
 export const saveClaims = (list) => appendJsonl(FILES.claims, list);
@@ -230,8 +246,7 @@ export const saveRuns = (list) => appendJsonl(FILES.runs, list);
 /** Same URL (or alias) first; otherwise a reference that carries the same work identifier (M8). */
 export function findRef(refs, url, ids = idsFromUrl(url)) {
   const n = normUrl(url);
-  const live = refs.filter((r) => !r.mergedInto); // a merged ref is a pointer: its URL now lives on the kept ref's aliases
-  return live.find((r) => r.normUrl === n || (r.aliases ?? []).includes(n)) ?? (Object.keys(ids).length ? live.find((r) => sameWork(r.ids ?? idsFromUrl(r.url), ids)) : undefined);
+  return refs.find((r) => r.normUrl === n || (r.aliases ?? []).includes(n)) ?? (Object.keys(ids).length ? refs.find((r) => sameWork(r.ids ?? idsFromUrl(r.url), ids)) : undefined);
 }
 
 export function refSlug(refs, url) {

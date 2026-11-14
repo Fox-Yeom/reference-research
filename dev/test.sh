@@ -123,24 +123,34 @@ fails grep -q 'chrome-error' "$REF_LIBRARY/refs.jsonl"
 fails grep -q 'nonexistent.invalid' "$REF_LIBRARY/refs.jsonl"
 [ ! -e "$REF_LIBRARY/refs/chromewebdata" ]; echo "unreachable page reported, nothing saved"
 step "merge a duplicate reference (#22)"
-ids=($("$R" source add '{"collection":"smoke","sources":[{"url":"https://dup.example/a","label":"Dup — a","type":"official"},{"url":"https://dup.example/b","label":"Dup — b","type":"official"}]}' | awk '/^S[0-9]+ /{print $1}'))
-KEEP=${ids[0]}; DROP=${ids[1]}
+mcp() { printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' '{"jsonrpc":"2.0","method":"notifications/initialized"}' "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"$1\",\"arguments\":$2}}" | "$ROOT/scripts/run-mcp.sh" 2>/dev/null; }
+ids=($("$R" source add '{"collection":"smoke","sources":[{"url":"https://dup.example/a","label":"Dup — a","type":"official"},{"url":"https://dup.example/b","label":"Dup — b","type":"official"},{"url":"https://dup.example/c","label":"Dup — c","type":"official"}]}' | awk '/^S[0-9]+ /{print $1}'))
+KEEP=${ids[0]}; DROP=${ids[1]}; THIRD=${ids[2]}
 "$R" claim add "{\"collection\":\"smoke\",\"text\":\"cites the duplicate\",\"kind\":\"fact\",\"subject\":\"d\",\"sources\":[\"$DROP\"]}" >/dev/null
+fails "$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\"}"   # no shared work id: needs "force"
+fails "$R" source merge --dry-run                                    # no JSON argument: usage, not a wait on stdin
 before="$(library_hash)"
-"$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\"}" --dry-run | grep -q 'dry run'
+"$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\",\"force\":true}" --dry-run | grep -q 'dry run'
 [ "$before" = "$(library_hash)" ]; echo "dry run wrote nothing"
-"$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\"}" | grep -q "merged $DROP → $KEEP"
+"$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\",\"force\":true}" | grep -q "merged $DROP → $KEEP"
 node -e '
 const fs=require("fs"),[lib,keep,drop]=process.argv.slice(1),last=(f)=>{const m=new Map();for(const l of fs.readFileSync(f,"utf8").trim().split("\n")){const o=JSON.parse(l);m.set(o.id,o)}return m};
 const refs=last(lib+"/refs.jsonl"),claims=last(lib+"/claims.jsonl"),col=JSON.parse(fs.readFileSync(lib+"/smoke/collection.json"));
-const ok=refs.get(drop).mergedInto===keep&&refs.get(keep).aliases.includes("dup.example/b")&&[...claims.values()].every(c=>!(c.sources||[]).includes(drop))&&!col.members.some(m=>m.ref===drop)&&col.members.some(m=>m.ref===keep);
+const p=refs.get(drop);
+const ok=p.mergedInto===keep&&!p.notes&&!p.tags&&refs.get(keep).aliases.includes("dup.example/b")&&[...claims.values()].every(c=>!(c.sources||[]).includes(drop))&&!col.members.some(m=>m.ref===drop)&&col.members.some(m=>m.ref===keep);
 if(!ok)process.exit(1)' "$REF_LIBRARY" "$KEEP" "$DROP"
 fails grep -q "^- $DROP " <<<"$("$R" source list smoke)"
-"$R" source add '{"url":"https://dup.example/b"}' | grep -q "^$KEEP (updated)"   # the old URL now finds the kept ref
-fails "$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\"}"   # already merged
-printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' \
-  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
-  "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"get_reference\",\"arguments\":{\"id\":\"$DROP\"}}}" \
-  | "$ROOT/scripts/run-mcp.sh" 2>/dev/null > "$T/mcp-merge.txt"
-grep -q "was merged into $KEEP" "$T/mcp-merge.txt"; echo "merge ok: $DROP → $KEEP"
+"$R" source add '{"url":"https://dup.example/b"}' | grep -q "^$KEEP (updated)"   # the old URL finds the kept ref
+fails "$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\",\"force\":true}"   # already merged
+# the dropped id still works as input and lands on the kept ref
+"$R" collect "{\"collection\":\"smoke2\",\"refs\":[\"$DROP\"]}" | grep -q "^$KEEP "
+fails "$R" claim add "{\"collection\":\"smoke\",\"text\":\"x\",\"kind\":\"fact\",\"sources\":[\"$KEEP\"],\"against\":[\"$DROP\"]}"
+# chain: merge the kept ref into a third one; the old pointer follows
+"$R" source merge "{\"keep\":\"$THIRD\",\"drop\":\"$KEEP\",\"force\":true}" | grep -q "pointers $DROP now lead to $THIRD"
+mcp get_reference "{\"id\":\"$DROP\"}" | grep -q "was merged into $THIRD"
+s="$(mcp search_references '{"query":"Dup"}')"; grep -q "\\\\\"$THIRD\\\\\"" <<<"$s"; fails grep -q "\\\\\"$DROP\\\\\"" <<<"$s"
+"$R" report '{"collection":"smoke","open":false}' >/dev/null; fails grep -q "id=\"$DROP\"" "$REF_LIBRARY/smoke/index.html"
+new=$("$R" source add '{"collection":"smoke","url":"https://dup.example/new","label":"Dup — new","type":"official"}' | awk '/^S[0-9]+ /{print $1}')
+[ -n "$new" ] && [ "$new" != "$DROP" ] && [ "$new" != "$KEEP" ] && [ "$new" != "$THIRD" ]   # retired ids are never reused
+echo "merge ok: $DROP → $KEEP → $THIRD"
 echo; echo "PASS — scratch: $T"

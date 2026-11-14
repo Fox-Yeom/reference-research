@@ -390,6 +390,7 @@ function upsertRef(refs, url, finalUrl, item, ctx) {
 function addSnapshot(ref, snap, ctx) {
   const prev = latestSnapshot(ref);
   ref.snapshots.push(snap);
+  ref.read ??= "full"; // M11: a capture means the page itself was looked at (same rule as `ref migrate v3`)
   ref.lastCaptured = snap.at;
   if (snap.meta?.title) ref.title = snap.meta.title;
   if (snap.meta?.description) ref.description = snap.meta.description;

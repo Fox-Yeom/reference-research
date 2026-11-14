@@ -1,34 +1,34 @@
 {
  "note-app-pricing-index": {
   "page-390": {
-   "texts": 602,
+   "texts": 601,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 14494
+   "height": 14447
   },
   "viewer-390": {
-   "texts": 622,
+   "texts": 621,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 14494
+   "height": 14447
   },
   "page-768": {
-   "texts": 606,
+   "texts": 605,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 10604
+   "height": 10558
   },
   "page-1280": {
-   "texts": 631,
+   "texts": 630,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
@@ -37,7 +37,7 @@
    "height": 9698
   },
   "viewer-1280": {
-   "texts": 653,
+   "texts": 652,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
@@ -46,13 +46,13 @@
    "height": 9698
   },
   "page-1600": {
-   "texts": 631,
+   "texts": 630,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 9625
+   "height": 9521
   }
  },
  "lib-index": {
@@ -101,7 +101,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 12934
+   "height": 12911
   },
   "viewer-390": {
    "texts": 569,
@@ -110,7 +110,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 12934
+   "height": 12911
   },
   "page-768": {
    "texts": 553,

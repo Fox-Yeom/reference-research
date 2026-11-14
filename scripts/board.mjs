@@ -8,7 +8,7 @@
  */
 
 import { FRESH_KO, SOURCE_LED, freshness, readState, refDate } from "./store.mjs";
-import { detail as dgDetail, gantt, hexes, overview as dgOverview, sharedGraph, spark } from "./diagram.mjs";
+import { gantt, hexes, sharedGraph, spark } from "./diagram.mjs";
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
@@ -312,10 +312,6 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .evrow summary{display:flex;align-items:baseline;gap:10px;padding:9px 0;cursor:pointer;list-style:none;font-size:15px}.evrow summary::-webkit-details-marker{display:none}
 .evrow summary::before{content:"▸";color:var(--accent);flex:none}.evrow[open] summary::before{content:"▾"}.evrow summary .t{flex:1;min-width:0}.evrow .conf{flex:none}
 .evrow .evbody{padding:0 0 12px 22px;font-size:14px;color:var(--muted)}.evrow .evbody p{margin:0 0 8px}.evrow div.plain{padding:9px 0;font-size:15px}
-.whycards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
-.whycard{display:grid;grid-template-columns:96px minmax(0,1fr);gap:14px;padding:16px;border-radius:var(--radius);background:var(--inner)}.whycard.noimg{grid-template-columns:minmax(0,1fr)}
-.whycard .thumb{aspect-ratio:4/3;padding:0;align-self:start;overflow:hidden;border-radius:6px}.whycard .thumb img{width:100%;height:100%;object-fit:cover;object-position:top}
-.whycard h4{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:14.5px}.whycard p{margin:4px 0 0;font-size:14px;line-height:1.55}.whycard p b{color:var(--muted);font-weight:600;margin-right:6px}
 .basis{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}.basis-official{background:var(--green-soft);color:var(--green)}.basis-signal{background:var(--amber-soft);color:var(--amber)}.basis-guess{background:var(--gray-soft);color:var(--muted)}
 .axwhy{margin:0 0 10px;font-size:13px;line-height:1.5;color:var(--muted)}.axwhy .basis{margin-right:6px}
 .vwhy{margin:0 0 16px;padding:12px 14px;border-radius:8px;background:var(--v-btn);font-size:13px;line-height:1.55;color:var(--v-soft)}.vwhy h5{margin:0 0 6px}.vwhy p{margin:4px 0 0}.vwhy b{color:var(--v-muted);font-weight:600;margin-right:6px}
@@ -433,31 +429,65 @@ section,.hero{background:linear-gradient(180deg,#131316,#0d0d10);border-color:va
 .kpi .h{font-size:12.5px;color:var(--faint)}
 .kpi svg{display:block;width:calc(100% + 36px);margin:auto -18px 0;height:58px;overflow:visible}
 .spark-line{fill:none;stroke-width:2;filter:drop-shadow(0 0 4px var(--c))}
-.galley{display:grid;grid-template-columns:minmax(0,1fr) 300px;margin:14px -36px -36px;border-top:1px solid var(--line)}
-.grows{min-width:0}
-.grow{display:grid;grid-template-columns:84px minmax(0,1fr) 190px;gap:0 18px;padding:12px 24px 12px 36px;border-top:1px solid var(--line);align-items:start;transition:background .18s}
-.grow:first-child{border-top:0}
-.grow:hover,.grow:focus-within,.grow.sel{background:#141418}
-.grow.sel{box-shadow:inset 3px 0 0 var(--accent)}
-.grow>.lab{color:var(--faint);font-size:13.5px;padding-top:2px}
-.grow>.mg{border-left:1px dashed var(--line2);padding-left:14px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
-.grow.counter{background:rgba(255,96,72,.07)}.grow.counter>.lab{color:var(--coral);font-weight:600}
-.grow .ans{font-size:20px;line-height:1.45;font-weight:700;margin:0}
-.grow p{margin:0}
+.jq{display:grid;grid-template-columns:84px minmax(0,1fr) auto;gap:6px 16px;align-items:baseline;padding:2px 0 14px;border-bottom:1px solid var(--line)}
+.jq>.lab,.ob>.lab{color:var(--faint);font-size:13.5px}.jq p{margin:0;font-size:17px;line-height:1.5}
+.jh{margin:20px 0 2px;font-size:13.5px;font-weight:600;color:var(--faint)}
+.obs{list-style:none;margin:0;padding:0}
+.ob{display:grid;grid-template-columns:84px minmax(0,1fr) 170px;gap:6px 16px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.ob:hover,.ob:focus-visible{background:#131317}.ob.sel{background:var(--sel-fill)}
+.ob>.lab{padding-top:2px}.ob p{margin:0 0 8px;font-size:15px}
+.ob>.mg{display:flex;flex-direction:column;align-items:flex-start;gap:8px;font-size:13px}
+.ob.counter{background:rgba(255,122,102,.06)}.ob.counter>.lab{color:var(--coral);font-weight:600}
+.jthumbs{display:flex;gap:6px;flex-wrap:wrap}
+.jthumbs button{padding:0;width:92px;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:var(--inner);cursor:pointer}
+.jthumbs img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top}
+.jthumbs span{display:block;font-size:11.5px;color:var(--muted);padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jthumbs button:hover{border-color:var(--accent)}
+.jmore{font:inherit;font-size:13px;border:1px solid var(--line2);background:var(--chip);color:var(--text);border-radius:8px;padding:4px 11px;cursor:pointer}.jmore:hover{border-color:var(--accent)}
+.jtw{overflow-x:auto}
+.otbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;min-width:640px}
+.otbl th,.otbl td{border-bottom:1px solid var(--line);padding:11px 10px;vertical-align:top;text-align:left;white-space:normal}
+.otbl thead th{font-size:15px}.otbl thead th small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:2px}
+.otbl thead th:first-child{width:104px}.otbl tbody th{font-weight:500;color:var(--faint);font-size:13px}
+.otbl ul{margin:0;padding-left:16px}.otbl li{margin:2px 0}.otbl .none{color:var(--faint)}
+details.memo{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}details.memo summary{cursor:pointer;font-size:14px;color:var(--muted)}details.memo p{margin:8px 0 0;font-size:14px;color:var(--muted)}
+.jpanel{position:fixed;top:0;right:0;width:440px;max-width:100vw;height:100vh;height:100dvh;z-index:90;background:#0d0d10;border-left:1px solid var(--line2);box-shadow:-20px 0 60px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease}
+.jpanel.open{transform:none}
+.jpanel header{display:flex;align-items:flex-start;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.jpanel h2{margin:0;font-size:16px;flex:1;line-height:1.4}.jpanel h2 small{display:block;font-size:12.5px;color:var(--faint);font-weight:400;margin-bottom:2px}
+.jpanel .x{font:inherit;font-size:13px;border:1px solid var(--line2);background:var(--chip);color:var(--text);border-radius:8px;padding:4px 10px;cursor:pointer}
+.jpanel .body{overflow:auto;padding:4px 18px 24px}
+.jpanel h3{font-size:13px;color:var(--faint);font-weight:500;margin:16px 0 8px}.jpanel h3.c{color:var(--coral)}
+.pc{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--paper)}.pc p{margin:6px 0 0;font-size:14.5px}.pc.c{border-color:rgba(255,122,102,.35)}
+.pch{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pch .tag{font-size:12px;padding:1px 8px;border-radius:6px;border:1px solid var(--line2);color:var(--muted)}
+.pr{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.pr button{padding:0;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:none;cursor:pointer}.pr img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top}
+.pr .noimg{display:grid;place-items:center;aspect-ratio:16/10;border:1px dashed var(--line2);border-radius:8px;color:var(--faint);font-size:12px}
+.pr b{font-size:14px}.pr span{display:block;font-size:13px;color:var(--muted)}
+.pcheck{border:1px dashed var(--line2);border-radius:12px;padding:10px 12px;font-size:14px}
+@media (min-width:1281px){body.jp-open .content{margin-right:440px}}
+button.cite{border:0;font-family:inherit;cursor:pointer}
+.srcpop{position:absolute;z-index:95;max-width:340px;background:#0d0d10;border:1px solid var(--line2);border-radius:12px;padding:10px 12px;box-shadow:0 16px 40px rgba(0,0,0,.6);font-size:13.5px}
+.srcpop b{display:block}.srcpop span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.srcpop p{margin:8px 0 0;display:flex;gap:14px}
+.scope{margin:-14px 2px 0;font-size:12.5px;color:var(--side-muted,var(--faint))}.scope b{color:var(--green);font-weight:600}.scope a{color:inherit}
+.sres{position:fixed;left:296px;right:24px;top:14px;z-index:92;max-height:72vh;overflow:auto;background:#0d0d10;border:1px solid var(--line2);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.6);padding:14px 16px}
+.sres header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:6px}.sres header b{font-size:15px}.sres header span{font-size:13px;color:var(--faint)}
+.sres h3{font-size:12.5px;color:var(--faint);font-weight:500;margin:12px 0 4px}.sres h3 i{font-style:normal;color:var(--green)}
+.sres .hit{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 10px;border-radius:8px;font:inherit;font-size:14px;color:var(--text);cursor:pointer}
+.sres .hit:hover,.sres .hit:focus-visible{background:var(--chip)}
+.sres mark{background:#3d3a7a;color:#fff;border-radius:3px;padding:0 1px}.sres .none{color:var(--muted);font-size:14px;margin:8px 0}
+.flash{animation:flash 1.6s ease}@keyframes flash{0%,40%{box-shadow:0 0 0 2px #ffd75e}100%{box-shadow:0 0 0 0 transparent}}
+.itbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px}
+.itbl th,.itbl td{border-bottom:1px solid var(--line);padding:12px 10px;vertical-align:top;text-align:left;white-space:normal}
+.itbl thead th{font-size:13px;color:var(--faint);font-weight:500}.itbl thead th:first-child{width:210px}
+.itbl td:first-child b{display:block;font-size:15px}.itbl td:first-child small{display:block;color:var(--faint);font-size:12.5px;margin-top:4px}
+.itbl td:first-child .jthumbs{margin-bottom:8px}.itbl .nil{color:var(--faint)}
+.itbl em{font-style:normal;font-weight:600;margin-right:4px}.itbl em.v-take{color:var(--green)}.itbl em.v-adapt{color:var(--accent)}.itbl em.v-avoid{color:var(--coral)}
 .mark{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;line-height:1.3}
 .mark svg{flex:none;width:18px;height:18px}
 .mark.strong{color:var(--green)}.mark.medium{color:var(--amber)}.mark.weak{color:var(--muted)}.mark.contested{color:var(--coral)}.mark.query{color:var(--amber)}.mark.new{color:var(--accent)}.mark.unread{color:var(--faint)}
 .mark.contested svg{filter:drop-shadow(0 0 4px rgba(255,96,72,.7))}
 .mark .why{font-weight:400;color:var(--muted)}
-.cited{border-left:1px solid var(--line);padding:14px 16px}
-.cited h3{margin:0 0 2px;font-size:13.5px}.cited p{margin:0 0 10px;font-size:12.5px;color:var(--faint);min-height:2.6em}
-.cited .cg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.cited button{padding:0;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:var(--inner);position:relative;cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .2s;text-align:left}
-.cited img{width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top;display:block;transition:opacity .2s}
-.cited button span{display:block;font-size:12px;color:var(--muted);padding:3px 7px}
-.cited.focus button img{opacity:.25}
-.cited.focus button.lit{border-color:#ffd75e;box-shadow:0 0 18px rgba(255,215,94,.25);transform:translateY(-2px)}
-.cited.focus button.lit img{opacity:1}
 .dgwrap{overflow-x:auto;padding:4px 0 6px}
 .dgwrap svg{display:block}
 .dg text{font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}
@@ -474,8 +504,6 @@ section,.hero{background:linear-gradient(180deg,#131316,#0d0d10);border-color:va
 .dg .e.acc{stroke:var(--coral);stroke-dasharray:5 4;filter:drop-shadow(0 0 4px rgba(255,96,72,.75))}
 .dg.dim .e:not(.lit):not(.acc){opacity:.35}
 .dg .glow{filter:drop-shadow(0 0 8px var(--c))}
-.dgdet{border-top:1px solid var(--line);margin-top:10px;padding-top:12px}
-.dgdet h3{margin:0 0 6px;font-size:14px}
 .gtip{position:absolute;pointer-events:none;background:#141418;border:1px solid var(--line2);border-radius:12px;padding:8px 10px;font-size:12.5px;min-width:170px;max-width:260px;z-index:5;transform:translate(-50%,calc(-100% - 12px));box-shadow:0 10px 30px rgba(0,0,0,.5)}
 .gtip b{display:block;font-size:13px;margin-bottom:2px}
 .plines .pl{fill:none;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 0 5px var(--c))}
@@ -502,9 +530,9 @@ section,.hero{background:linear-gradient(180deg,#131316,#0d0d10);border-color:va
 .chip.against{background:var(--coral-soft);color:var(--coral)}.chip.unread{background:var(--chip);color:var(--faint)}
 .card .thumb img.alt{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;opacity:0;transition:opacity .35s}
 .card .thumb img.alt.on{opacity:1}
-@media (max-width:1280px){.galley{grid-template-columns:1fr}.cited{border-left:0;border-top:1px solid var(--line)}.cited .cg{grid-template-columns:repeat(5,minmax(0,1fr))}.hgrid2{grid-template-columns:1fr}}
-@media (max-width:1100px){.kpis{grid-template-columns:1fr 1fr}.galley{margin:14px -20px -20px}.grow{padding-left:20px}}
-@media (max-width:640px){.kpis{gap:10px}.kpi{min-height:130px;padding:12px 14px 0}.kpi .v{font-size:24px}.kpi svg{width:calc(100% + 28px);margin:auto -14px 0}.ghead h1{font-size:24px}.grow{grid-template-columns:1fr;padding:12px 14px}.grow>.lab{padding:0}.grow>.mg{border:0;padding:6px 0 0;flex-direction:row;flex-wrap:wrap;gap:6px 12px}.galley{margin:14px -14px -14px}.cited .cg{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1280px){.hgrid2{grid-template-columns:1fr}}
+@media (max-width:1100px){.kpis{grid-template-columns:1fr 1fr}.sres{left:12px;right:12px;top:64px}}
+@media (max-width:640px){.kpis{gap:10px}.kpi{min-height:130px;padding:12px 14px 0}.kpi .v{font-size:24px}.kpi svg{width:calc(100% + 28px);margin:auto -14px 0}.ghead h1{font-size:24px}.jq,.ob{grid-template-columns:1fr;gap:6px}.ob>.mg{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 12px}.itbl thead{display:none}.itbl,.itbl tbody,.itbl tr,.itbl td{display:block;width:auto}.itbl tr{border-bottom:1px solid var(--line);padding:10px 0}.itbl td{border:0;padding:4px 0;display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px}.itbl td::before{content:attr(data-h);font-size:12.5px;color:var(--faint)}.itbl td:first-child{display:block}.itbl td:first-child::before{display:none}.jpanel{top:auto;bottom:0;width:100vw;height:78vh;border-left:0;border-top:1px solid var(--line2);border-radius:18px 18px 0 0;transform:translateY(100%)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 `;
 
@@ -574,9 +602,28 @@ if(so){
   const apply=()=>{$$('tbody tr',so).forEach(r=>r.classList.toggle('filtered',!!(st.grade&&r.dataset.grade!==st.grade)||!!(st.type&&r.dataset.type!==st.type)||(st.cited&&r.dataset.cited==='0')));refreshAll();count(so,'tbody tr','개');};
   wire(so,st,apply);apply();
 }
-// search: references, findings, patterns, topics
-const qs=$$('input.q');
-if(qs.length){
+// search: on a board the results gather in one panel by section (scope: this research); the home filters in place
+const qs=$$('input.q'),sres=$('#sres');
+if(qs.length&&sres){
+  let q=qs[0],hits=[];
+  const vis=()=>qs.find(x=>x.offsetParent!==null)||qs[0];
+  const groupOf=el=>{const sec=el.closest('section');const h=sec&&sec.querySelector('.sechead h2');return h?h.textContent:'기타';};
+  const textOf=el=>(el.dataset.label||el.innerText||el.textContent).replace(/\\s+/g,' ').trim();
+  const mk=(tag,cls,txt)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(txt!=null)x.textContent=txt;return x;};
+  const hl=(box,text,t)=>{const i=text.toLowerCase().indexOf(t);const a=Math.max(0,i-40),z=i<0?Math.min(text.length,100):Math.min(text.length,i+t.length+60);const piece=text.slice(a,z);const j=i<0?-1:i-a;
+    if(a)box.append('…');if(j<0)box.append(piece);else{box.append(piece.slice(0,j));box.append(mk('mark','',piece.slice(j,j+t.length)));box.append(piece.slice(j+t.length));}if(z<text.length)box.append('…');};
+  const run=()=>{qs.forEach(x=>{if(x!==q)x.value=q.value});const t=q.value.trim().toLowerCase();if(!t){sres.hidden=true;return;}
+    const groups=new Map();hits=[];$$('[data-search]').forEach(el=>{if(!el.dataset.search.includes(t)||sres.contains(el))return;if(el.offsetParent===null&&!el.closest('details:not([open])')&&!el.classList.contains('over-limit'))return;const g=groupOf(el);if(!groups.has(g))groups.set(g,[]);groups.get(g).push(el);});
+    sres.replaceChildren();const head=mk('header');head.append(mk('b','','"'+q.value.trim()+'" '+[...groups.values()].reduce((n,v)=>n+v.length,0)+'건'),mk('span','','범위: 이 조사 · Esc 닫기'));sres.append(head);
+    if(!groups.size)sres.append(mk('p','none','이 조사에는 맞는 항목이 없습니다.'));
+    groups.forEach((els,g)=>{const h=mk('h3','',g+' ');h.append(mk('i','',String(els.length)));sres.append(h);els.slice(0,8).forEach(el=>{const b=mk('button','hit');b.type='button';b.dataset.i=hits.push(el)-1;const tx=textOf(el);hl(b,tx,t);if(!tx.toLowerCase().includes(t))b.append(mk('small','',' · 노트·태그에서 일치'));sres.append(b);});if(els.length>8)sres.append(mk('p','none','외 '+(els.length-8)+'건'));});
+    const lib=mk('p','none');const a=mk('a','','라이브러리 전체에서 찾기');a.href='../index.html';lib.append(a);sres.append(lib);sres.hidden=false;};
+  qs.forEach(x=>x.addEventListener('input',()=>{q=x;run();}));
+  sres.addEventListener('click',e=>{const b=e.target.closest('.hit');if(!b)return;const el=hits[+b.dataset.i];sres.hidden=true;const det=el.closest('details');if(det)det.open=true;el.classList.remove('over-limit');
+    el.scrollIntoView({block:'center'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');});
+  document.addEventListener('click',e=>{if(!sres.hidden&&!sres.contains(e.target)&&!qs.includes(e.target))sres.hidden=true;});
+  document.addEventListener('keydown',e=>{const act=qs.includes(document.activeElement);const v=document.getElementById('viewer');if(e.key==='/'&&!act&&!(v&&v.classList.contains('open'))){e.preventDefault();vis().focus();}else if(e.key==='Escape'&&(act||!sres.hidden)){q.value='';sres.hidden=true;if(act)q.blur();}});
+} else if(qs.length){
   const items=()=>$$('[data-search]');
   let q=qs[0];
   const vis=()=>qs.find(x=>x.offsetParent!==null)||qs[0];
@@ -614,21 +661,24 @@ if(nav.length&&'IntersectionObserver' in window){
   secs.forEach(s=>io.observe(s));
 }
 
-// board G: a conclusion row lights the captures it cites and switches the evidence-map detail; the map's nodes do the same
-// narrow screens scroll diagrams inside their card: start at the centre, where the figure is
-const centre=w=>{if(w&&w.scrollWidth>w.clientWidth)w.scrollLeft=(w.scrollWidth-w.clientWidth)/2;};
-$$('#map .dgwrap, #axes .dgwrap').forEach(centre);
-const grows=$('#key .grows');
-if(grows){const cited=$('#cited'),note=$('#citednote');
-  const light=row=>{const on=row&&row.dataset.cites?row.dataset.cites.split(' ').filter(Boolean):[];if(cited){cited.classList.toggle('focus',on.length>0);$$('[data-rail]',cited).forEach(b=>b.classList.toggle('lit',on.includes(b.dataset.rail)));}if(note)note.textContent=on.length?on.length+'개 · '+on.join(', '):'줄 선택 전';};
-  const pick=k=>{const d=k==='question'?'answer':k;$$('#key .grow').forEach(r=>r.classList.toggle('sel',r.dataset.key===k));$$('.dgdet[data-for]').forEach(x=>{x.hidden=x.dataset.for!==d;if(!x.hidden)centre(x.querySelector('.dgwrap'));});$$('#ov .dn').forEach(g=>g.classList.toggle('sel',g.dataset.key===k));light($('#key .grow[data-key="'+k+'"]'));};
-  grows.addEventListener('mouseover',e=>{const r=e.target.closest('.grow');if(r)light(r);});
-  grows.addEventListener('mouseleave',()=>light($('#key .grow.sel')));
-  grows.addEventListener('click',e=>{if(e.target.closest('a,button'))return;const r=e.target.closest('.grow');if(r)pick(r.dataset.key);});
-  document.addEventListener('click',e=>{const g=e.target.closest('#ov .dn[data-key]');if(g&&$('.dgdet[data-for="'+(g.dataset.key==='question'?'answer':g.dataset.key)+'"]'))pick(g.dataset.key);});
-  document.addEventListener('keydown',e=>{const t=e.target;if((e.key==='Enter'||e.key===' ')&&t.matches&&t.matches('#ov .dn[data-key], #key .grow')){e.preventDefault();pick(t.dataset.key);}});
-  if($('#key .grow[data-key="answer"]'))pick('answer');
+// narrow screens scroll the pattern-line diagram inside its card: start at the centre, where the figure is
+$$('#axes .dgwrap').forEach(w=>{if(w.scrollWidth>w.clientWidth)w.scrollLeft=(w.scrollWidth-w.clientWidth)/2;});
+// 판단 자료: an observation row (or its 근거 button) opens the evidence panel; non-modal, Esc or 닫기 closes, focus goes back
+const jp=$('#jpanel');
+if(jp){let opener=null;
+  const openP=(k,from)=>{const t=$('template[data-pd="'+k+'"]');if(!t)return;const f=t.content.cloneNode(true);const h=f.querySelector('h2');h.id='jpanel-t';jp.querySelector('h2').replaceWith(h);jp.querySelector('.body').replaceChildren(...f.querySelector('div').childNodes);jp.hidden=false;requestAnimationFrame(()=>jp.classList.add('open'));document.body.classList.add('jp-open');$$('.ob.sel').forEach(x=>x.classList.remove('sel'));$$('.ob[data-panel="'+k+'"]').forEach(x=>x.classList.add('sel'));opener=from;jp.querySelector('.x').focus({preventScroll:true});};
+  const closeP=()=>{jp.classList.remove('open');document.body.classList.remove('jp-open');$$('.ob.sel').forEach(x=>x.classList.remove('sel'));setTimeout(()=>{if(!jp.classList.contains('open'))jp.hidden=true;},240);if(opener&&opener.focus)opener.focus({preventScroll:true});};
+  document.addEventListener('click',e=>{if(e.target.closest('#jpanel .x'))return closeP();if(e.target.closest('[data-open-ref],[data-copy],[data-src],a,summary'))return;const t=e.target.closest('[data-panel]');if(t)openP(t.dataset.panel,t.closest('button')||t);});
+  document.addEventListener('keydown',e=>{const v=document.getElementById('viewer');if(e.key==='Escape'&&!jp.hidden&&!(v&&v.classList.contains('open')))closeP();if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('.ob[data-panel]')){e.preventDefault();openP(e.target.dataset.panel,e.target);}});
 }
+// a source without a capture: its details beside the chip; the 출처 link is the only way to jump
+const pop=document.createElement('div');pop.className='srcpop';pop.hidden=true;pop.setAttribute('role','dialog');pop.setAttribute('aria-label','출처');document.body.appendChild(pop);
+document.addEventListener('click',e=>{const b=e.target.closest('[data-src]');if(!b){if(!pop.hidden&&!pop.contains(e.target))pop.hidden=true;return;}e.preventDefault();const d=b.dataset;
+  pop.replaceChildren();const t=document.createElement('b');t.textContent=d.src+' '+(d.srcTitle||'');const m=document.createElement('span');m.textContent=d.srcMeta||'';const p=document.createElement('p');
+  if(d.srcUrl){const a=document.createElement('a');a.href=d.srcUrl;a.target='_blank';a.rel='noopener';a.textContent='원문';p.append(a);}
+  const at=document.createElement('a');at.href=d.srcAt;at.textContent='출처 구역';p.append(at);pop.append(t,m,p);pop.hidden=false;
+  const r=b.getBoundingClientRect();pop.style.top=(r.bottom+scrollY+6)+'px';pop.style.left=Math.max(8,Math.min(r.left+scrollX,document.documentElement.clientWidth-pop.offsetWidth-8))+'px';});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')pop.hidden=true;});
 // captures step through their frames while hovered (never at rest, never under reduced motion)
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches)$$('.card .thumb').forEach(b=>{const alts=$$('img.alt',b);if(!alts.length)return;let t,k=-1;
   b.addEventListener('mouseenter',()=>{t=setInterval(()=>{alts.forEach(a=>a.classList.remove('on'));k=(k+1)%(alts.length+1);if(k<alts.length)alts[k].classList.add('on');},1100);});
@@ -700,10 +750,11 @@ function toggleNotes(){showNotes=!showNotes;side.hidden=!showNotes;sideWidth();}
 function tab(t){side.dataset.tab=t;side.querySelectorAll('.vtabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));side.querySelector('.prose').hidden=t!=='notes';side.querySelector('.vclaims').hidden=t!=='claims';}
 function step(d){const L=list();if(mode==='full'||L.length<2)return;idx=(idx+d+L.length)%L.length;render();}
 function ref(d){const n=ci+d;if(n<0||n>=cards.length)return;ci=n;load(mode);history.replaceState(null,'','#'+data.id);}
-function close(){V.classList.remove('open');document.body.classList.remove('viewing');stage.innerHTML='';const id=data&&data.id;history.replaceState(null,'',location.pathname+location.search);if(id)document.getElementById(id)?.scrollIntoView({block:'center'});}
+let ret=null; // where the reader was when a chip or thumbnail opened the viewer
+function close(){V.classList.remove('open');document.body.classList.remove('viewing');stage.innerHTML='';const id=data&&data.id;history.replaceState(null,'',location.pathname+location.search);if(ret!=null){scrollTo(0,ret);ret=null;}else if(id)document.getElementById(id)?.scrollIntoView({block:'center'});}
 document.addEventListener('click',e=>{
   const pr=e.target.closest('[data-open-ref]');
-  if(pr&&!V.contains(pr)){e.preventDefault();const c=document.getElementById(pr.dataset.openRef);if(has(c))open(c,pr.dataset.mode||'',pr.dataset.idx||0);else if(c)c.scrollIntoView({block:'center'});return;}
+  if(pr&&!V.contains(pr)){e.preventDefault();const c=document.getElementById(pr.dataset.openRef);if(has(c)){const y=scrollY;open(c,pr.dataset.mode||'',pr.dataset.idx||0);ret=y;}else if(c)c.scrollIntoView({block:'center'});return;}
   const t=e.target.closest('[data-view]');
   if(t&&!V.contains(t)){e.preventDefault();open(t.closest('.card'),t.dataset.view||'');return;}
   if(!V.classList.contains('open'))return;
@@ -800,7 +851,7 @@ const splitTitle = (c) => {
 const SUMMARY_KEYS = [
   ["goal", /목표|목적|goal/i],
   ["changed", /바뀐|변경|changed/i],
-  ["key", /핵심|주요 발견|key|takeaway/i],
+  ["key", /판단 자료|핵심|주요 발견|key|takeaway/i],
   ["common", /공통|차별|common/i],
   ["recommend", /추천|다음 (할 일|단계)|권장|recommend|next/i],
   ["open", /열린|미해결|질문|open question/i],
@@ -863,19 +914,34 @@ export function rationaleOf(x) {
   const lead = parts.why.match(/^(공식|정황|추정)\s*[—:-]\s*/);
   return { ...parts, why: lead ? parts.why.slice(lead[0].length) : parts.why, basis: parts.why_basis ?? BASIS_KEY[lead?.[1]] ?? null };
 }
-const CONCLUSION_LABELS = [["question", /질문/], ["answer", /^(답|결론)/], ["decision", /^(제안|추천|결정)/], ["counter", /반대/], ["evidence", /^근거/]];
-/** labelled bullets of the summary's 핵심 결론 → { question, answer, decision, counter, evidence[] } */
+// labels of the summary's 판단 자료 (older summaries: 핵심 결론 with 답 · 제안 · 근거 · 반대 근거). Order matters: 반대 관찰 before 관찰.
+const CONCLUSION_LABELS = [["question", /질문/], ["counter", /반대/], ["evidence", /^(관찰|근거)/], ["option", /^선택지/], ["memo", /^(에이전트 )?메모/], ["answer", /^(답|결론)/], ["decision", /^(제안|추천|결정)/]];
+/** "기능 단계형 — 무료 1단 … · 받침 [C2] [C5] · 반대 [C6] · 확인: …" → { name, text, pro[], con[], check } */
+function optionOf(line) {
+  const [head, ...rest] = line.split(/\s+·\s+(?=받침|반대|확인)/);
+  const m = head.match(/^(.+?)\s+[—–-]\s+(.+)$/);
+  const ids = (t) => idsIn(t).filter((x) => x.startsWith("C"));
+  const seg = (re) => rest.find((x) => re.test(x)) ?? "";
+  const check = seg(/^확인/).replace(/^확인\s*[:：]?\s*/, "").trim();
+  return { name: (m?.[1] ?? head).trim(), text: (m?.[2] ?? "").replace(/\s*\[[SC]\d+\]/g, "").trim(), pro: ids(seg(/^받침/)), con: ids(seg(/^반대/)), check: check || null, line };
+}
+/** labelled bullets of the summary's 판단 자료 → { question, evidence[], counters[], options[], memo[], answer, decision } */
 function conclusionOf(block) {
-  const out = { evidence: [] };
+  const out = { evidence: [], counters: [], options: [], memo: [] };
   for (const item of listItems(block)) {
     const m = item.replace(/\*\*/g, "").match(/^([^:：]{1,14})\s*[:：]\s*(.+)$/);
     const k = m && CONCLUSION_LABELS.find(([, re]) => re.test(m[1]))?.[0];
     if (k === "evidence") out.evidence.push(m[2]);
-    else if (k) out[k] ??= m[2];
+    else if (k === "option") out.options.push(optionOf(m[2]));
+    else if (k === "memo") out.memo.push(m[2]);
+    else if (k === "counter") {
+      // "관찰 2 — …" (older: "근거 2 — …", "답 — …"): what the counter stands against
+      const t = m[2].match(/^(답|제안|(?:관찰|근거)\s*\d+|선택지\s*[^—–-]+?)\s*[—–-]\s*(.+)$/s);
+      out.counters.push(t ? { of: t[1].replace(/\s+/g, " ").trim(), text: t[2] } : { of: null, text: m[2] });
+    } else if (k) out[k] ??= m[2];
   }
-  // "근거 2 — …": what the counter-evidence stands against
-  const target = out.counter?.match(/^(답|제안|근거\s*\d+)\s*[—:-]\s*(.+)$/s);
-  if (target) Object.assign(out, { counterOf: target[1].replace(/\s+/g, " "), counter: target[2] });
+  // older summaries: their 답 and 제안 are the agent's reading, shown folded as a memo
+  if (!out.memo.length) out.memo = [out.answer && `해석: ${out.answer}`, out.decision && `다음 단계 후보: ${out.decision}`].filter(Boolean);
   return out;
 }
 /** What a board leads with, shared with the MCP server. Key claims: collection.highlights → claims marked key → summary list → strongest claims. */
@@ -899,11 +965,10 @@ export function conclusionData(col, claims, summary) {
   const openQ = col.openQuestions?.length ? col.openQuestions : sum.open ? listItems(sum.open) : [];
   const nextS = col.nextSteps?.length ? col.nextSteps : sum.recommend ? listItems(sum.recommend) : [];
   const concl = conclusionOf(sum.key);
-  const answer = concl.answer ?? keyClaims[0]?.text ?? keyLines[0];
   const lineItem = (line) => ({ line, c: claimById.get(line.match(/\[(C\d+)/)?.[1]) });
-  // an older summary has no labelled 답: its first key line becomes the answer, so it is not repeated as evidence
-  const evItems = (concl.evidence.length ? concl.evidence.map(lineItem) : keyClaims.length ? keyClaims.map((c) => ({ c })) : keyLines.map(lineItem)).filter((x) => concl.answer || (x.line ?? x.c?.text) !== answer);
-  return { sum, claimById, keyClaims, keySource, keyLines, openQ, nextS, concl, answer, evItems };
+  // observations: the summary's labelled 관찰 (older: 근거) lines, else the key claims; the board never states an answer
+  const evItems = concl.evidence.length ? concl.evidence.map(lineItem) : keyClaims.length ? keyClaims.map((c) => ({ c })) : keyLines.map(lineItem);
+  return { sum, claimById, keyClaims, keySource, keyLines, openQ, nextS, concl, evItems };
 }
 /** "- a" / "1. a" lines of a markdown block (one level), else non-empty lines */
 const listItems = (block) => {
@@ -942,7 +1007,13 @@ export function renderBoard(d) {
   const { col } = d;
   const memberIds = new Set(d.members.map((m) => m.r.id));
   const byRef = new Map(d.members.map((m) => [m.r.id, m]));
-  const cite = (id) => `<a class="cite" href="${id.startsWith("C") ? `#${id}` : memberIds.has(id) ? `#${id}` : `#src-${id}`}" title="${esc(d.titleOf(id))}">${id}</a>`;
+  // S# chips open the capture in place (#27); a source without a capture shows its details next to the chip, never jumps
+  const cite = (id) => {
+    if (id.startsWith("C")) return `<a class="cite" href="#${id}" title="${esc(d.titleOf(id))}">${id}</a>`;
+    if (byRef.get(id)?.thumb) return `<a class="cite" href="#${id}" data-open-ref="${id}" title="${esc(d.titleOf(id))} — 화면 보기">${id}</a>`;
+    const r = d.refById?.get(id);
+    return `<button type="button" class="cite" data-src="${id}" data-src-title="${esc(r?.label ?? r?.title ?? d.titleOf(id))}" data-src-meta="${esc([TYPE_KO[r?.type], r?.published?.slice(0, 10)].filter(Boolean).join(" · "))}" data-src-url="${esc(r?.url ?? "")}" data-src-at="${memberIds.has(id) ? `#${id}` : `#src-${id}`}" title="${esc(d.titleOf(id))}">${id}</button>`;
+  };
   const active = d.claims.own.filter((c) => c.status === "active");
   const shared = d.axes.rows.filter((r) => r.other.length).length;
   const axisLabel = (id) => d.axes.rows.find((r) => r.id === id)?.label ?? id;
@@ -977,13 +1048,12 @@ export function renderBoard(d) {
   const next = () => NUM;
   const reader = ["decision", "practitioner", "archive"].includes(col.reader) ? col.reader : "practitioner";
 
-  const { sum, claimById, keyClaims, keySource, keyLines, openQ, nextS, concl, answer, evItems } = conclusionData(col, d.claims, d.summary);
+  const { sum, claimById, openQ, nextS, concl, evItems } = conclusionData(col, d.claims, d.summary);
   const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
   const continuePrompt = `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})를 이어서 해줘.${openQ.length ? ` 추가 질문 항목: ${openQ.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}${nextS.length ? ` 다음 할 일: ${nextS.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
-  const evShown = evItems.slice(0, 3);
   const openSection =
     openQ.length || nextS.length
-      ? `<section id="open">${sectionHead(next(), "미해결 질문 · 다음 단계", "답에 따라 결론이나 제안이 달라질 수 있는 질문과 이어서 할 일입니다. 항목 아래 의도는 왜 확인해야 하는지를 적은 것입니다. 버튼을 누르면 이어서 조사할 프롬프트가 복사됩니다.")}<div class="panel openq">${openQ.length ? `<h4>추가 질문 항목</h4>${intentList(openQ, cite)}${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4>${intentList(nextS, cite)}${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
+      ? `<section id="open">${sectionHead(next(), "미해결 질문 · 다음 단계", "결과에 따라 판단이 달라질 질문과 이어서 할 일입니다. 항목 아래 의도는 왜 확인해야 하는지를 적은 것입니다. 버튼을 누르면 이어서 조사할 프롬프트가 복사됩니다.")}<div class="panel openq">${openQ.length ? `<h4>추가 질문 항목</h4>${intentList(openQ, cite)}${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4>${intentList(nextS, cite)}${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
           !openQ.length && !nextS.length ? `<p class="muted small">요약에 <code>## 추가 질문 항목</code> · <code>## 추천</code> 절을 쓰거나 <code>ref report</code>에 <code>open_questions</code> · <code>next_steps</code>를 넘기면 여기에 표시됩니다.</p>` : ""
         }${promptAction("이 조사 이어서 하기", continuePrompt, { preview: true, big: true, hint: "추가 질문 항목과 다음 할 일을 담은 프롬프트를 복사합니다" })}</div></section>`
       : "";
@@ -998,13 +1068,16 @@ export function renderBoard(d) {
   const traceById = new Map(traces.map((x) => [x.m.r.id, x.w]));
   const axisWhy = new Map();
   for (const { m, w } of traces) for (const a of m.axes) if (!axisWhy.has(a)) axisWhy.set(a, w);
-  const whyCard = ({ m, w }) => `<article class="whycard${m.thumb ? "" : " noimg"}">${m.thumb ? `<button class="thumb" data-open-ref="${m.r.id}" title="${esc(m.r.label ?? m.r.id)} 크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt=""></button>` : ""}<div><h4>${esc(m.r.product ?? m.r.label ?? m.r.id)}${basisChip(w.basis)}</h4><p>${inline(w.why, cite)}</p>${w.result ? `<p><b>결과</b>${inline(w.result, cite)}</p>` : ""}${w.implication ? `<p><b>시사점</b>${inline(w.implication, cite)}</p>` : ""}</div></article>`;
+  // why-traces as one comparison table: 출처 · 의도 · 결과 · 시사점, so the same item reads across products
+  const VERB = { 차용: "v-take", 변형: "v-adapt" };
+  const impCell = (t) => { const v = String(t ?? "").match(/^(\S+?)\s+—\s+(.+)$/s); return v ? `<em class="${VERB[v[1]] ?? "v-avoid"}">${esc(v[1])}</em>${inline(v[2], cite)}` : inline(t, cite); };
+  const whyRow = ({ m, w }) => `<tr data-search="${searchText("설계 의도", m.r.product, m.r.label, w.why, w.result, w.implication)}"><td>${m.thumb ? `<div class="jthumbs"><button type="button" data-open-ref="${m.r.id}" title="${esc(m.r.label ?? m.r.id)} 크게 보기"><img loading="lazy" src="${esc(m.thumb)}" alt=""><span>${esc(short(m.r.product ?? m.r.label ?? m.r.id, 14))}</span></button></div>` : ""}<b>${esc(m.r.product ?? m.r.label ?? m.r.id)} ${cite(m.r.id)}</b>${basisChip(w.basis)}</td><td data-h="의도">${inline(w.why, cite)}</td><td data-h="결과">${w.result ? inline(w.result, cite) : `<span class="nil">기록 없음</span>`}</td><td data-h="시사점">${w.implication ? impCell(w.implication) : `<span class="nil">기록 없음</span>`}</td></tr>`;
   const whySection =
     traces.length || sum.why
-      ? `<section id="why">${sectionHead(next(), whyTitle, "왜 이렇게 만들었는지 근거로 따라간 기록입니다. 공식은 회사가 직접 밝힌 것, 정황은 여러 단서로 본 것, 추정은 가설입니다.")}${traces.length ? `<div class="whycards">${traces.slice(0, 5).map(whyCard).join("")}</div>` : `<div class="panel prose">${md(sum.why, cite)}</div>`}</section>`
+      ? `<section id="why">${sectionHead(next(), whyTitle, "왜 이렇게 만들었는지 근거로 따라간 기록. 근거 수준: 공식은 회사가 밝힌 것, 정황은 여러 단서로 본 것, 추정은 가설.")}${traces.length ? `<div class="jtw"><table class="itbl"><thead><tr><th scope="col">출처</th><th scope="col">의도</th><th scope="col">결과</th><th scope="col">시사점</th></tr></thead><tbody>${traces.slice(0, 5).map(whyRow).join("")}</tbody></table></div>` : `<div class="panel prose">${md(sum.why, cite)}</div>`}</section>`
       : "";
 
-  const topbar = `<a class="brand" href="../index.html">References</a>${searchBox("검색")}`;
+  const topbar = `<a class="brand" href="../index.html">References</a>${searchBox("이 조사에서 검색")}`;
 
   // why this research exists — collection goal, else the last run's goal, else the summary's 목표 line
   const goal = col.goal ?? col.question ?? lastRun?.goal ?? goalFromSummary(d.summary);
@@ -1020,51 +1093,74 @@ export function renderBoard(d) {
 <div><b>${d.runs.length}</b><span>조사 회차${lastRun ? ` · 마지막 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</span></div>
 </div>`;
   const question = concl.question ?? col.question ?? goal;
-  const decision = concl.decision ?? null;
   const meta = `${productCount}개 ${esc(unit)} · 레퍼런스 ${d.members.length}개 · 발견 ${active.length}개 · ${d.runs.length}회차`;
-  // ---- board G head: crumb, title, goal, format; KPI cards; conclusion galley with margin marks; evidence map ----
+  // ---- 판단 자료: question → observations with their captures (counter right under) → options to compare → the agent's memo, folded.
+  // The board states no answer: a person reads the observations and records the decision (docs/BOARD-DRAFTS.md §8, #30).
   const R = d.refById ?? new Map([...d.sources, ...d.members.map((m) => m.r)].map((r) => [r.id, r]));
   const claimsIn = (t) => idsIn(t).filter((x) => x.startsWith("C")).map((x) => claimById.get(x)).filter(Boolean);
-  const refsFor = (cs, extra = []) => [...new Set([...extra, ...cs.flatMap((c) => c.sources)])];
+  const refsFor = (ids) => [...new Set(ids.flatMap((id) => claimById.get(id)?.sources ?? []))];
   const readMark = (c) => (!c ? "" : readState(c, R) === "unknown" ? mark("unread", "열람 미기록") : readState(c, R) === "snippet" ? mark("unread", "요약만 읽음") : "");
-  const evC = evShown.map((x) => x.c ?? claimsIn(x.line)[0] ?? null);
-  const ansClaims = claimsIn(answer).length ? claimsIn(answer) : keyClaims.slice(0, 2);
-  // counter-evidence: a claim's `against` sources (v3) first, else the summary's labelled 반대 근거 line
-  const v3i = evC.findIndex((c) => c?.against?.length);
-  const counter = v3i >= 0
-    ? { of: v3i, text: `반대 출처 ${evC[v3i].against.map((id) => R.get(id)?.product ?? R.get(id)?.label ?? id).join(", ")}`, ids: evC[v3i].against, claims: [], refs: evC[v3i].against, v3: true }
-    : concl.counter
-      ? { of: Number(concl.counterOf?.match(/근거\s*(\d+)/)?.[1] ?? 0) - 1, text: plain(concl.counter), ids: idsIn(concl.counter), claims: claimsIn(concl.counter) }
-      : null;
-  const counterCount = active.filter((c) => c.against?.length).length + (counter && !counter.v3 ? 1 : 0);
-  const rowsG = [];
-  const grow = (key, lab, body, mg, cites, cls = "") => rowsG.push(`<div class="grow ${cls}" data-key="${key}" data-cites="${esc(cites.join(" "))}" tabindex="0"><div class="lab">${lab}</div><div>${body}</div><div class="mg">${mg}</div></div>`);
-  if (answer) {
-    if (question) grow("question", "질문", `<p>${inline(question, cite)}</p>`, lastRun ? mark("new", `${runLabel(lastRun.id)}`, lastRun.startedAt.slice(0, 10)) : "", []);
-    grow("answer", "답", `<p class="ans">${inline(answer, cite)}</p>`, [counter && counter.of >= 0 ? mark("contested", "반대 근거", `근거 ${counter.of + 1}`) : "", ansClaims[0] ? strengthMark(ansClaims[0]) : "", readMark(ansClaims[0])].join(""), refsFor(ansClaims));
-    if (decision) grow("decision", "제안", `<p>${inline(decision, cite)}</p>`, strengthMark(claimsIn(decision)[0]), refsFor(claimsIn(decision)));
-    evShown.forEach((x, i) => grow(`e${i}`, i ? "" : "근거", `<p>${i + 1}. ${x.line ? inline(x.line, cite) : esc(splitTitle(x.c)[0])}</p>`, [strengthMark(evC[i]), counter?.of === i ? mark("contested", "반대 근거") : "", readMark(evC[i])].join(""), refsFor(evC[i] ? [evC[i]] : [], idsIn(x.line).filter((y) => y.startsWith("S")))));
-    if (counter) grow("counter", "반대 근거", `<p>${counter.of >= 0 ? `<b>근거 ${counter.of + 1}</b> · ` : ""}${counter.v3 ? `${esc(counter.text)} ${counter.ids.map(cite).join("")}` : inline(concl.counter, cite)}</p>`, mark("contested", counter.of >= 0 ? `근거 ${counter.of + 1} 반박` : "반박"), refsFor(counter.claims ?? [], counter.ids.filter((y) => y.startsWith("S"))), "counter");
-  }
-  const citedIds = [...new Set(rowsG.flatMap((h) => (h.match(/data-cites="([^"]*)"/)?.[1] ?? "").split(" ").filter(Boolean)))].filter((id) => byRef.get(id)?.thumb).slice(0, 10);
-  const citedPanel = citedIds.length ? `<aside class="cited" id="cited"><h3>인용 캡처</h3><p id="citednote">줄 선택 전</p><div class="cg">${citedIds.map((id) => `<button type="button" data-open-ref="${id}" data-rail="${id}"><img loading="lazy" src="${esc(byRef.get(id).thumb)}" alt=""><span>${id} ${esc(short(byRef.get(id).r.product ?? byRef.get(id).r.label ?? "", 14))}</span></button>`).join("")}</div></aside>` : "";
-  const refOf = (id) => {
-    const m = byRef.get(id), r = m?.r ?? R.get(id);
-    return { tag: m?.role ? ({ direct: "직접", indirect: "간접", trend: "트렌드", analogous: "유사" }[m.role] ?? "자료") : (TYPE_KO[r?.type] ?? "자료"), name: r?.product ?? r?.label ?? id, frames: m?.frames.length ?? 0, view: !!m?.thumb };
+  const obs = evItems.slice(0, 5).map((x) => ({ ...x, c: x.c ?? claimsIn(x.line)[0] ?? null }));
+  const refsOfLine = (x) => [...(x.c?.sources ?? []), ...idsIn(x.line).filter((y) => y.startsWith("S"))];
+  // counters: the summary's 반대 관찰 lines first; a claim's `against` sources (v3) when no line names that observation
+  const nOf = (of) => Number(of?.match(/^(?:관찰|근거)\s*(\d+)/)?.[1] ?? 0) - 1;
+  const fromSummary = concl.counters.map((x) => ({ at: nOf(x.of), of: x.of, line: x.text }));
+  const counters = [
+    ...fromSummary,
+    ...obs.flatMap((o, i) => (o.c?.against?.length && !fromSummary.some((k) => k.at === i) ? [{ at: i, refs: o.c.against, text: `반대 출처 ${o.c.against.map((id) => R.get(id)?.product ?? R.get(id)?.label ?? id).join(", ")}` }] : [])),
+  ];
+  const ctRefs = (k) => (k.refs ?? [...claimsIn(k.line).flatMap((c) => c.sources), ...idsIn(k.line).filter((y) => y.startsWith("S"))]);
+  const ctHtml = (k) => (k.refs ? `${esc(k.text)} ${k.refs.map(cite).join("")}` : inline(k.line, cite));
+  const ofLabel = (of) => (/^(답|제안)$/.test(of ?? "") ? "에이전트 메모" : String(of ?? "").replace(/^근거/, "관찰"));
+  const thumbsOf = (ids) => {
+    const t = [...new Set(ids)].filter((id) => byRef.get(id)?.thumb).slice(0, 5);
+    return t.length ? `<div class="jthumbs">${t.map((id) => `<button type="button" data-open-ref="${id}" title="${esc(R.get(id)?.label ?? id)} 크게 보기"><img loading="lazy" src="${esc(byRef.get(id).thumb)}" alt=""><span>${esc(short(R.get(id)?.product ?? R.get(id)?.label ?? id, 14))}</span></button>`).join("")}</div>` : "";
   };
-  const dc = (c) => ({ id: c.id, subject: c.subject ?? splitTitle(c)[0], kindKo: KIND[c.kind]?.[0] ?? c.kind, strength: STRENGTH_KO[c.confidence] ?? "기록", sources: c.sources ?? [] });
-  const nodesFor = { answer: ["답", plain(answer ?? ""), ansClaims], decision: ["제안", plain(decision ?? ""), claimsIn(decision)], ...Object.fromEntries(evShown.map((x, i) => [`e${i}`, [`근거 ${i + 1}`, plain(x.line ?? x.c?.text ?? ""), evC[i] ? [evC[i]] : []]])), ...(counter ? { counter: ["반대 근거", counter.text, counter.claims, counter.refs ?? []] } : {}) };
-  const mapSection = answer && evShown.length
-    ? `<section id="map">${sectionHead(next(), "근거 노선", "개요의 노드나 위 핵심 결론의 줄을 고르면 아래 상세가 그 노드의 발견과 자료로 바뀜. 빨간 점선 하나가 반대 근거. 자료 노드를 누르면 캡처가 열림.")}
-<div class="dgwrap">${dgOverview("ov", { question, answer: { text: plain(answer), ids: ansClaims.map((c) => c.id) }, evidence: evShown.map((x, i) => ({ strength: STRENGTH_KO[evC[i]?.confidence] ?? "기록", ids: evC[i] ? [evC[i].id, ...evC[i].sources.slice(0, 2)] : idsIn(x.line) })), counter: counter && counter.of >= 0 ? { of: counter.of, text: counter.text, ids: counter.ids.slice(0, 3) } : null, selected: "answer" })}</div>
-${Object.entries(nodesFor).map(([k, [label, text, cs, rs = []]]) => `<div class="dgdet" data-for="${k}"${k === "answer" ? "" : " hidden"}><h3>${esc(label)} 상세</h3>${cs.length || rs.length ? `<div class="dgwrap">${dgDetail(`dt-${k}`, { label, text, claims: cs.map(dc), refs: rs, refOf })}</div>` : `<p class="muted small">이 줄에 연결된 발견 번호(C#)가 없음 — 요약의 줄 끝에 [C#]를 달면 여기에 그려짐.</p>`}</div>`).join("")}</section>`
+  // side panel bodies, one <template> per row, cloned into #jpanel on demand
+  const pcClaim = (c) => `<div class="pc"><div class="pch">${idBtn(c.id)}<span class="tag">${esc(KIND[c.kind]?.[0] ?? c.kind)}</span>${strengthMark(c)}${readMark(c)}</div><p>${esc(c.text)}</p></div>`;
+  const pcRef = (id) => {
+    const r = R.get(id), m = byRef.get(id);
+    return `<div class="pr">${m?.thumb ? `<button type="button" data-open-ref="${id}" aria-label="${esc(r?.product ?? id)} 화면 보기"><img loading="lazy" src="${esc(m.thumb)}" alt=""></button>` : `<span class="noimg">글</span>`}<div><b>${esc(r?.label ?? r?.title ?? id)}</b> ${cite(id)}<span>${esc([TYPE_KO[r?.type], r?.published?.slice(0, 10)].filter(Boolean).join(" · "))}</span></div></div>`;
+  };
+  const panels = [];
+  const panel = (key, kicker, title, cs, rs, extra = "") => panels.push(`<template data-pd="${key}"><h2><small>${esc(kicker)}</small>${esc(short(title, 90))}</h2><div>${cs.length ? `<h3>발견</h3>${cs.map(pcClaim).join("")}` : ""}${rs.length ? `<h3>레퍼런스</h3>${[...new Set(rs)].map(pcRef).join("")}` : ""}${extra}</div></template>`);
+  const ctOf = (i) => counters.filter((k) => k.at === i);
+  let cj = 0;
+  const ctRow = (k) => {
+    const key = `ct${cj++}`, cs = k.line ? claimsIn(k.line) : [];
+    panel(key, "반대 관찰", k.text ?? plain(k.line), cs, ctRefs(k));
+    return `<li class="ob counter" data-panel="${key}" tabindex="0" data-search="${searchText("반대 관찰", k.text ?? plain(k.line))}"><span class="lab">반대 관찰</span><div><p>${k.at < 0 && k.of ? `<b>${esc(ofLabel(k.of))}</b> · ` : ""}${ctHtml(k)}</p>${thumbsOf(ctRefs(k))}</div><div class="mg">${mark("contested", "반대")}<button type="button" class="jmore" data-panel="${key}">근거</button></div></li>`;
+  };
+  const obRow = (x, i) => {
+    const key = `ob${i}`, text = x.line ? plain(x.line) : x.c?.text ?? "";
+    panel(key, `관찰 ${i + 1}`, x.c?.subject ?? splitTitle(x.c ?? { text })[0], [x.c].filter(Boolean), refsOfLine(x), ctOf(i).map((k) => `<h3 class="c">반대 관찰</h3><div class="pc c"><p>${ctHtml(k)}</p></div>${ctRefs(k).map(pcRef).join("")}`).join(""));
+    return `<li class="ob" data-panel="${key}" tabindex="0" data-search="${searchText("관찰", text, x.c?.id)}"><span class="lab">${x.c ? esc(KIND[x.c.kind]?.[0] ?? x.c.kind) : "관찰"}</span><div><p>${x.line ? inline(x.line, cite) : `${esc(text)} ${x.c ? cite(x.c.id) : ""}`}</p>${thumbsOf(refsOfLine(x))}</div><div class="mg">${strengthMark(x.c)}${readMark(x.c)}<button type="button" class="jmore" data-panel="${key}">근거</button></div></li>`;
+  };
+  const obsHtml = obs.map((x, i) => obRow(x, i) + ctOf(i).map(ctRow).join("")).join("") + counters.filter((k) => k.at < 0 || k.at >= obs.length).map(ctRow).join("");
+  const opts = concl.options.filter((o) => o.name);
+  const optCell = (ids) => (ids.length ? `<ul>${ids.map((id) => claimById.get(id)).filter(Boolean).map((c) => `<li>${esc(c.subject ?? splitTitle(c)[0])} ${cite(c.id)}</li>`).join("")}</ul>` : `<span class="none">기록 없음</span>`);
+  const decidePrompt = (o) => `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})에 사람이 고른 결정을 기록해줘: 선택지 "${o.name}"${o.text ? ` — ${o.text}` : ""}. 판단에 쓴 근거: ${[...o.pro, ...refsFor(o.pro)].join(", ") || "없음"}.`;
+  opts.forEach((o, i) => panel(`op${i}`, "선택지", o.name, o.pro.map((id) => claimById.get(id)).filter(Boolean), refsFor(o.pro), `${o.con.length ? `<h3 class="c">반대 관찰</h3>${o.con.map((id) => claimById.get(id)).filter(Boolean).map(pcClaim).join("")}` : ""}<h3>확인 질문</h3><div class="pcheck">${o.check ? inline(o.check, cite) : "기록 없음"}</div>`));
+  const optRow = (label, cell) => `<tr><th scope="row">${label}</th>${opts.map((o, i) => `<td data-o="${esc(o.name)}">${cell(o, i)}</td>`).join("")}</tr>`;
+  const optTable = opts.length
+    ? `<h3 class="jh">선택지 비교</h3><div class="jtw"><table class="otbl"><thead><tr><th scope="col"></th>${opts.map((o) => `<th scope="col" data-search="${searchText("선택지", o.name, o.text, o.check)}">${esc(o.name)}${o.text ? `<small>${esc(o.text)}</small>` : ""}</th>`).join("")}</tr></thead><tbody>
+${optRow("받침 관찰", (o) => optCell(o.pro))}
+${optRow("반대 관찰", (o) => optCell(o.con))}
+${optRow("레퍼런스", (o) => thumbsOf(refsFor(o.pro)) || `<span class="none">캡처 없음</span>`)}
+${optRow("확인 질문", (o) => (o.check ? inline(o.check, cite) : `<span class="none">기록 없음</span>`))}
+${optRow("결정", (o, i) => `<button type="button" class="jmore" data-panel="op${i}">근거</button> ${promptAction("결정 복사", decidePrompt(o), { hint: "고른 선택지와 판단에 쓴 근거를 Claude에 넘길 프롬프트로 복사합니다" })}`)}</tbody></table></div>`
     : "";
+  const memo = concl.memo.length ? `<details class="memo" data-search="${searchText("에이전트 메모", concl.memo.map(plain))}"><summary>에이전트 메모 (참고)</summary>${concl.memo.map((t) => `<p>${inline(t, cite)}</p>`).join("")}</details>` : "";
+  const qRow = question ? `<div class="jq" data-search="${searchText("질문", plain(question))}"><span class="lab">질문</span><p>${inline(question, cite)}</p>${lastRun ? `<span class="mg">${mark("new", runLabel(lastRun.id), lastRun.startedAt.slice(0, 10))}</span>` : ""}</div>` : "";
+  const judgeSection = obs.length
+    ? `<section id="judge">${sectionHead(next(), "판단 자료", "관찰과 캡처를 보고 선택지를 비교합니다. 결정은 사람이 기록합니다.")}${qRow}<h3 class="jh">관찰</h3><ul class="obs">${obsHtml}</ul>${optTable}${memo}</section>`
+    : goalBlock ? `<section id="judge">${sectionHead(next(), "조사 목적", "")}${goalBlock}</section>` : "";
+  const jpanel = panels.length ? `${panels.join("")}<aside id="jpanel" class="jpanel" hidden aria-labelledby="jpanel-t"><header><h2 id="jpanel-t"></h2><button type="button" class="x" aria-label="근거 패널 닫기">닫기</button></header><div class="body"></div></aside>` : "";
   const unread = active.filter((c) => readState(c, R) === "unknown").length;
   const ghead = `<div class="ghead"><div><p class="crumb"><a href="../index.html">라이브러리</a> / <b>${esc(col.title ?? col.name)}</b></p><h1>${esc(col.title ?? col.name)}</h1>${goal ? `<p class="sub">${inline(goal, cite)}</p>` : ""}<p class="gmeta">조사 형식 ${esc(DOMAIN_KO[col.domain] ?? col.domain)} · ${esc(KIND_KO[col.kind] ?? col.kind ?? "조사")} · ${meta}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}${otherCats.length ? ` · 공유 조사 ${otherCats.length}` : ""}</p></div><div class="tools">${promptAction("이어서 조사", continuePrompt, { hint: "추가 질문 항목과 다음 할 일을 담은 프롬프트를 복사합니다" }).replace('class="pbtn', 'class="pbtn go')}</div></div>`;
-  const kpis = `<div class="kpis">${kpiCard("refs", "레퍼런스", "var(--green)", d.members.length, `캡처 ${captured} · 글 ${d.members.length - captured}`, "레퍼런스별 인용 발견", d.members.map((m) => citedBy.get(m.r.id) ?? 0).sort((a, b) => b - a), "gk1")}${kpiCard("claims", "강한 근거", "var(--accent)", conf("high"), `/ ${active.length}`, unread ? `열람 미기록 ${unread}` : "발견별 근거 세기", active.map((c) => ({ high: 2, medium: 1 })[c.confidence] ?? 0), "gk2")}${kpiCard("key", "반대 근거", "var(--coral)", counterCount, counter?.of >= 0 ? `근거 ${counter.of + 1}` : "없음", "근거별 반대 근거", evShown.map((_, i) => (counter?.of === i ? 1 : 0)), "gk3")}${kpiCard(openQ.length ? "open" : "changes", "미해결 질문", "#ffd75e", openQ.length, openQ.length ? "답 없음" : "없음", "회차별 신규 발견", d.runs.map((r) => r.counts.created), "gk4")}</div>`;
-  const hero = answer
-    ? `${ghead}${kpis}<section id="key">${sectionHead(next(), "핵심 결론", "줄을 고르면 인용 캡처가 오른쪽에서, 연결 구조가 아래 근거 노선에서 함께 바뀜. 여백 표시는 근거 세기·반대 근거·열람 기록.")}<div class="galley"><div class="grows">${rowsG.join("")}</div>${citedPanel}</div></section>${mapSection}`
-    : `${ghead}${kpis}${goalBlock ? `<section id="key">${sectionHead(next(), "조사 목적", "")}${goalBlock}</section>` : ""}`;
+  const ctAt = new Set(counters.map((k) => k.at).filter((a) => a >= 0 && a < obs.length));
+  const kpis = `<div class="kpis">${kpiCard("refs", "레퍼런스", "var(--green)", d.members.length, `캡처 ${captured} · 글 ${d.members.length - captured}`, "레퍼런스별 인용 발견", d.members.map((m) => citedBy.get(m.r.id) ?? 0).sort((a, b) => b - a), "gk1")}${kpiCard("claims", "강한 근거", "var(--accent)", conf("high"), `/ ${active.length}`, unread ? `열람 미기록 ${unread}` : "발견별 근거 세기", active.map((c) => ({ high: 2, medium: 1 })[c.confidence] ?? 0), "gk2")}${kpiCard("judge", "반대 관찰", "var(--coral)", counters.length, ctAt.size ? `관찰 ${ctAt.size}개에` : counters.length ? "관찰 밖" : "없음", "관찰별 반대 관찰", obs.map((_, i) => ctOf(i).length), "gk3")}${kpiCard(openQ.length ? "open" : "changes", "미해결 질문", "#ffd75e", openQ.length, openQ.length ? "미해결" : "없음", "회차별 신규 발견", d.runs.map((r) => r.counts.created), "gk4")}</div>`;
+  const hero = `${ghead}${kpis}${judgeSection}${jpanel}`;
 
   // long summaries fold: every heading becomes a section, the first two stay open, a mini TOC jumps and opens
   const secs = sectionsOf(d.summary);
@@ -1239,7 +1335,7 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
     return `<article class="claim" id="${c.id}" data-kind="${esc(c.kind ?? "")}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
   <div class="chead"><h4 class="ctitle">${c.key ? `<span class="star">핵심</span>` : ""}${esc(title)}</h4>${confBadge(c.confidence)}</div>
   ${body ? `<p class="cbody${body.length > 150 ? " clamp" : ""}">${esc(body)}</p>${body.length > 150 ? `<button class="more" type="button">더 보기</button>` : ""}` : ""}
-  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 핵심 결론은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(runLabel(c.run))}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${c.against?.length ? `<span class="sep">·</span><span class="chip against" title="이 발견에 반대되는 자료">반대 출처 ${c.against.map((id) => esc(id)).join(", ")}</span>` : ""}${((rs) => (rs === "unknown" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 원문으로 읽었다는 기록이 없음">열람 미기록</span>` : rs === "snippet" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 요약으로만 읽음 — 근거 세기 최대 보통">요약만 읽음</span>` : ""))(readState(c, R))}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
+  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 발견은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(runLabel(c.run))}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${c.against?.length ? `<span class="sep">·</span><span class="chip against" title="이 발견에 반대되는 자료">반대 출처 ${c.against.map((id) => esc(id)).join(", ")}</span>` : ""}${((rs) => (rs === "unknown" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 원문으로 읽었다는 기록이 없음">열람 미기록</span>` : rs === "snippet" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 요약으로만 읽음 — 근거 세기 최대 보통">요약만 읽음</span>` : ""))(readState(c, R))}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
   ${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}
   ${olds.length ? `<details class="prev"><summary>이전 버전 ${olds.length}개 — ${olds[0].status === "refuted" ? "틀린 것으로 확인됨" : "수정됨"}</summary>${olds.map((o) => `<div class="old" id="${o.id}">${idBtn(o.id)} ${esc(o.text)} <span class="small">(${esc((o.createdAt ?? "").slice(0, 10))})</span></div>`).join("")}</details>` : ""}
 </article>`;
@@ -1320,16 +1416,17 @@ ${cur && cur.refuted.length + cur.revised.length + cur.confirmed.length ? `<h3>�
     practitioner: ["why", "axes", "curriculum", "avoid", "open", "refs", "claims", "summary", "changes", "sources"],
     archive: ["summary", "why", "axes", "curriculum", "avoid", "open", "claims", "refs", "changes", "sources"],
   };
-  const NAV = { key: ["핵심 결론", evShown.length], map: ["근거 노선", ""], why: [whyTitle, traces.slice(0, 5).length], curriculum: ["커리큘럼 비교", d.curriculum?.n], axes: ["패턴 비교", d.axes.rows.length], avoid: ["회피 조합", ""], open: ["미해결 질문", openQ.length], refs: ["레퍼런스", d.members.length], claims: ["발견", active.length], summary: ["요약 전문", ""], changes: ["조사 과정", d.runs.length], sources: ["출처", d.sources.filter((r) => citedBy.has(r.id)).length] };
+  const NAV = { judge: [obs.length ? "판단 자료" : "조사 목적", obs.length || ""], why: [whyTitle, traces.slice(0, 5).length], curriculum: ["커리큘럼 비교", d.curriculum?.n], axes: ["패턴 비교", d.axes.rows.length], avoid: ["회피 조합", ""], open: ["미해결 질문", openQ.length], refs: ["레퍼런스", d.members.length], claims: ["발견", active.length], summary: ["요약 전문", ""], changes: ["조사 과정", d.runs.length], sources: ["출처", d.sources.filter((r) => citedBy.has(r.id)).length] };
   const order = ORDER[reader].filter((k) => blocks[k]);
-  const navOrder = [...(answer ? ["key"] : []), ...(answer && evShown.length ? ["map"] : []), ...order];
+  const navOrder = [...(judgeSection ? ["judge"] : []), ...order];
   const side = `<a class="brand" href="../index.html">References <span>/ 라이브러리</span></a>
 <div class="about"><strong>${esc(col.title ?? col.name)}</strong><br>${esc(col.description ?? "")}</div>
-${searchBox("레퍼런스·발견·패턴 검색")}
+${searchBox("이 조사에서 검색")}
+<p class="scope">범위 <b>이 조사</b> · <a href="../index.html">라이브러리 전체</a></p>
 <nav>${navOrder.map((k) => `<a href="#${k}">${NAV[k][0]}${NAV[k][1] ? `<small>${NAV[k][1]}</small>` : ""}</a>`).join("")}</nav>
 <div class="foot">${productCount}개 ${unit} · ${d.members.length}개 레퍼런스 · ${active.length}개 발견<br>${lastRun ? `마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>`;
   let sec = 0;
-  const body = (hero + order.map((k) => blocks[k]).join("") + foot).replaceAll(NUM, () => String(++sec).padStart(2, "0"));
+  const body = (hero + order.map((k) => blocks[k]).join("") + foot + `<div id="sres" class="sres" hidden role="region" aria-label="검색 결과"></div>`).replaceAll(NUM, () => String(++sec).padStart(2, "0"));
   return shell(`${col.title ?? col.name} — 레퍼런스 보드`, side, topbar, body);
 }
 
@@ -1439,10 +1536,11 @@ export function renderHome(h) {
 
   const side = `<a class="brand" href="index.html">References <span>/ 라이브러리</span></a>
 <div class="about">조사할 때마다 모은 레퍼런스와 발견. 같은 레퍼런스는 한 번만 저장하고, 여러 조사에 걸쳐 다시 씁니다.</div>
-${searchBox("조사·패턴 검색")}
+${searchBox("라이브러리에서 검색")}
+<p class="scope">범위 <b>라이브러리 전체</b></p>
 <nav><a href="#timeline">조사 타임라인</a><a href="#cats">조사 목록<small>${h.cats.length}</small></a><a href="#activity">활동</a>${h.sharedRefs?.length ? `<a href="#sharedrefs">공유 레퍼런스<small>${h.sharedRefs.length}</small></a>` : ""}<a href="#shared">교차 패턴<small>${shared.length}</small></a>${h.recent?.length ? `<a href="#recent">최근 활동<small>${h.recent.length}</small></a>` : ""}${h.cats.some((c) => c.openQuestions?.length) ? `<a href="#openq">미해결 질문<small>${h.cats.reduce((n, c) => n + (c.openQuestions?.length ?? 0), 0)}</small></a>` : ""}${h.findings?.length ? `<a href="#findings">발견 검색<small>${h.findings.length}</small></a>` : ""}</nav>
 <div class="foot">${h.cats.length}개 조사 · ${h.totals.refs}개 레퍼런스 · ${h.totals.claims}개 발견<br>${esc(new Date().toLocaleDateString("ko-KR"))} 기준</div>`;
-  const topbar = `<a class="brand" href="index.html">References</a>${searchBox("검색")}`;
+  const topbar = `<a class="brand" href="index.html">References</a>${searchBox("라이브러리에서 검색")}`;
 
   // ---- board G home: head, KPI sparklines, timeline (Gantt), collection list by topic, activity hexes, shared references ----
   const startPrompt = `reference-research 스킬로 "<주제>" 레퍼런스 조사를 시작해줘. 목적: <어떤 결정을 위해>, 대상: <누구를 위해>`;
@@ -1476,7 +1574,7 @@ ${searchBox("조사·패턴 검색")}
   const catRow = (c) => `<li class="catcard" data-col="${esc(c.name)}" data-topic="${esc(c.topic ?? "")}" data-name="${esc(c.title ?? c.name)}" data-date="${esc(c.lastRunAt ?? "")}" data-claims="${c.claims}" data-search="${searchText(c.title, c.description, c.goal, c.topAxes, c.conclusion?.subject, c.conclusion?.text, c.plans, topicLabel.get(c.topic))}" style="--c:${colorOf.get(c.name)}">
 <span class="t"><b><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a></b>${c.openQ ? gpill("mid", `미해결 ${c.openQ}`) : gpill("good", "미해결 0")}</span>
 <span class="m">${[topicLabel.get(c.topic) ?? "주제 없음", c.lastRun ? `마지막 ${c.lastRun}` : "", `회차 ${(c.runsAt ?? []).length}`, `레퍼런스 ${c.refs}`, `발견 ${c.claims}`, c.stale ? `다시 캡처 필요 ${c.stale}` : ""].filter(Boolean).map(esc).join(" · ")}${c.plans?.length ? ` · ${c.plans.map((n) => `<span class="pill plan">${esc(n)}</span>`).join(" ")}` : ""}</span>
-${c.conclusion ? `<span class="a">${c.conclusion.key ? "핵심 · " : ""}${esc(splitTitle(c.conclusion)[0])} <span class="cite">${esc(c.conclusion.id)}</span></span>` : `<span class="a">아직 발견 없음</span>`}
+${c.conclusion ? `<span class="a">관찰 · ${esc(splitTitle(c.conclusion)[0])} <span class="cite">${esc(c.conclusion.id)}</span></span>` : `<span class="a">아직 발견 없음</span>`}
 ${c.inProgress ? `<span class="m">${gpill("good", "진행 중")} ${promptAction("이어서 조사", continuePrompt(c), { hint: "열린 질문을 담은 프롬프트를 복사합니다" })}</span>` : ""}
 <span class="gbar" style="width:${Math.max(4, Math.round((c.refs / maxRefs) * 100))}%"></span></li>`;
   const catsSection = `<section id="cats">${sectionHead("", "조사 목록", "최근 조사순. 줄에 마우스를 올리면 공유 레퍼런스 그래프에서 그 조사의 선이 밝아짐.")}
@@ -1521,7 +1619,7 @@ ${c.inProgress ? `<span class="m">${gpill("good", "진행 중")} ${promptAction(
   // open questions across the library: the three most recent collections open, the rest folded per collection
   const withQ = sorted.filter((c) => c.openQuestions?.length);
   const totalQ = withQ.reduce((n, c) => n + c.openQuestions.length, 0);
-  const oqGroup = (c, open) => `<details class="oq sgroup"${open ? " open" : ""}><summary><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a><span class="muted small">${c.openQuestions.length}개${c.lastRun ? ` · ${esc(c.lastRun)}` : ""}</span>${c.inProgress ? `<span class="pill">진행 중</span>` : ""}</summary><ul>${c.openQuestions.map((q) => `<li data-search="${searchText(q, c.title)}">${inline(withIntent(q)[0], hcite)}${withIntent(q)[1] ? `<small class="muted" style="display:block">의도: ${inline(withIntent(q)[1], hcite)}</small>` : ""}</li>`).join("")}</ul><div class="oqact">${promptAction("이 질문들로 이어서 하기", continuePrompt(c), { preview: true, hint: "이 조사의 열린 질문을 담은 프롬프트를 복사합니다" })}<a class="muted small" href="${esc(c.name)}/index.html#key">보드의 핵심 결론 보기 →</a></div></details>`;
+  const oqGroup = (c, open) => `<details class="oq sgroup"${open ? " open" : ""}><summary><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a><span class="muted small">${c.openQuestions.length}개${c.lastRun ? ` · ${esc(c.lastRun)}` : ""}</span>${c.inProgress ? `<span class="pill">진행 중</span>` : ""}</summary><ul>${c.openQuestions.map((q) => `<li data-search="${searchText(q, c.title)}">${inline(withIntent(q)[0], hcite)}${withIntent(q)[1] ? `<small class="muted" style="display:block">의도: ${inline(withIntent(q)[1], hcite)}</small>` : ""}</li>`).join("")}</ul><div class="oqact">${promptAction("이 질문들로 이어서 하기", continuePrompt(c), { preview: true, hint: "이 조사의 열린 질문을 담은 프롬프트를 복사합니다" })}<a class="muted small" href="${esc(c.name)}/index.html#judge">보드의 판단 자료 보기 →</a></div></details>`;
   const openSection = withQ.length
     ? `<section id="openq">${sectionHead("", "미해결 질문", `아직 답하지 못한 질문 ${totalQ}개 (${withQ.length}개 조사). 최근 조사 ${Math.min(3, withQ.length)}개는 펼쳐져 있고 나머지는 제목을 누르면 열립니다.`)}<div class="panel oqs">${withQ.map((c, i) => oqGroup(c, i < 3)).join("")}</div></section>`
     : "";

@@ -1,58 +1,58 @@
 {
  "note-app-pricing-index": {
   "page-390": {
-   "texts": 580,
+   "texts": 601,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 13361
+   "height": 14447
   },
   "viewer-390": {
-   "texts": 600,
+   "texts": 621,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 13361
+   "height": 14447
   },
   "page-768": {
-   "texts": 580,
+   "texts": 605,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 10281
+   "height": 10558
   },
   "page-1280": {
-   "texts": 603,
+   "texts": 630,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 9636
+   "height": 9698
   },
   "viewer-1280": {
-   "texts": 625,
+   "texts": 652,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 9636
+   "height": 9698
   },
   "page-1600": {
-   "texts": 603,
+   "texts": 630,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 9400
+   "height": 9521
   }
  },
  "lib-index": {
@@ -63,7 +63,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 3155
+   "height": 3109
   },
   "page-768": {
    "texts": 100,
@@ -72,81 +72,81 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 2799
+   "height": 2777
   },
   "page-1280": {
-   "texts": 115,
+   "texts": 117,
    "minBody": 5.45,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 2568
+   "height": 2615
   },
   "page-1600": {
-   "texts": 115,
+   "texts": 117,
    "minBody": 5.45,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 2568
+   "height": 2615
   }
  },
  "old-library-board": {
   "page-390": {
-   "texts": 595,
+   "texts": 549,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 13462
+   "height": 12911
   },
   "viewer-390": {
-   "texts": 615,
+   "texts": 569,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 13462
+   "height": 12911
   },
   "page-768": {
-   "texts": 595,
+   "texts": 553,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 10382
+   "height": 9414
   },
   "page-1280": {
-   "texts": 618,
+   "texts": 578,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 9737
+   "height": 8659
   },
   "viewer-1280": {
-   "texts": 640,
+   "texts": 600,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 9737
+   "height": 8659
   },
   "page-1600": {
-   "texts": 618,
+   "texts": 578,
    "minBody": 4.57,
    "minLarge": 7.68,
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 9458
+   "height": 8632
   }
  }
 }

@@ -348,6 +348,7 @@ export async function showRef(id) {
   const citing = claims.filter((c) => c.sources.includes(r.id));
   return {
     text: [
+      ...(r.id !== id && /^S\d+$/.test(id) ? [`(${id} was merged into ${r.id})`] : []),
       `${r.id} ${r.label ?? ""} — ${r.title ?? ""}`,
       `url: ${r.url}${r.aliases?.length ? ` (aliases: ${r.aliases.join(", ")})` : ""}`,
       `type ${r.type}/${r.credibility} · channel ${channelOf(r) ?? "-"} · publisher ${r.publisher ?? "-"} · categories: ${(r.categories ?? []).join(", ") || "-"}`,

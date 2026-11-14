@@ -1102,7 +1102,8 @@ export function renderBoard(d) {
   const refsFor = (ids) => [...new Set(ids.flatMap((id) => claimById.get(id)?.sources ?? []))];
   const readMark = (c) => (!c ? "" : readState(c, R) === "unknown" ? mark("unread", "열람 미기록") : readState(c, R) === "snippet" ? mark("unread", "요약만 읽음") : "");
   const obs = evItems.slice(0, 5).map((x) => ({ ...x, c: x.c ?? claimsIn(x.line)[0] ?? null }));
-  const refsOfLine = (x) => [...(x.c?.sources ?? []), ...idsIn(x.line).filter((y) => y.startsWith("S"))];
+  const sIds = (t) => idsIn(t).filter((y) => y.startsWith("S")).map((y) => d.resolveRef?.(y) ?? y); // a summary may name a merged ref
+  const refsOfLine = (x) => [...(x.c?.sources ?? []), ...sIds(x.line)];
   // counters: the summary's 반대 관찰 lines first; a claim's `against` sources (v3) when no line names that observation
   const nOf = (of) => Number(of?.match(/^(?:관찰|근거)\s*(\d+)/)?.[1] ?? 0) - 1;
   const fromSummary = concl.counters.map((x) => ({ at: nOf(x.of), of: x.of, line: x.text }));
@@ -1110,7 +1111,7 @@ export function renderBoard(d) {
     ...fromSummary,
     ...obs.flatMap((o, i) => (o.c?.against?.length && !fromSummary.some((k) => k.at === i) ? [{ at: i, refs: o.c.against, text: `반대 출처 ${o.c.against.map((id) => R.get(id)?.product ?? R.get(id)?.label ?? id).join(", ")}` }] : [])),
   ];
-  const ctRefs = (k) => (k.refs ?? [...claimsIn(k.line).flatMap((c) => c.sources), ...idsIn(k.line).filter((y) => y.startsWith("S"))]);
+  const ctRefs = (k) => (k.refs ?? [...claimsIn(k.line).flatMap((c) => c.sources), ...sIds(k.line)]);
   const ctHtml = (k) => (k.refs ? `${esc(k.text)} ${k.refs.map(cite).join("")}` : inline(k.line, cite));
   const ofLabel = (of) => (/^(답|제안)$/.test(of ?? "") ? "에이전트 메모" : String(of ?? "").replace(/^근거/, "관찰"));
   const thumbsOf = (ids) => {

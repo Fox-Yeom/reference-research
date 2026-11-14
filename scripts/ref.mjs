@@ -56,7 +56,7 @@ import * as ev from "./evidence.mjs";
 import { mergeRefs } from "./merge.mjs";
 import { report, coverage } from "./report.mjs";
 import { migrate, migrateGrades, migrateRoles, migrateV3 } from "./migrate.mjs";
-import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate } from "./store.mjs";
+import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate, resolveRefId } from "./store.mjs";
 import { spawnSync } from "node:child_process";
 
 function fail(msg) {
@@ -295,7 +295,8 @@ try {
       const scope = flag(args, "--scope") ?? "all";
       const k = Number(flag(args, "--k") ?? 8);
       const { similar } = await embed();
-      const hits = await similar(args.join(" "), { scope, k });
+      const q = args.join(" ");
+      const hits = await similar(/^S\d+$/.test(q) ? resolveRefId(await readRefs(), q) : q, { scope, k });
       const [refs, claims] = await Promise.all([readRefs(), readClaims()]);
       print(
         hits

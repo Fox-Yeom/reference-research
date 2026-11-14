@@ -358,7 +358,8 @@ server.registerTool(
     const col = collection ? collectionName(collection) : null;
     const ax = axis ? axes.axes.find((a) => a.id === axis || a.label === axis) : null;
     if (axis && !ax) return text(`pattern not found: ${axis}`);
-    const pool = refs.filter((r) => (!ref || r.id === ref) && (!ax || (r.tags ?? []).some((x) => ax.tags.includes(x))));
+    const rid = ref ? resolveRefId(refs, ref) : null; // a merged ref id reads the ref it was folded into
+    const pool = refs.filter((r) => (!rid || r.id === rid) && (!ax || (r.tags ?? []).some((x) => ax.tags.includes(x))));
     let sem = new Map();
     if (query) {
       try {

@@ -150,7 +150,16 @@ fails "$R" claim add "{\"collection\":\"smoke\",\"text\":\"x\",\"kind\":\"fact\"
 mcp get_reference "{\"id\":\"$DROP\"}" | grep -q "was merged into $THIRD"
 s="$(mcp search_references '{"query":"Dup"}')"; grep -q "\\\\\"$THIRD\\\\\"" <<<"$s"; fails grep -q "\\\\\"$DROP\\\\\"" <<<"$s"
 "$R" report '{"collection":"smoke","open":false}' >/dev/null; fails grep -q "id=\"$DROP\"" "$REF_LIBRARY/smoke/index.html"
+# retired ids are never reused: drop the newest ref, then add one more
+top=$("$R" source add '{"collection":"smoke","url":"https://dup.example/top","label":"Dup — top","type":"official"}' | awk '/^S[0-9]+ /{print $1}')
+"$R" source merge "{\"keep\":\"$THIRD\",\"drop\":\"$top\",\"force\":true}" >/dev/null
 new=$("$R" source add '{"collection":"smoke","url":"https://dup.example/new","label":"Dup — new","type":"official"}' | awk '/^S[0-9]+ /{print $1}')
-[ -n "$new" ] && [ "$new" != "$DROP" ] && [ "$new" != "$KEEP" ] && [ "$new" != "$THIRD" ]   # retired ids are never reused
+[ -n "$new" ] && [ "$new" != "$top" ]
+# same work id (an older library recorded the same DOI on two refs): merges without force
+pair=($("$R" source add '{"collection":"smoke","sources":[{"url":"https://work.example/x","label":"Work — x","type":"paper"},{"url":"https://work.example/y","label":"Work — y","type":"paper"}]}' | awk '/^S[0-9]+ /{print $1}'))
+"$R" source add '{"url":"https://work.example/x","ids":{"doi":"10.9999/same"}}' >/dev/null
+"$R" source add '{"url":"https://work.example/y","ids":{"doi":"10.9999/same"}}' >/dev/null
+"$R" source merge "{\"keep\":\"${pair[0]}\",\"drop\":\"${pair[1]}\"}" | grep -q 'same work id'
+"$R" show "${pair[1]}" | grep -q "was merged into ${pair[0]}"
 echo "merge ok: $DROP → $KEEP → $THIRD"
 echo; echo "PASS — scratch: $T"

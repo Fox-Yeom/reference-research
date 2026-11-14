@@ -498,3 +498,19 @@ flowchart TD
 | 화면 제목 | 제목·구역명·라벨은 용어집식 명사형 | — |
 
 주제 목록과 실제 조사별 주제는 라이브러리(`<LIB>/topics.json`)에만 둔다. 저장소에는 적지 않는다(공개 저장소).
+
+### 14.1 구현 (#19)
+
+| 제안 | 저장 위치 | 기록 | 이전 스크립트(`ref migrate v3`) |
+|---|---|---|---|
+| M1 주제 | `topics.json`, `collection.topic` | `ref topic set`, `ref run start`의 `topic` | 검토 목록(주제 없는 조사)과 채울 명령만 출력 |
+| M2 형식 표시 | 보드 머리 "조사 형식" | — | — |
+| M5 머리 정보 | `title`·`goal`·`question` | `ref report`가 빠진 것을 경고 | 검토 목록 |
+| M6 빈 값 | 역할 없는 멤버, 설명 없는 축, 안 쓰는 축 | — | 검토 목록 |
+| M7 개체 | `entities.json`, `ref.entity`·`ref.org` | `ref entity set`, `ref source add`의 `entity`·`org` | 정규화한 제품 이름이 같으면 개체 하나로 연결, 한 호스트에 여러 제품이면 검토 목록 |
+| M8 식별자 | `ref.ids` | URL에서 자동, `ref source add`의 `ids` | URL·별칭에서 채움, 같은 저작물인 레퍼런스 쌍은 검토 목록 |
+| M9 상위 축 | `axis.broader` | `ref axes set`(순환 거부, 태그 없는 상위 축 유지) | — |
+| M10 발견 주어 | `claim.about` | `ref claim add`(E#·축·주제만 허용) | — |
+| M11 반대 출처·열람 | `claim.against`, `ref.read` | `ref claim add`의 `against`, `ref source add`의 `read`, 캡처 성공 시 `read: full` | 노트·요약·스냅숏이 있으면 `full`, 요약의 반대 근거 줄은 검토 목록 |
+
+근거 세기: 출처가 모두 `snippet`이면 최대 "보통"(`store.mjs#confidence`). 열람 기록이 없는 출처는 기존 규칙을 따르고 보드가 "열람 미기록"으로 표시한다(`store.mjs#readState`).

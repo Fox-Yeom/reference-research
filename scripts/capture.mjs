@@ -545,7 +545,8 @@ export async function capture(params) {
         `  url: ${out.finalUrl ?? item.url}`,
         `  published: ${ref.published ?? "unknown"}${ref.publishedFrom ? ` (${ref.publishedFrom})` : ""}${ref.updated ? ` · updated ${ref.updated}` : ""}`,
         `  categories: ${ref.categories.join(", ")}${added && !isNew ? `  (+${col.name})` : ""}`,
-        !isNew ? `  changes since ${ref.changes.at(-1).from.slice(0, 10)}: ${delta.length ? "\n    " + delta.join("\n    ") : "none visible"}` : "",
+        // a ref first recorded by `source add` has no earlier snapshot, so there is nothing to diff against
+        !isNew ? (ref.snapshots.length > 1 ? `  changes since ${ref.changes.at(-1).from.slice(0, 10)}: ${delta.length ? "\n    " + delta.join("\n    ") : "none visible"}` : "  first capture of an existing reference (no earlier snapshot)") : "",
         m.description ? `  description: ${m.description}` : "",
         m.headings?.length ? `  headings: ${m.headings.slice(0, 8).join(" | ")}` : "",
         m.nav?.length ? `  nav: ${m.nav.slice(0, 12).map((a) => a.text).join(" | ")}` : "",
@@ -696,7 +697,7 @@ export async function storeScreens(params) {
       `${ref.id} ${isNew ? "NEW" : "REFRESHED"} ${ref.label} — categories: ${ref.categories.join(", ")}${added && !isNew ? `  (+${col.name})` : ""}`,
       `  seller: ${app.sellerName} · rating ${Number(app.averageUserRating ?? 0).toFixed(2)} (${app.userRatingCount ?? 0}) · ${app.formattedPrice ?? ""} · store ${usedCountry}`,
       `  screens: ${screens.length} saved in ${sdir}`,
-      !isNew ? `  changes: ${delta.length ? delta.join(" · ") : "none visible"}` : "",
+      !isNew ? (ref.snapshots.length > 1 ? `  changes: ${delta.length ? delta.join(" · ") : "none visible"}` : "  first capture of an existing reference (no earlier snapshot)") : "",
       others && !params.app_id ? `Other search matches (verify the right app was chosen):\n${others}` : "",
     ]
       .filter(Boolean)

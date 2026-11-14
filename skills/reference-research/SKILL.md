@@ -67,7 +67,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | `ref cite <collection> [--file f]` | every finding line cites known, active `[S#]`/`[C#]`; also warns on key claims citing only 지난 자료 |
 | `ref fresh <collection>` | 신선 / 지난 자료 / 날짜 미상 split, key claims citing only 지난 자료, undated refs in the order to fill them |
 | `ref channels <collection>` | refs per channel (1차 · 해석 · 반응 · 이유) and Korean sources; warns on what is missing |
-| `ref report '<json>'` | category board `<collection>/index.html`, conclusion first: 머리(질문 · 답 · 제안) · 근거 3개와 반대 근거 · 기획 의도(분야별 이름, 역추적 카드) · 패턴 비교 · (커리큘럼 비교) · 피할 것 · 추가 질문 항목 · 레퍼런스(검색 `/`, 역할·패턴·회차·정렬, 보기 3종: 격자 · 제품별 · **흐름**, 화면 뷰어 + 정보 패널; 캡처 없는 자료는 **자료 목록** 표) · 발견과 근거 · 전체 요약 · 조사 과정(접힘: 개요 · 바퀴 · 채널 · 신선도 · 회차 기록) · 출처. `reader` picks the order: `decision` · `practitioner` (default) · `archive`. Ids are copy buttons. Plus library home `~/references/index.html` and `README.md`. One template (`scripts/board.mjs`) for every board: change it, re-run `ref report` per collection |
+| `ref report '<json>'` | category board `<collection>/index.html`, judgment first: 판단 자료(질문 · 관찰과 캡처 · 반대 관찰 · 선택지 비교 · 접힌 에이전트 메모, 줄을 누르면 근거 패널) · 기획 의도(분야별 이름, 비교 표) · 패턴 비교 · (커리큘럼 비교) · 피할 것 · 추가 질문 항목 · 레퍼런스(검색 `/`, 역할·패턴·회차·정렬, 보기 3종: 격자 · 제품별 · **흐름**, 화면 뷰어 + 정보 패널; 캡처 없는 자료는 **자료 목록** 표) · 발견과 근거 · 전체 요약 · 조사 과정(접힘: 개요 · 바퀴 · 채널 · 신선도 · 회차 기록) · 출처. `reader` picks the order: `decision` · `practitioner` (default) · `archive`. Ids are copy buttons. Plus library home `~/references/index.html` and `README.md`. One template (`scripts/board.mjs`) for every board: change it, re-run `ref report` per collection |
 | `ref plan set\|show\|link\|delta` | optional plan layer (see §8) |
 | `ref course set '<json>'` / `ref course show <collection>` | curriculum mode: a course's structure (modules · topics · hours) / comparison: topic coverage, usual order, gaps vs. basis (see §9) |
 | `ref topic set '<json>'` / `ref topic show` | topic registry: `{"topics":[{"id","label","description","order"}],"assign":{"<collection>":"<topic id>"}}` — one topic per category (adding one: §1) |
@@ -124,7 +124,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 {"collection":"…","ref":"S12","fields":{"feature":"…","context":"…","why":"… [S3]","why_basis":"official","alternatives":"… [S7]","result":"…","implication":"차용 — … (조건: …)"},"tags":["limit-gauge-pace"]}
 
 // claim add — kind: fact|pattern|benchmark|failure|gap|opinion|hypothesis
-// subject = 5–12 char title the board shows (always give one) · key = headline finding (board 핵심 결론) · asOf = date a price/number was true · scope = where it applies; "원리" = a principle about human cognition or theory (freshness rule, §2)
+// subject = 5–12 char title the board shows (always give one) · key = headline finding (board 판단 자료 관찰) · asOf = date a price/number was true · scope = where it applies; "원리" = a principle about human cognition or theory (freshness rule, §2)
 // against = refs that speak AGAINST this finding (the board draws them as the red counter-evidence line) · about = what it is about: E#, axis ids, topic id
 {"collection":"…","claims":[
   {"text":"…","kind":"pattern","subject":"세로 탭 상태","sources":["S2","S9"],"tags":["vertical-tabs"]},
@@ -135,7 +135,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
   {"revises":"C4","text":"corrected finding","kind":"fact","sources":["S13"]},
   {"refutes":"C5","text":"what is actually true","kind":"fact","sources":["S14"]}]}
 
-// report — header fields are optional and stored on the category; without them the board reads the summary's 핵심 결론 / 추가 질문 항목 / 추천 sections
+// report — header fields are optional and stored on the category; without them the board reads the summary's 판단 자료 / 추가 질문 항목 / 추천 sections
 // result = one-line outcome of this run (closes it in 조사 과정) · view = default reference view grid|rows|flow · reader = decision|practitioner|archive · why_title = this category's name for the 기획 의도 section, e.g. 벤치마킹 포인트, 구축 목적 및 전략적 의도 분석 ("" = the domain's default)
 {"collection":"…","summary_file":"/path/to/summary.md","open":false,
  "highlights":["C12","C3","C8"],"open_questions":["…"],"next_steps":["…"],"audience":"…","result":"…"}
@@ -305,20 +305,20 @@ Turn every finding you would put in a summary into a claim, written **from the i
 Then `ref delta <collection>`: A tells what this run changed, C what is common / partly shared / one-product **by axis** and which axes other categories share, T what changed on re-captured refs and what is stale. `ref categories` shows shared refs and shared axes between categories.
 
 ## 7. Report, learnings, commit
-- Summary markdown (scratch file), conclusion first, with **these `##` headings, in this order** (the board reads them):
+- Summary markdown (scratch file), judgment material first, with **these `##` headings, in this order** (the board reads them). The research gives observations and options, **never an answer**: the person decides from the references.
 | heading | content |
 |---|---|
 | `## 목표` | the decision this run supports |
-| `## 핵심 결론` | labelled bullets, the board's first screen reads them: `- 질문: …` · `- 답: …` (one sentence) · `- 제안: …` · `- 반대 근거: <답|제안|근거 N> — …` (name what it stands against) · 3 × `- 근거: <claim headline> [C#] [S#]` (`[C#]` first, `[S#]` = representative screen) |
+| `## 판단 자료` | labelled bullets, the board's first screen reads them: `- 질문: …` · 3–5 × `- 관찰: <claim headline> [C#] [S#]` (what the references show; `[C#]` first, `[S#]` = representative screen) · `- 반대 관찰: 관찰 N — … [C#] [S#]` (name the observation it stands against; also record it as the claim's `against`) · 2–3 × `- 선택지: <이름> — <구성> · 받침 [C#] · 반대 [C#] · 확인: <question>` (options built only from the observations; a name is a glossary noun; leave out `반대`/`확인` when there is none; a guess says 추정) · optional `- 에이전트 메모: …` (your reading, shown folded and labelled 참고; never phrased as the decision). Do not write `- 답:` or `- 제안:` (older summaries still render: their 답·제안 become the memo) |
 | `## 기획 의도` | 3–5 key refs: 왜 with its basis (공식·정황·추정) + 결과. Use the domain's term: design 기획 의도 · dev 설계 의도 · curriculum 교육 설계 의도 · strategy 전략적 의도 · voice 반응의 이유 · travel 구성 의도 · research 연구 배경 |
 | `## 공통 vs 차별` | delta C by axis: 기본기 · 선택지 · 차별점; include 다른 카테고리와 공유하는 축 |
 | `## 피할 것` | combinations in their context |
-| `## 추천` | next actions |
-| `## 추가 질문 항목` | bullets, each `<question> — 의도: <what the answer changes>`; same form for `## 추천` steps and for `open_questions` / `next_steps` |
+| `## 추천` | next research steps (what to look up next), not a decision |
+| `## 추가 질문 항목` | bullets, each `<question> — 의도: <what the result changes>`; same form for `## 추천` steps and for `open_questions` / `next_steps` |
 | `## 이번 실행에서 바뀐 것` | delta A + T |
 | `## 조사 과정` | short prose, no bullets: brief, channels, rounds, how many sources are 신선 vs 지난 자료 |
 - Writing rules: a headline is a claim sentence of about 40 characters, not a topic label · C#/S# appear only as trailing chips, never inside the prose · ≤ 3 sentences per paragraph · inside a section use bullets or tables, because the board reads a line starting with `**` as a heading · every finding line ends with `[C#]`/`[S#]`; inferences say 추정/가설.
-- `ref fresh <collection>` and `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of 핵심 결론, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 핵심 결론 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
+- `ref fresh <collection>` and `ref cite <collection> --file <summary>` → fix every ⚠ → `ref report` with `summary_file`, plus `highlights` (the C# of the observations, or rely on `key:true`), `open_questions`, `next_steps`. The board shows them as 판단 자료 / 열린 질문 under the header; the summary is rendered as markdown (tables, lists, `[C#]` chips) — write it for a human reader: short sections, tables for product lists.
 - After `ref delta`, give each pattern axis with ≥2 products a `verdict` (`ref axes set`): 기본기 / 선택지 / 차별점 후보, cited. Pass the run's one-line outcome as `result` to `ref report`.
 - `ref learn add` for each reusable, verified lesson.
 - **Commit**: `git -C <library> add -A && git -C <library> commit -m "<collection>: <run goal>"`, with `<library>` from the `library:` line of `ref doctor` (end the message with the session's attribution line). Do not push unless the user asks. If the library is not a git repo, skip and suggest `ref setup --git`. **Never push the library anywhere** unless the user asks — it holds captures of third-party pages.

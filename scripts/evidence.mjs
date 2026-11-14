@@ -379,7 +379,7 @@ export async function addClaims(params) {
   const list = params.claims ?? [params];
   const col = await mustCollection(params.collection ?? params.project);
   const run = col.currentRun ?? null;
-  const [claims, refs, entities, topics, axes] = await Promise.all([readClaims(), readRefs(), readEntities(), readTopics(), import("./axes.mjs").then((m) => m.readAxes())]);
+  const [claims, refs, entities, topics, axes] = await Promise.all([readClaims(), readRefs(), readEntities(), readTopics(), readAxes()]);
   const refById = new Map(refs.map((r) => [r.id, r]));
   const byId = new Map(claims.map((c) => [c.id, c]));
   const now = new Date().toISOString();

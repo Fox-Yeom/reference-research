@@ -9,8 +9,9 @@
 import { promises as fs, existsSync } from "node:fs";
 import * as path from "node:path";
 import {
-  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, confidence, hostOf, listCollections, looksLikeArticle, readClaims, readRefs, recomputeConfidence, saveRefs, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
+  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, collectionDir, confidence, hostOf, idsFromUrl, listCollections, normName, readEntities, readState, readTopics, sameWork, writeEntities, looksLikeArticle, readClaims, readRefs, recomputeConfidence, saveRefs, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
 } from "./store.mjs";
+import { readAxes, tagUsage } from "./axes.mjs";
 
 const ROLE_SET = new Set(ROLES);
 const SCREEN_SET = new Set(SCREEN_TYPES);
@@ -210,8 +211,6 @@ export { nextId };
  * Safe to run twice: the second run changes nothing. Run on a git-committed library; one commit reverts it.
  */
 export async function migrateV3({ dryRun = false, out = null } = {}) {
-  const { readEntities, writeEntities, readTopics, normName, idsFromUrl, sameWork, readState, collectionDir } = await import("./store.mjs");
-  const { readAxes, tagUsage } = await import("./axes.mjs");
   const [refs, claims, cols, entities, topics, axes, use] = await Promise.all([readRefs(), readClaims(), listCollections(), readEntities(), readTopics(), readAxes(), tagUsage()]);
   const changed = new Map();
   const touch = (r) => changed.set(r.id, r);

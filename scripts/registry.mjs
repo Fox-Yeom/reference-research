@@ -22,11 +22,16 @@ export async function setTopics(params) {
     else topics.push(next);
     out.push(`${old ? "updated" : "added"} topic ${t.id} · ${next.label}`);
   }
-  if (params.topics?.length) await writeTopics(topics);
+  // check every assignment first, so a bad entry leaves nothing half-written
+  const plan = [];
   for (const [name, topic] of Object.entries(params.assign ?? {})) {
     const col = await readCollection(collectionName(name));
     if (!col) bad(`collection ${name} not found`);
     if (topic && !topics.some((t) => t.id === topic)) bad(`topic "${topic}" is not in topics.json`);
+    plan.push([col, topic]);
+  }
+  if (params.topics?.length) await writeTopics(topics);
+  for (const [col, topic] of plan) {
     col.topic = topic || null;
     await writeCollection(col);
     out.push(`${col.name} → ${topic || "(no topic)"}`);

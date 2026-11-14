@@ -54,6 +54,24 @@ fails "$R" claim add '{"collection":"smoke","text":"x","kind":"fact","sources":[
 "$R" migrate v3 >/dev/null
 "$R" migrate v3 | grep -q 'product entities: 0 new · 0 refs linked'   # second run changes nothing
 "$R" report '{"collection":"smoke","open":false}' | grep -c index.html
+step "judgment board (observations, options, memo; S# chips)"
+cat > "$T/sum.md" <<'MD'
+## 판단 자료
+- 질문: smoke question?
+- 관찰: two skimmed sources [C1] [S3]
+- 반대 관찰: 관찰 1 — the paper speaks against it [S2]
+- 관찰: reading unrecorded [C2]
+- 선택지: plan A — first option · 받침 [C1] · 반대 [C2] · 확인: is it enough?
+- 에이전트 메모: a reading, not a decision [C1]
+MD
+"$R" report "{\"collection\":\"smoke\",\"summary_file\":\"$T/sum.md\",\"open\":false}" >/dev/null
+B="$REF_LIBRARY/smoke/index.html"
+grep -q 'id="judge"' "$B"; grep -q 'class="otbl"' "$B"; grep -q 'data-pd="op0"' "$B"; grep -q '에이전트 메모 (참고)' "$B"
+grep -q 'class="ob counter"' "$B"
+grep -q 'data-src="S2"' "$B"   # no capture: details beside the chip instead of a jump
+fails grep -q 'id="map"' "$B"
+fails grep -q '<span class="lab">답' "$B"
+echo "judgment board ok"
 step "v2 library read as-is"
 V2="$T/v2"; mkdir -p "$V2/old"
 cat > "$V2/old/collection.json" <<'JSON'
@@ -64,7 +82,12 @@ printf '%s\n' '{"id":"S1","slug":"a","url":"https://a.example/p","normUrl":"a.ex
 printf '%s\n' '{"id":"C1","text":"old finding","kind":"pattern","subject":"s","sources":["S1","S2"],"collections":["old"],"status":"active","confidence":"high","events":[]}' > "$V2/claims.jsonl"
 REF_LIBRARY="$V2" "$R" claim list old | grep -q 'C1 \[pattern, high\]'
 REF_LIBRARY="$V2" "$R" report '{"collection":"old","open":false}' | grep -q index.html
-grep -q '열람 미기록' "$V2/old/index.html" && echo "v2 board renders (reading unrecorded)"
+grep -q '열람 미기록' "$V2/old/index.html"; echo "v2 board renders (reading unrecorded)"
+printf '%s\n' '## 핵심 결론' '- 질문: q?' '- 답: old answer [C1]' '- 근거: old finding [C1] [S1]' > "$V2/old/SUMMARY.md"
+REF_LIBRARY="$V2" "$R" report '{"collection":"old","open":false}' >/dev/null
+grep -q '에이전트 메모 (참고)' "$V2/old/index.html"; grep -q 'old answer' "$V2/old/index.html"
+fails grep -q 'class="otbl"' "$V2/old/index.html"
+echo "old summary: 답 folded into the agent memo, no options table"
 step "mcp"
 printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' \
   '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
@@ -79,5 +102,10 @@ printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol
   '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_reference","arguments":{"id":"S2"}}}' \
   '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"search_findings","arguments":{"query":"skimmed"}}}' \
   | "$ROOT/scripts/run-mcp.sh" 2>/dev/null > "$T/mcp-v3.txt"
-grep -q '10.1000/xyz' "$T/mcp-v3.txt" && grep -q '\\"against\\": \[' "$T/mcp-v3.txt" && grep -q '\\"read\\"' "$T/mcp-v3.txt" && echo "mcp v3 fields ok"
+grep -q '10.1000/xyz' "$T/mcp-v3.txt"; grep -q '\\"against\\": \[' "$T/mcp-v3.txt"; grep -q '\\"read\\"' "$T/mcp-v3.txt"; echo "mcp v3 fields ok"
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_conclusion","arguments":{"collection":"smoke"}}}' \
+  | "$ROOT/scripts/run-mcp.sh" 2>/dev/null > "$T/mcp-concl.txt"
+grep -q 'plan A' "$T/mcp-concl.txt"; grep -q '\\"observations\\"' "$T/mcp-concl.txt"; grep -q '\\"agent_memo\\"' "$T/mcp-concl.txt"; echo "get_conclusion ok"
 echo; echo "PASS — scratch: $T"

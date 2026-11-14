@@ -332,7 +332,7 @@ Only when research feeds a concrete product plan. The plan lives in `plans/<plan
 ## 9. Curriculum mode (`domain: "curriculum"`)
 For references that feed a course or curriculum design ("AI 교육 커리큘럼 만들기 전"). Sections 0–7 still apply; this replaces the screen-oriented parts.
 
-**Start**: `ref run start '{"collection":"python-intro-course","title":"파이썬 입문 강의","domain":"curriculum","kind":"category","goal":"비전공 성인 대상 파이썬 입문 커리큘럼 설계 — 무엇을·어떤 순서로·몇 시간"}'`. Put the **audience** in the goal; every judgment below is relative to it.
+**Start**: `ref run start '{"collection":"ai-skills-course","title":"직장인 생성형 AI 교육","domain":"curriculum","kind":"category","goal":"비전공 직장인 대상 생성형 AI 커리큘럼 설계 — 무엇을·어떤 순서로·몇 시간"}'`. Put the **audience** in the goal; every judgment below is relative to it.
 
 **Discovery angles** (same minimums: ≥ 8 queries, ≥ 3 KR, ≥ 3 EN; longlist ≥ 12 with URLs):
 | angle | example queries | becomes |

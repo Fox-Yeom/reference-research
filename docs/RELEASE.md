@@ -2,17 +2,18 @@
 
 Releases follow the repo's branch flow: the version change is a Task PR to `develop`, it reaches `main` through a promotion PR, and the tag goes on `main`. Steps marked **(human)** run only when the maintainer says so: promotion PRs, tags, GitHub releases and tester notices are outward-facing.
 
-1. **Release Task.** Open an Issue for the release and work on its branch (`docs/<n>-release-<version>` from `origin/develop`).
+1. **Release Task.** Open an Issue for the release and work on its branch from `origin/develop` (`docs/<n>-release-<short>`, e.g. `docs/36-release-beta5`).
    - `dev/test.sh` passes (for capture changes, also try a real page with `REF_CAPTURE=aside` and `chrome`).
-   - `dev/bump.sh <version>` sets `package.json`, `plugin.json`, `marketplace.json` and the README badge. Beta versions: `0.1.0-beta.N`.
-   - `CHANGELOG.md`: a new section on top, in Korean, with user-visible changes only. Name breaking changes (MCP fields, summary format) and how an existing library moves over.
+   - `dev/bump.sh <version>` sets `package.json`, `package-lock.json`, `plugin.json`, `marketplace.json` and the README badge. Beta versions: `0.1.0-beta.N`.
+   - `CHANGELOG.md`: a new section on top, in Korean, with user-visible changes only. Collect them from both `git log --merges --first-parent v<previous>..origin/develop` (Task PRs) and `git log --first-parent --no-merges v<previous>..origin/develop` (commits made before the branch rules). Name breaking changes (MCP fields, summary format) and how an existing library moves over.
    - If the board or README visuals changed: `dev/demo.sh` → check the images → commit `assets/` (or rebuild from a demo library as the board PRs did).
    - Commit by purpose, push the Task branch, open the Task PR to `develop`, review, merge.
 2. **Promotion (human).** Promotion PR `develop` → `main` with the release in its 포함 PR list; merge it when the maintainer names it.
-3. **Tag and release (human)**, on the `main` merge commit of that promotion, never on `develop`:
+3. **Tag and release (human)**, on the merge commit of that promotion PR, never on `develop` (take the SHA from the PR, not from the current `main`):
    ```bash
-   git fetch origin && git switch main && git merge --ff-only origin/main
-   git tag -a v<version> -m "reference-research <version>"
+   git fetch origin
+   SHA=$(gh pr view <promotion PR> --json mergeCommit --jq .mergeCommit.oid)
+   git tag -a v<version> "$SHA" -m "reference-research <version>"
    git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin v<version>
    gh release create v<version> --title "reference-research <version>" --notes-file <changelog-section.md> --prerelease
    ```

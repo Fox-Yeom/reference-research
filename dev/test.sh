@@ -48,10 +48,23 @@ fails "$R" topic set '{"assign":{"smoke":"no-such-topic"}}'
 "$R" claim add '{"collection":"smoke","text":"two skimmed sources","kind":"fact","subject":"s","sources":["S3","S4"],"against":["S2"],"about":["E1"]}' | grep -q 'C1 \[fact, medium\]'   # snippet-only: at most medium
 "$R" source add '{"url":"https://a.example/x","read":"full"}' | grep -q 'C1→high'
 fails "$R" claim add '{"collection":"smoke","text":"x","kind":"fact","sources":["S3"],"against":["S3"]}'
+"$R" source add '{"collection":"smoke","sources":[{"url":"https://c.example/x","label":"C — x","type":"official"},{"url":"https://d.example/x","label":"D — x","type":"official"}]}' >/dev/null
+"$R" claim add '{"collection":"smoke","text":"two sources, reading unrecorded","kind":"fact","subject":"u","sources":["S5","S6"]}' | grep -q 'C2 \[fact, high\]'   # no read record: old rule
 "$R" migrate v3 --dry-run | grep -q 'dry run'
 "$R" migrate v3 >/dev/null
 "$R" migrate v3 | grep -q 'product entities: 0 new · 0 refs linked'   # second run changes nothing
 "$R" report '{"collection":"smoke","open":false}' | grep -c index.html
+step "v2 library read as-is"
+V2="$T/v2"; mkdir -p "$V2/old"
+cat > "$V2/old/collection.json" <<'JSON'
+{"name":"old","domain":"design","kind":"category","title":"Old","goal":"g","question":"q?","members":[{"ref":"S1","role":"direct"},{"ref":"S2","role":"indirect"}]}
+JSON
+printf '%s\n' '{"id":"S1","slug":"a","url":"https://a.example/p","normUrl":"a.example/p","aliases":[],"label":"A — p","product":"A","type":"official","credibility":"A","tags":[],"categories":["old"],"notes":[],"snapshots":[],"changes":[]}' \
+  '{"id":"S2","slug":"b","url":"https://b.example/p","normUrl":"b.example/p","aliases":[],"label":"B — p","product":"B","type":"official","credibility":"A","tags":[],"categories":["old"],"notes":[],"snapshots":[],"changes":[]}' > "$V2/refs.jsonl"
+printf '%s\n' '{"id":"C1","text":"old finding","kind":"pattern","subject":"s","sources":["S1","S2"],"collections":["old"],"status":"active","confidence":"high","events":[]}' > "$V2/claims.jsonl"
+REF_LIBRARY="$V2" "$R" claim list old | grep -q 'C1 \[pattern, high\]'
+REF_LIBRARY="$V2" "$R" report '{"collection":"old","open":false}' | grep -q index.html
+grep -q '열람 미기록' "$V2/old/index.html" && echo "v2 board renders (reading unrecorded)"
 step "mcp"
 printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' \
   '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
@@ -61,4 +74,10 @@ printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol
   '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_brief","arguments":{"collection":"smoke"}}}' \
   | "$ROOT/scripts/run-mcp.sh" 2>/dev/null | grep -q 'smoke test' && echo "get_brief ok"
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_reference","arguments":{"id":"S2"}}}' \
+  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"search_findings","arguments":{"query":"skimmed"}}}' \
+  | "$ROOT/scripts/run-mcp.sh" 2>/dev/null > "$T/mcp-v3.txt"
+grep -q '10.1000/xyz' "$T/mcp-v3.txt" && grep -q '\\"against\\": \[' "$T/mcp-v3.txt" && grep -q '\\"read\\"' "$T/mcp-v3.txt" && echo "mcp v3 fields ok"
 echo; echo "PASS — scratch: $T"

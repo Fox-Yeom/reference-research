@@ -500,6 +500,7 @@ export async function capture(params) {
     // a page that never loaded leaves the browser on its own error screen (chrome-error://) or a blank tab: that is not a capture (#34)
     if (/^(chrome-error:|about:blank)/.test(out.finalUrl ?? "")) {
       failures.push(`${item.url}: page did not load (${via} ended on ${out.finalUrl}), nothing saved — check the address or record it with \`ref source add\``);
+      for (const p of [out.fold, ...(out.frames ?? [])]) if (p && p.startsWith(os.tmpdir())) await fs.rm(p, { force: true });
       continue;
     }
     const { ref, isNew } = upsertRef(refs, item.url, out.finalUrl, item, ctx);

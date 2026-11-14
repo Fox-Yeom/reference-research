@@ -9,17 +9,17 @@ web
 ## Users
 
 - Plugin users (testers and anyone who installs the public marketplace plugin), each opening a board built from their own local library.
-- The maintainer alone, right after a research run, checking the conclusion and deciding the next run.
-- People the board is shared with (teammates, clients), who receive the board file and read the conclusion without the CLI.
+- The maintainer alone, right after a research run, reading the observations, deciding, and choosing the next run.
+- People the board is shared with (teammates, clients), who receive the board file and read the observations and options without the CLI.
 
 All four jobs happen on the board and the library home, with equal weight (confirmed 2026-11-13):
-skimming captured screens, checking the conclusion and its evidence, handing IDs or prompts to Claude for the next run, and comparing across research collections.
+skimming captured screens, checking observations and their evidence, handing IDs or prompts to Claude for the next run, and comparing across research collections.
 
 ## Product Purpose
 
-reference-research is a Claude Code plugin (skill, read-only MCP, SessionStart hook) that collects references (similar products, competitor screens, sources), captures real pages, records source-linked claims, and builds a cited board per collection plus a library home. The board exists so that a person can see why a research run happened, what it concluded, which evidence supports or contradicts that, and the captured material behind it, then continue the research with Claude.
+reference-research is a Claude Code plugin (skill, read-only MCP, SessionStart hook) that collects references (similar products, competitor screens, sources), captures real pages, records source-linked claims, and builds a cited board per collection plus a library home. The board exists so that a person can see why a research run happened, what the references showed, which evidence supports or contradicts each observation, and the captured material behind it, then decide and continue the research with Claude.
 
-Success: the reader answers "what did we conclude, how strong is it, and what did the products actually show" without opening the CLI, and can copy an ID or prompt into the next run.
+Success: the reader sees what the products actually showed, how strong each observation is and what speaks against it, compares the options and records a decision without opening the CLI, and can copy an ID or prompt into the next run.
 
 ## Positioning
 
@@ -48,7 +48,7 @@ Maintainer preferences for the board UI (CLAUDE.md, DECISIONS 2026-10-02): plain
 
 ## Product Principles
 
-1. Why, then conclusion, then evidence, then raw material, top to bottom.
+1. Why, then judgment material (observations with their captures, counter-observations, options to compare), then evidence, then raw material, top to bottom. The board states no answer; the person decides from the references (2026-11-14, #30).
 2. Every visible item can be handed back to Claude by its ID.
 3. Fold by default, show everything when opened; never hide data.
 4. Colour carries meaning (role, evidence strength, kind), never decoration alone.

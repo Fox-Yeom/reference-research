@@ -37,7 +37,7 @@ for j in \
 "$R" topic set '{"topics":[{"id":"pricing","label":"요금·수익"}],"assign":{"note-app-pricing":"pricing"}}' >/dev/null
 "$R" claim add '{"collection":"note-app-pricing","update":"C2","against":["S3"]}' >/dev/null
 "$R" migrate v3 >/dev/null
-"$R" report "{\"collection\":\"note-app-pricing\",\"summary_file\":\"$ROOT/dev/demo-summary.md\",\"open\":false,\"result\":\"무료 1단 + 개인 유료 1단으로 시작하고 동기화를 유료 경계 후보로 둔다\"}" >/dev/null
+"$R" report "{\"collection\":\"note-app-pricing\",\"summary_file\":\"$ROOT/dev/demo-summary.md\",\"open\":false,\"result\":\"관찰 5개와 선택지 3개 기록\"}" >/dev/null
 node "$ROOT/dev/bundle-board.mjs" "$D/lib/note-app-pricing/index.html" "$ROOT/docs/example/board.html"
 node "$ROOT/dev/shots.mjs" "$D/lib/note-app-pricing/index.html" "$D"
 python3 - "$D" "$ROOT/assets" <<'PY'

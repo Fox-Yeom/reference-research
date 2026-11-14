@@ -316,7 +316,7 @@ export async function writeHome() {
     const kinds = {};
     for (const x of own) kinds[x.kind] = (kinds[x.kind] ?? 0) + 1;
     const lastRun = runs.filter((r) => r.collection === c.name).at(-1);
-    // one-line conclusion, same rule as the board's 핵심 결론: highlights → key → strongest
+    // one-line observation for the home card, same rule as the board's 판단 자료: highlights → key → strongest
     const CONF = { high: 0, medium: 1, low: 2, hypothesis: 3 };
     const pick = (list) => list.slice().sort((a, b) => (CONF[a.confidence] ?? 9) - (CONF[b.confidence] ?? 9) || b.sources.length - a.sources.length)[0];
     const conclusion = (c.highlights ?? []).map((id) => own.find((x) => x.id === id)).find(Boolean) ?? pick(own.filter((x) => x.key)) ?? pick(own) ?? null;

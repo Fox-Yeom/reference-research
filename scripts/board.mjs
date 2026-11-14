@@ -138,7 +138,7 @@ tbody tr:last-child td{border-bottom:0}
 /* pattern cards */
 .groupcap{display:flex;align-items:baseline;gap:10px;margin:28px 0 12px}.groupcap h3{margin:0}.groupcap span{color:var(--muted);font-size:13px}
 .axcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.axcard{border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;display:flex;flex-direction:column;background:var(--panel);border-top:3px solid var(--accent-2)}
+.axcard{border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;display:flex;flex-direction:column;background:var(--panel);border-top:1px solid var(--accent-2)}
 .g-common .axcard{border-top-color:var(--green)}.g-unique .axcard{border-top-color:var(--amber)}.g-partial .axcard{border-top-color:var(--accent-2)}
 .groupcap .gdot{width:10px;height:10px;border-radius:50%;display:inline-block}.g-common .gdot{background:var(--green)}.g-unique .gdot{background:var(--amber)}.g-partial .gdot{background:var(--accent-2)}
 .axcard header{display:flex;justify-content:space-between;gap:12px;align-items:baseline}.axcard header strong{font-size:15.5px;font-weight:500}
@@ -157,7 +157,7 @@ tbody tr:last-child td{border-bottom:0}
 .card{display:flex;flex-direction:column;gap:10px;min-width:0}
 .thumb{display:block;position:relative;width:100%;border:0;cursor:zoom-in;aspect-ratio:4/3;background:var(--mat);border-radius:8px;padding:16px;overflow:hidden}
 .thumb img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
-.thumb .count{position:absolute;left:12px;bottom:2px;font-size:10.5px;line-height:14px;color:var(--accent);font-weight:600}
+.thumb .count{position:absolute;left:10px;bottom:6px;font-size:11.5px;line-height:16px;color:var(--text);background:rgba(8,8,10,.82);border-radius:5px;padding:0 6px;font-weight:600}
 .thumb .go{position:absolute;right:10px;bottom:10px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-size:13px;opacity:0;transition:opacity .15s;box-shadow:0 0 0 1px var(--line)}
 .card:hover .thumb .go{opacity:1}
 .thumb.empty{display:grid;place-items:center;color:var(--faint);font-size:13px;cursor:default}
@@ -175,7 +175,7 @@ tbody tr:last-child td{border-bottom:0}
 /* rich components: collage, stat band, bars, tracks, timelines */
 .collage{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:32px 0 0}
 .collage .thumb{aspect-ratio:16/10;padding:10px}.collage .thumb:nth-child(n+9){display:none}
-.band{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:3px solid var(--accent);border-bottom:1px solid var(--line);margin:4px 0 30px}
+.band{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--accent);border-bottom:1px solid var(--line);margin:4px 0 30px}
 .band div{padding:16px 18px 18px 0;border-right:1px solid var(--line);margin-right:18px}.band div:last-child{border-right:0}
 .band b{display:block;font-size:40px;line-height:1.1;font-weight:300;letter-spacing:-.03em}.band b small{font-size:16px;font-weight:400;margin-left:2px;color:var(--muted);letter-spacing:0}
 .band span{display:block;margin-top:6px;font-size:12.5px;color:var(--muted)}
@@ -184,7 +184,7 @@ tbody tr:last-child td{border-bottom:0}
 .barv{font-size:12.5px;color:var(--muted);white-space:nowrap}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:1px 9px;border-radius:999px;white-space:nowrap;background:var(--violet-soft);color:var(--violet)}
 table.viz td{vertical-align:middle}
-.topics{border-top:3px solid var(--accent)}
+.topics{border-top:1px solid var(--accent)}
 .trow{display:grid;grid-template-columns:minmax(200px,1.3fr) minmax(140px,1fr) minmax(200px,1.6fr) 90px;gap:18px;align-items:start;padding:12px 0;border-bottom:1px solid var(--line)}.trow > div:not(.tl){padding-top:3px}.nowrap{white-space:nowrap}
 .trow.thead{font-size:12px;color:var(--muted);padding:8px 0}
 .trow .tl strong{font-weight:500;display:block}.trow .tl .basis{font-size:12px;color:var(--muted)}
@@ -384,8 +384,8 @@ body.viewing{overflow:hidden}body.viewing .topbar{visibility:hidden}
 .sumsec{border-top:1px solid var(--line);padding:6px 0}.sumsec:first-child{border-top:0}.sumsec summary{cursor:pointer;font-size:15.5px;font-weight:600;padding:8px 0;list-style:none;display:flex;gap:8px;align-items:baseline}.sumsec summary::before{content:"▸";color:var(--accent);font-size:12px}.sumsec[open] summary::before{content:"▾"}.sumsec summary .cite{font-weight:600}
 .sumbody{padding:0 0 10px 18px}.sumbody > :first-child{margin-top:0}
 .schips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.schip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:3px 9px 3px 4px;border-radius:999px;background:var(--chip);color:var(--text);text-decoration:none}.schip:hover{background:var(--accent-soft);text-decoration:none}
-.schip b{font-size:10.5px;font-weight:700;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--gray-soft);color:var(--muted)}.schip.g-A b{background:var(--green-soft);color:var(--green)}.schip.g-B b{background:var(--blue-soft);color:var(--blue)}.schip.g-C b{background:var(--amber-soft);color:var(--amber)}.schip.g-D b{background:var(--coral-soft);color:var(--coral)}
-.verdict{margin:2px 0 10px;padding:8px 12px;border-left:3px solid var(--accent);background:var(--accent-soft);color:var(--text);font-size:14px;border-radius:0 8px 8px 0}.verdict.small{font-size:12.5px;margin:6px 0 0;padding:4px 10px}
+.schip b{font-size:11px;font-weight:700;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--gray-soft);color:var(--muted)}.schip.g-A b{background:var(--green-soft);color:var(--green)}.schip.g-B b{background:var(--blue-soft);color:var(--blue)}.schip.g-C b{background:var(--amber-soft);color:var(--amber)}.schip.g-D b{background:var(--coral-soft);color:var(--coral)}
+.verdict{margin:2px 0 10px;padding:8px 12px;border-left:1px solid var(--accent);background:var(--accent-soft);color:var(--text);font-size:14px;border-radius:0 8px 8px 0}.verdict.small{font-size:12.5px;margin:6px 0 0;padding:4px 10px}
 .runs{list-style:none;margin:0;padding:0}.runs .run{display:grid;grid-template-columns:150px 1fr;gap:6px 18px;padding:14px 0;border-top:1px solid var(--line)}.runs .run:first-child{border-top:0;padding-top:0}
 .runs .rh{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.runs .rd{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}.runs .rg{font-size:15px;line-height:1.5;max-width:72ch}.runs .rr{grid-column:2;color:var(--muted);font-size:14px;padding-left:14px;border-left:2px solid var(--line)}.runs .rc{grid-column:2}.runs .cur .rg{font-weight:500}
 .nf{margin:8px 0;display:grid;grid-template-columns:72px 1fr;gap:6px 12px}.nf dt{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.03em;padding-top:2px}.nf dd{margin:0;font-size:14px}
@@ -741,7 +741,7 @@ const searchBox = (placeholder) => `<label class="search"><input class="q" type=
 const confBadge = (c) => `<span class="conf ${esc(c)}">근거 ${esc({ high: "강함", medium: "보통", low: "약함", hypothesis: "가설" }[c] ?? c)}</span>`;
 const ROLE_KO = { direct: "직접 경쟁", indirect: "간접 경쟁", trend: "트렌드", analogous: "유사 분야" };
 const KIND = { pattern: ["패턴", "여러 곳에서 반복되는 해법"], benchmark: ["기준치", "수치로 본 수준"], fact: ["사실", "확인된 정보"], gap: ["빈틈", "아무도(거의) 하지 않는 것"], failure: ["실패 사례", "불만·문제·피할 점"], opinion: ["의견", "평가·리뷰"], hypothesis: ["가설", "근거 없이 세운 추정"] };
-const sectionHead = (n, title, desc, extra = "") => `<div class="sechead"><span class="n">${n}</span><h2>${title}</h2>${extra}${desc ? `<p>${desc}</p>` : ""}</div>`;
+const sectionHead = (n, title, desc, extra = "") => `<div class="sechead"><h2>${title}</h2>${extra}${desc ? `<p>${desc}</p>` : ""}</div>`;
 const searchText = (...parts) => esc(parts.flat().filter(Boolean).join(" ").toLowerCase());
 const DOMAIN_KO = { design: "디자인·기획", curriculum: "커리큘럼", dev: "개발", research: "연구", strategy: "전략·비즈니스", voice: "사용자 반응", travel: "여행·동선" };
 const KIND_KO = { category: "카테고리 조사", service: "서비스 분석" };

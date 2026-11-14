@@ -387,6 +387,8 @@ function upsertRef(refs, url, finalUrl, item, ctx) {
   return { ref, isNew };
 }
 
+const FIRST = "  first capture of an existing reference (no earlier snapshot)";
+/** Adds a snapshot; returns the visible changes since the previous one, or null when there was none. */
 function addSnapshot(ref, snap, ctx) {
   const prev = latestSnapshot(ref);
   ref.snapshots.push(snap);
@@ -394,7 +396,7 @@ function addSnapshot(ref, snap, ctx) {
   ref.lastCaptured = snap.at;
   if (snap.meta?.title) ref.title = snap.meta.title;
   if (snap.meta?.description) ref.description = snap.meta.description;
-  if (!prev) return [];
+  if (!prev) return null; // first snapshot: nothing to diff against (a ref recorded by `source add`, #21)
   const lines = snapshotDelta(prev.meta, snap.meta);
   ref.changes.push({ at: snap.at, from: prev.at, run: ctx.run, collection: ctx.collection, lines });
   return lines;
@@ -495,6 +497,12 @@ export async function capture(params) {
       failures.push(`${item.url}: ${out.error ?? "unknown error"}`);
       continue;
     }
+    // a page that never loaded leaves the browser on its own error screen (chrome-error://) or a blank tab: that is not a capture (#34)
+    if (/^(chrome-error:|about:blank)/.test(out.finalUrl ?? "")) {
+      failures.push(`${item.url}: page did not load (${via} ended on ${out.finalUrl}), nothing saved — check the address or record it with \`ref source add\``);
+      for (const p of [out.fold, ...(out.frames ?? [])]) if (p && p.startsWith(os.tmpdir())) await fs.rm(p, { force: true });
+      continue;
+    }
     const { ref, isNew } = upsertRef(refs, item.url, out.finalUrl, item, ctx);
     const at = new Date().toISOString();
     const dir = path.join(FILES.refsDir, ref.slug, stamp());
@@ -545,7 +553,7 @@ export async function capture(params) {
         `  url: ${out.finalUrl ?? item.url}`,
         `  published: ${ref.published ?? "unknown"}${ref.publishedFrom ? ` (${ref.publishedFrom})` : ""}${ref.updated ? ` · updated ${ref.updated}` : ""}`,
         `  categories: ${ref.categories.join(", ")}${added && !isNew ? `  (+${col.name})` : ""}`,
-        !isNew ? `  changes since ${ref.changes.at(-1).from.slice(0, 10)}: ${delta.length ? "\n    " + delta.join("\n    ") : "none visible"}` : "",
+        !isNew ? (delta ? `  changes since ${ref.changes.at(-1).from.slice(0, 10)}: ${delta.length ? "\n    " + delta.join("\n    ") : "none visible"}` : FIRST) : "",
         m.description ? `  description: ${m.description}` : "",
         m.headings?.length ? `  headings: ${m.headings.slice(0, 8).join(" | ")}` : "",
         m.nav?.length ? `  nav: ${m.nav.slice(0, 12).map((a) => a.text).join(" | ")}` : "",
@@ -696,7 +704,7 @@ export async function storeScreens(params) {
       `${ref.id} ${isNew ? "NEW" : "REFRESHED"} ${ref.label} — categories: ${ref.categories.join(", ")}${added && !isNew ? `  (+${col.name})` : ""}`,
       `  seller: ${app.sellerName} · rating ${Number(app.averageUserRating ?? 0).toFixed(2)} (${app.userRatingCount ?? 0}) · ${app.formattedPrice ?? ""} · store ${usedCountry}`,
       `  screens: ${screens.length} saved in ${sdir}`,
-      !isNew ? `  changes: ${delta.length ? delta.join(" · ") : "none visible"}` : "",
+      !isNew ? (delta ? `  changes: ${delta.length ? delta.join(" · ") : "none visible"}` : FIRST) : "",
       others && !params.app_id ? `Other search matches (verify the right app was chosen):\n${others}` : "",
     ]
       .filter(Boolean)

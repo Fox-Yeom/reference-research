@@ -109,4 +109,11 @@ printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocol
   '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_conclusion","arguments":{"collection":"smoke"}}}' \
   | "$ROOT/scripts/run-mcp.sh" 2>/dev/null > "$T/mcp-concl.txt"
 grep -q 'plan A' "$T/mcp-concl.txt"; grep -q '\\"observations\\"' "$T/mcp-concl.txt"; grep -q '\\"agent_memo\\"' "$T/mcp-concl.txt"; echo "get_conclusion ok"
+step "capture after source add (#21)"
+# a reference first recorded by `source add` has no snapshot: capturing it must save (#21)
+"$R" source add '{"collection":"smoke","url":"https://example.net/","label":"Example net — home","type":"official"}' >/dev/null
+out="$("$R" capture '{"collection":"smoke","urls":[{"url":"https://example.net/","label":"Example net — home"}]}')"
+grep -q 'first capture of an existing reference' <<<"$out" || { echo "$out"; exit 1; }
+node -e 'const r=require("fs").readFileSync(process.argv[1],"utf8").trim().split("\n").map(JSON.parse).filter(x=>x.url==="https://example.net/").at(-1);if(r.snapshots.length!==1)process.exit(1)' "$REF_LIBRARY/refs.jsonl"
+echo "capture after source add ok (snapshot saved)"
 echo; echo "PASS — scratch: $T"

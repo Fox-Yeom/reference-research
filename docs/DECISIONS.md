@@ -2,6 +2,9 @@
 
 Newest first. One line of context, the decision, why.
 
+## 2026-11-14 · Topics are subjects, added only after the user confirms
+SKILL.md let an agent read "add one with `ref topic set` and ask the user" as add-then-ask, and gave no rule for what a topic is; the maintainer's first assignment grouped collections by project. → A topic names what is being researched (`요금·수익`), never the project, product or client it serves. A new topic goes into the brief table as 가정 and is added with `ref topic set` only after the user confirms; when the brief is printed instead of confirmed, the run starts without a topic and the proposal goes in the report. Why: references are reused across projects, so subject groups stay findable after a project ends, and the public skill never carries project names.
+
 ## 2026-11-14 · Data model v3 and board G ship as one task; label decisions
 Board draft G (`docs/BOARD-DRAFTS.md`) needs fields the library lacks (topic, counter-evidence, read level, entities), and the steps feed each other. → (1) Storage models 1·2, the migration script and the `board.mjs` replacement ship in one task branch (#19) with purpose-split commits; the migration runs on a real library only after merge, so code and data revert separately. (2) One topic per collection. (3) No personal/work layer above topics. (4) `domain` leaves the chips and shows only in the board head as "조사 형식". (5) Large collections (270+ members) stay whole; board filters and evidence-map folding carry them. (6) Evidence strength: a claim whose sources are all `read: "snippet"` is at most medium; existing refs get `read` from notes/snapshots, the rest stay unrecorded — they keep their strength but the board marks them "열람 미기록", so 166 strong claims do not drop at once. (7) Counter-evidence is stored as `claim.against`, not parsed from summary text. (8) Board titles and labels are glossary nouns.
 

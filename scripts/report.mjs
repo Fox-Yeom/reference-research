@@ -132,7 +132,10 @@ export async function report(params) {
     const r = await run("open", [htmlPath], 15_000);
     opened = r.code === 0 ? "\nOpened in the default browser." : `\nOpen failed: ${r.stderr}`;
   }
-  return `Report built:\n- ${htmlPath}\n- ${home} (library home)\n- ${path.join(dir, "README.md")}\n- ${path.join(dir, "DELTA.md")}${opened}${cite ? `\n\nCitation check:\n${cite}` : ""}${[...freshWarnings(col, claims, refs)].map((l) => `\n${l}`).join("")}`;
+  // v3 M5: the board head needs title, goal and question; say which are missing instead of drawing an empty head
+  const missing = [["title", col.title], ["goal", col.goal], ["question", col.question]].filter(([, v]) => !v).map(([k]) => k);
+  const headWarn = missing.length ? `\n⚠ board head is missing ${missing.join(", ")} — pass them to \`ref report\` (goal, question) or \`ref run start\` (title)` : "";
+  return `Report built:\n- ${htmlPath}\n- ${home} (library home)\n- ${path.join(dir, "README.md")}\n- ${path.join(dir, "DELTA.md")}${opened}${cite ? `\n\nCitation check:\n${cite}` : ""}${[...freshWarnings(col, claims, refs)].map((l) => `\n${l}`).join("")}${headWarn}`;
 }
 
 // ---------- board data ----------

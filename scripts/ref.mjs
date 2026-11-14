@@ -5,7 +5,7 @@
  * Collect
  *   ref capture '<json>' | -          capture URLs (Aside or headless Chrome) → refs (re-encounter: reuse + add category, refresh if stale)
  *   ref store   '<json>' | -          App Store / Mac App Store screens
- *   ref source add '<json>'           text-only refs (articles, docs, papers, threads)
+ *   ref source add '<json>'           text-only refs (articles, docs, papers, threads); also edits refs: ids {doi,pmid,pmcid,arxiv,app}, entity, org (E# or registered name)
  *   ref fetch <connector> '<json>' [--json] | list   read-only candidates, newest first; writes nothing to the library (hn: {q, match, since_days, min_points, tags, limit} · github: {repo, q, limit, include_prerelease} · speakerdeck: {account | url, since_days, limit} · appstore: {app | app_id, country, platform})
  *   ref collect '<json>'              add existing refs to a collection (= add a category)
  *   ref uncollect <collection> <S#>
@@ -19,9 +19,11 @@
  *   ref embed [--rebuild]             update local embeddings (.vectors/, git-ignored)
  *   ref axes show [collection] | suggest [collection] | set '<json>'   tag normalization → axes.json
  *   ref course set '<json>' | show <collection>   course structure (curriculum mode): modules, topics, hours
+ *   ref topic set '<json>' | show     topic registry (topics.json) {topics:[{id,label,description,order}], assign:{collection: topic}} — one topic per collection
+ *   ref entity set '<json>' | show [query]   entity registry (entities.json) {entities:[{id?,kind:product|org,name,aliases,org,parent,access}], link:{S#: E#}, link_org:{S#: E#}}
  * Evidence
  *   ref brief set '<json>' | show <collection>   {collection, brief:{purpose,audience,problem,success,value_types,scope,fixed,exclude,assumptions}, reason}
- *   ref run start '<json>'            {collection, brief, goal, domain, kind} → R#, baseline + related refs from other categories
+ *   ref run start '<json>'            {collection, brief, goal, question, title, topic, domain, kind} → R#, baseline + related refs from other categories
  *   ref run round '<json>' | show <collection>   {collection, queries:[{q,lang,via}], candidates:[{url,title,published,via}], new_axes:[], dropped:[]} → round line, stop rule; via = connector
  *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope; {update:"C#"} edits that metadata)
  *   ref delta <collection> [--run R#] run / category / time delta → DELTA.md
@@ -430,6 +432,22 @@ try {
       else if (sub === "suggest") print(await ax.suggestAxes({ collection: args[0] ? collectionName(args[0]) : null, k: Number(flag(args, "--k") ?? 3) }));
       else if (sub === "set") print(await ax.setAxes(await jsonArg(args[0])));
       else fail("usage: ref axes show [collection] | suggest [collection] [--k 3] | set '<json>'");
+      break;
+    }
+    case "topic": {
+      const rg = await import("./registry.mjs");
+      const sub = args.shift();
+      if (sub === "set") print(await rg.setTopics(await jsonArg(args[0])));
+      else if (sub === "show" || !sub) print(await rg.showTopics());
+      else fail("usage: ref topic set '<json>' | ref topic show");
+      break;
+    }
+    case "entity": {
+      const rg = await import("./registry.mjs");
+      const sub = args.shift();
+      if (sub === "set") print(await rg.setEntities(await jsonArg(args[0])));
+      else if (sub === "show" || !sub) print(await rg.showEntities(args[0]));
+      else fail("usage: ref entity set '<json>' | ref entity show [query]");
       break;
     }
     case "doctor":

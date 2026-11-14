@@ -9,6 +9,11 @@
  *   <LIB>/<collection>/collection.json   category: kind, domain, brief, briefHistory, members [{ref, role, roleWas?}]
  *   <LIB>/<collection>/{NOTES,SUMMARY,DELTA,README}.md, index.html
  *   <LIB>/plans/<plan>.json            optional plan layer: items + links to claims (positions live here, not on claims)
+ *   <LIB>/topics.json                  v3 topic registry {topics:[{id, label, description, order}]}; collection.topic = one topic id (docs/DATA-MODEL.md M1)
+ *   <LIB>/entities.json                v3 entity registry {entities:[{id:E#, kind: product|org, name, aliases[], org?, parent?, access?}]};
+ *                                      ref.entity (product) / ref.org (publisher) point here; product/publisher strings stay for display (M7)
+ * v3 fields (all optional, old libraries read unchanged): ref.ids {doi, pmid, pmcid, arxiv, app} (same id = same reference, M8) ·
+ *   ref.read full|snippet (M11) · claim.about [E#|axis id|topic id] (M10) · claim.against [S#] counter sources (M11) · axis.broader (M9)
  *   <LIB>/.vectors/                    local embeddings (derived, git-ignored)
  *
  * All stored paths are relative to LIB so the library works after a git clone elsewhere.
@@ -28,6 +33,8 @@ export const FILES = {
   learnings: path.join(LIB, "LEARNINGS.md"),
   refsDir: path.join(LIB, "refs"),
   plansDir: path.join(LIB, "plans"),
+  topics: path.join(LIB, "topics.json"),
+  entities: path.join(LIB, "entities.json"),
   vectorsDir: path.join(LIB, ".vectors"),
 };
 const RESERVED = new Set(["refs", "plans", "node_modules"]);
@@ -69,6 +76,33 @@ export function looksLikeArticle(url) {
     return false;
   }
 }
+export const ENTITY_KINDS = ["product", "org"];
+export const READ_LEVELS = ["full", "snippet"];
+export const ID_KINDS = ["doi", "pmid", "pmcid", "arxiv", "app"];
+
+/** Work identifiers a URL carries on its face (M8). Papers live on many hosts; the identifier, not the URL, names the work. */
+export function idsFromUrl(url) {
+  const u = String(url ?? "");
+  const ids = {};
+  const doi = u.match(/(?:doi\.org\/|\/doi\/(?:abs\/|full\/|pdf\/|epdf\/)?)(10\.\d{4,9}\/[^\s?#]+)/i);
+  if (doi) ids.doi = decodeURIComponent(doi[1]).replace(/[.,;)]+$/, "").toLowerCase();
+  const arxiv = u.match(/arxiv\.org\/(?:abs|pdf|html)\/(\d{4}\.\d{4,5})(?:v\d+)?/i);
+  if (arxiv) ids.arxiv = arxiv[1];
+  const pmid = u.match(/pubmed\.ncbi\.nlm\.nih\.gov\/(\d+)/i);
+  if (pmid) ids.pmid = pmid[1];
+  const pmc = u.match(/(?:ncbi\.nlm\.nih\.gov\/pmc\/articles|pmc\.ncbi\.nlm\.nih\.gov\/articles)\/(PMC\d+)/i);
+  if (pmc) ids.pmcid = pmc[1].toUpperCase();
+  const apple = u.match(/apps\.apple\.com\/.*\/id(\d+)/i);
+  if (apple) ids.app = `apple:${apple[1]}`;
+  const play = u.match(/play\.google\.com\/store\/apps\/details\?(?:.*&)?id=([\w.]+)/i);
+  if (play) ids.app = `google:${play[1]}`;
+  return ids;
+}
+/** true when two id maps name the same work */
+export const sameWork = (a = {}, b = {}) => ID_KINDS.some((k) => a[k] && b[k] && String(a[k]).toLowerCase() === String(b[k]).toLowerCase());
+/** comparable form of a product or publisher name: case, width, spaces and dots do not matter */
+export const normName = (s) => String(s ?? "").normalize("NFKC").toLowerCase().replace(/[\s·・.,_\-–—'"()]+/g, "");
+
 export const CLAIM_KINDS = ["fact", "pattern", "benchmark", "failure", "gap", "opinion", "hypothesis"];
 export const POSITIONS = ["table-stakes", "duplicate", "below-bar", "differentiator", "gap", "validates", "contradicts"];
 
@@ -193,9 +227,10 @@ export const saveClaims = (list) => appendJsonl(FILES.claims, list);
 export const readRuns = () => readJsonl(FILES.runs);
 export const saveRuns = (list) => appendJsonl(FILES.runs, list);
 
-export function findRef(refs, url) {
+/** Same URL (or alias) first; otherwise a reference that carries the same work identifier (M8). */
+export function findRef(refs, url, ids = idsFromUrl(url)) {
   const n = normUrl(url);
-  return refs.find((r) => r.normUrl === n || (r.aliases ?? []).includes(n));
+  return refs.find((r) => r.normUrl === n || (r.aliases ?? []).includes(n)) ?? (Object.keys(ids).length ? refs.find((r) => sameWork(r.ids ?? idsFromUrl(r.url), ids)) : undefined);
 }
 
 export function refSlug(refs, url) {
@@ -206,6 +241,32 @@ export function refSlug(refs, url) {
 }
 
 export const latestSnapshot = (ref) => (ref.snapshots?.length ? ref.snapshots[ref.snapshots.length - 1] : null);
+
+// ---------- registries (v3): topics, entities ----------
+
+async function readJsonFile(f, key) {
+  if (!existsSync(f)) return [];
+  try {
+    return JSON.parse(await fs.readFile(f, "utf8"))[key] ?? [];
+  } catch {
+    bad(`${path.basename(f)} is not valid JSON — fix or remove it`);
+  }
+}
+async function writeJsonFile(f, key, list) {
+  await fs.mkdir(path.dirname(f), { recursive: true });
+  await fs.writeFile(f, JSON.stringify({ [key]: list, updatedAt: new Date().toISOString() }, null, 2) + "\n");
+}
+export const readTopics = () => readJsonFile(FILES.topics, "topics");
+export const writeTopics = (list) => writeJsonFile(FILES.topics, "topics", list);
+export const readEntities = () => readJsonFile(FILES.entities, "entities");
+export const writeEntities = (list) => writeJsonFile(FILES.entities, "entities", list);
+/** an entity by id, or by name/alias within a kind */
+export function findEntity(entities, key, kind) {
+  if (!key) return null;
+  if (/^E\d+$/.test(key)) return entities.find((e) => e.id === key) ?? null;
+  const n = normName(key);
+  return entities.find((e) => (!kind || e.kind === kind) && (normName(e.name) === n || (e.aliases ?? []).some((a) => normName(a) === n))) ?? null;
+}
 
 // ---------- collections (categories) ----------
 
@@ -242,6 +303,10 @@ export async function ensureCollection(name, opts = {}) {
   }
   if (opts.description) c.description = opts.description;
   if (opts.title) c.title = opts.title;
+  if (opts.topic !== undefined) {
+    if (opts.topic && !(await readTopics()).some((t) => t.id === opts.topic)) bad(`topic "${opts.topic}" is not in topics.json — add it with \`ref topic set\` first`);
+    c.topic = opts.topic || null;
+  }
   await writeCollection(c);
   return c;
 }

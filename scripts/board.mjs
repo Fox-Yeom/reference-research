@@ -448,7 +448,7 @@ section,.hero{background:linear-gradient(180deg,#131316,#0d0d10);border-color:va
 .otbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;min-width:640px}
 .otbl th,.otbl td{border-bottom:1px solid var(--line);padding:11px 10px;vertical-align:top;text-align:left;white-space:normal}
 .otbl thead th{font-size:15px}.otbl thead th small{display:block;font-weight:400;color:var(--muted);font-size:13px;margin-top:2px}
-.otbl tbody th{width:104px;font-weight:500;color:var(--faint);font-size:13px}
+.otbl thead th:first-child{width:104px}.otbl tbody th{font-weight:500;color:var(--faint);font-size:13px}
 .otbl ul{margin:0;padding-left:16px}.otbl li{margin:2px 0}.otbl .none{color:var(--faint)}
 details.memo{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}details.memo summary{cursor:pointer;font-size:14px;color:var(--muted)}details.memo p{margin:8px 0 0;font-size:14px;color:var(--muted)}
 .jpanel{position:fixed;top:0;right:0;width:440px;max-width:100vw;height:100vh;height:100dvh;z-index:90;background:#0d0d10;border-left:1px solid var(--line2);box-shadow:-20px 0 60px rgba(0,0,0,.5);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .22s ease}
@@ -613,10 +613,10 @@ if(qs.length&&sres){
   const hl=(box,text,t)=>{const i=text.toLowerCase().indexOf(t);const a=Math.max(0,i-40),z=i<0?Math.min(text.length,100):Math.min(text.length,i+t.length+60);const piece=text.slice(a,z);const j=i<0?-1:i-a;
     if(a)box.append('…');if(j<0)box.append(piece);else{box.append(piece.slice(0,j));box.append(mk('mark','',piece.slice(j,j+t.length)));box.append(piece.slice(j+t.length));}if(z<text.length)box.append('…');};
   const run=()=>{qs.forEach(x=>{if(x!==q)x.value=q.value});const t=q.value.trim().toLowerCase();if(!t){sres.hidden=true;return;}
-    const groups=new Map();hits=[];$$('[data-search]').forEach(el=>{if(!el.dataset.search.includes(t)||sres.contains(el))return;const g=groupOf(el);if(!groups.has(g))groups.set(g,[]);groups.get(g).push(el);});
+    const groups=new Map();hits=[];$$('[data-search]').forEach(el=>{if(!el.dataset.search.includes(t)||sres.contains(el))return;if(el.offsetParent===null&&!el.closest('details:not([open])')&&!el.classList.contains('over-limit'))return;const g=groupOf(el);if(!groups.has(g))groups.set(g,[]);groups.get(g).push(el);});
     sres.replaceChildren();const head=mk('header');head.append(mk('b','','"'+q.value.trim()+'" '+[...groups.values()].reduce((n,v)=>n+v.length,0)+'건'),mk('span','','범위: 이 조사 · Esc 닫기'));sres.append(head);
     if(!groups.size)sres.append(mk('p','none','이 조사에는 맞는 항목이 없습니다.'));
-    groups.forEach((els,g)=>{const h=mk('h3','',g+' ');h.append(mk('i','',String(els.length)));sres.append(h);els.slice(0,8).forEach(el=>{const b=mk('button','hit');b.type='button';b.dataset.i=hits.push(el)-1;hl(b,textOf(el),t);sres.append(b);});if(els.length>8)sres.append(mk('p','none','외 '+(els.length-8)+'건'));});
+    groups.forEach((els,g)=>{const h=mk('h3','',g+' ');h.append(mk('i','',String(els.length)));sres.append(h);els.slice(0,8).forEach(el=>{const b=mk('button','hit');b.type='button';b.dataset.i=hits.push(el)-1;const tx=textOf(el);hl(b,tx,t);if(!tx.toLowerCase().includes(t))b.append(mk('small','',' · 노트·태그에서 일치'));sres.append(b);});if(els.length>8)sres.append(mk('p','none','외 '+(els.length-8)+'건'));});
     const lib=mk('p','none');const a=mk('a','','라이브러리 전체에서 찾기');a.href='../index.html';lib.append(a);sres.append(lib);sres.hidden=false;};
   qs.forEach(x=>x.addEventListener('input',()=>{q=x;run();}));
   sres.addEventListener('click',e=>{const b=e.target.closest('.hit');if(!b)return;const el=hits[+b.dataset.i];sres.hidden=true;const det=el.closest('details');if(det)det.open=true;el.classList.remove('over-limit');
@@ -661,6 +661,8 @@ if(nav.length&&'IntersectionObserver' in window){
   secs.forEach(s=>io.observe(s));
 }
 
+// narrow screens scroll the pattern-line diagram inside its card: start at the centre, where the figure is
+$$('#axes .dgwrap').forEach(w=>{if(w.scrollWidth>w.clientWidth)w.scrollLeft=(w.scrollWidth-w.clientWidth)/2;});
 // 판단 자료: an observation row (or its 근거 button) opens the evidence panel; non-modal, Esc or 닫기 closes, focus goes back
 const jp=$('#jpanel');
 if(jp){let opener=null;
@@ -940,7 +942,6 @@ function conclusionOf(block) {
   }
   // older summaries: their 답 and 제안 are the agent's reading, shown folded as a memo
   if (!out.memo.length) out.memo = [out.answer && `해석: ${out.answer}`, out.decision && `다음 단계 후보: ${out.decision}`].filter(Boolean);
-  out.counter = out.counters[0]?.text ?? null;
   return out;
 }
 /** What a board leads with, shared with the MCP server. Key claims: collection.highlights → claims marked key → summary list → strongest claims. */
@@ -1047,12 +1048,12 @@ export function renderBoard(d) {
   const next = () => NUM;
   const reader = ["decision", "practitioner", "archive"].includes(col.reader) ? col.reader : "practitioner";
 
-  const { sum, claimById, keyClaims, keySource, keyLines, openQ, nextS, concl, evItems } = conclusionData(col, d.claims, d.summary);
+  const { sum, claimById, openQ, nextS, concl, evItems } = conclusionData(col, d.claims, d.summary);
   const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
   const continuePrompt = `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})를 이어서 해줘.${openQ.length ? ` 추가 질문 항목: ${openQ.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}${nextS.length ? ` 다음 할 일: ${nextS.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
   const openSection =
     openQ.length || nextS.length
-      ? `<section id="open">${sectionHead(next(), "미해결 질문 · 다음 단계", "답에 따라 결론이나 제안이 달라질 수 있는 질문과 이어서 할 일입니다. 항목 아래 의도는 왜 확인해야 하는지를 적은 것입니다. 버튼을 누르면 이어서 조사할 프롬프트가 복사됩니다.")}<div class="panel openq">${openQ.length ? `<h4>추가 질문 항목</h4>${intentList(openQ, cite)}${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4>${intentList(nextS, cite)}${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
+      ? `<section id="open">${sectionHead(next(), "미해결 질문 · 다음 단계", "결과에 따라 판단이 달라질 질문과 이어서 할 일입니다. 항목 아래 의도는 왜 확인해야 하는지를 적은 것입니다. 버튼을 누르면 이어서 조사할 프롬프트가 복사됩니다.")}<div class="panel openq">${openQ.length ? `<h4>추가 질문 항목</h4>${intentList(openQ, cite)}${openQ.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${nextS.length ? `<h4${openQ.length ? ' style="margin-top:14px"' : ""}>다음 할 일 · 추천</h4>${intentList(nextS, cite)}${nextS.length > 5 ? `<button class="morebtn small" type="button" hidden></button>` : ""}` : ""}${
           !openQ.length && !nextS.length ? `<p class="muted small">요약에 <code>## 추가 질문 항목</code> · <code>## 추천</code> 절을 쓰거나 <code>ref report</code>에 <code>open_questions</code> · <code>next_steps</code>를 넘기면 여기에 표시됩니다.</p>` : ""
         }${promptAction("이 조사 이어서 하기", continuePrompt, { preview: true, big: true, hint: "추가 질문 항목과 다음 할 일을 담은 프롬프트를 복사합니다" })}</div></section>`
       : "";
@@ -1142,8 +1143,8 @@ export function renderBoard(d) {
   opts.forEach((o, i) => panel(`op${i}`, "선택지", o.name, o.pro.map((id) => claimById.get(id)).filter(Boolean), refsFor(o.pro), `${o.con.length ? `<h3 class="c">반대 관찰</h3>${o.con.map((id) => claimById.get(id)).filter(Boolean).map(pcClaim).join("")}` : ""}<h3>확인 질문</h3><div class="pcheck">${o.check ? inline(o.check, cite) : "기록 없음"}</div>`));
   const optRow = (label, cell) => `<tr><th scope="row">${label}</th>${opts.map((o, i) => `<td data-o="${esc(o.name)}">${cell(o, i)}</td>`).join("")}</tr>`;
   const optTable = opts.length
-    ? `<h3 class="jh">선택지 비교</h3><div class="jtw"><table class="otbl"><thead><tr><th scope="col"><span class="lab">선택지</span></th>${opts.map((o) => `<th scope="col" data-search="${searchText("선택지", o.name, o.text, o.check)}">${esc(o.name)}${o.text ? `<small>${esc(o.text)}</small>` : ""}</th>`).join("")}</tr></thead><tbody>
-${optRow("받치는 관찰", (o) => optCell(o.pro))}
+    ? `<h3 class="jh">선택지 비교</h3><div class="jtw"><table class="otbl"><thead><tr><th scope="col"></th>${opts.map((o) => `<th scope="col" data-search="${searchText("선택지", o.name, o.text, o.check)}">${esc(o.name)}${o.text ? `<small>${esc(o.text)}</small>` : ""}</th>`).join("")}</tr></thead><tbody>
+${optRow("받침 관찰", (o) => optCell(o.pro))}
 ${optRow("반대 관찰", (o) => optCell(o.con))}
 ${optRow("레퍼런스", (o) => thumbsOf(refsFor(o.pro)) || `<span class="none">캡처 없음</span>`)}
 ${optRow("확인 질문", (o) => (o.check ? inline(o.check, cite) : `<span class="none">기록 없음</span>`))}
@@ -1158,7 +1159,7 @@ ${optRow("결정", (o, i) => `<button type="button" class="jmore" data-panel="op
   const unread = active.filter((c) => readState(c, R) === "unknown").length;
   const ghead = `<div class="ghead"><div><p class="crumb"><a href="../index.html">라이브러리</a> / <b>${esc(col.title ?? col.name)}</b></p><h1>${esc(col.title ?? col.name)}</h1>${goal ? `<p class="sub">${inline(goal, cite)}</p>` : ""}<p class="gmeta">조사 형식 ${esc(DOMAIN_KO[col.domain] ?? col.domain)} · ${esc(KIND_KO[col.kind] ?? col.kind ?? "조사")} · ${meta}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}${otherCats.length ? ` · 공유 조사 ${otherCats.length}` : ""}</p></div><div class="tools">${promptAction("이어서 조사", continuePrompt, { hint: "추가 질문 항목과 다음 할 일을 담은 프롬프트를 복사합니다" }).replace('class="pbtn', 'class="pbtn go')}</div></div>`;
   const ctAt = new Set(counters.map((k) => k.at).filter((a) => a >= 0 && a < obs.length));
-  const kpis = `<div class="kpis">${kpiCard("refs", "레퍼런스", "var(--green)", d.members.length, `캡처 ${captured} · 글 ${d.members.length - captured}`, "레퍼런스별 인용 발견", d.members.map((m) => citedBy.get(m.r.id) ?? 0).sort((a, b) => b - a), "gk1")}${kpiCard("claims", "강한 근거", "var(--accent)", conf("high"), `/ ${active.length}`, unread ? `열람 미기록 ${unread}` : "발견별 근거 세기", active.map((c) => ({ high: 2, medium: 1 })[c.confidence] ?? 0), "gk2")}${kpiCard("judge", "반대 관찰", "var(--coral)", counters.length, ctAt.size ? `관찰 ${ctAt.size}개에` : counters.length ? "관찰 밖" : "없음", "관찰별 반대 관찰", obs.map((_, i) => ctOf(i).length), "gk3")}${kpiCard(openQ.length ? "open" : "changes", "미해결 질문", "#ffd75e", openQ.length, openQ.length ? "답 없음" : "없음", "회차별 신규 발견", d.runs.map((r) => r.counts.created), "gk4")}</div>`;
+  const kpis = `<div class="kpis">${kpiCard("refs", "레퍼런스", "var(--green)", d.members.length, `캡처 ${captured} · 글 ${d.members.length - captured}`, "레퍼런스별 인용 발견", d.members.map((m) => citedBy.get(m.r.id) ?? 0).sort((a, b) => b - a), "gk1")}${kpiCard("claims", "강한 근거", "var(--accent)", conf("high"), `/ ${active.length}`, unread ? `열람 미기록 ${unread}` : "발견별 근거 세기", active.map((c) => ({ high: 2, medium: 1 })[c.confidence] ?? 0), "gk2")}${kpiCard("judge", "반대 관찰", "var(--coral)", counters.length, ctAt.size ? `관찰 ${ctAt.size}개에` : counters.length ? "관찰 밖" : "없음", "관찰별 반대 관찰", obs.map((_, i) => ctOf(i).length), "gk3")}${kpiCard(openQ.length ? "open" : "changes", "미해결 질문", "#ffd75e", openQ.length, openQ.length ? "미해결" : "없음", "회차별 신규 발견", d.runs.map((r) => r.counts.created), "gk4")}</div>`;
   const hero = `${ghead}${kpis}${judgeSection}${jpanel}`;
 
   // long summaries fold: every heading becomes a section, the first two stay open, a mini TOC jumps and opens
@@ -1334,7 +1335,7 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
     return `<article class="claim" id="${c.id}" data-kind="${esc(c.kind ?? "")}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
   <div class="chead"><h4 class="ctitle">${c.key ? `<span class="star">핵심</span>` : ""}${esc(title)}</h4>${confBadge(c.confidence)}</div>
   ${body ? `<p class="cbody${body.length > 150 ? " clamp" : ""}">${esc(body)}</p>${body.length > 150 ? `<button class="more" type="button">더 보기</button>` : ""}` : ""}
-  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 핵심 결론은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(runLabel(c.run))}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${c.against?.length ? `<span class="sep">·</span><span class="chip against" title="이 발견에 반대되는 자료">반대 출처 ${c.against.map((id) => esc(id)).join(", ")}</span>` : ""}${((rs) => (rs === "unknown" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 원문으로 읽었다는 기록이 없음">열람 미기록</span>` : rs === "snippet" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 요약으로만 읽음 — 근거 세기 최대 보통">요약만 읽음</span>` : ""))(readState(c, R))}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
+  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 발견은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(runLabel(c.run))}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${c.against?.length ? `<span class="sep">·</span><span class="chip against" title="이 발견에 반대되는 자료">반대 출처 ${c.against.map((id) => esc(id)).join(", ")}</span>` : ""}${((rs) => (rs === "unknown" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 원문으로 읽었다는 기록이 없음">열람 미기록</span>` : rs === "snippet" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 요약으로만 읽음 — 근거 세기 최대 보통">요약만 읽음</span>` : ""))(readState(c, R))}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
   ${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}
   ${olds.length ? `<details class="prev"><summary>이전 버전 ${olds.length}개 — ${olds[0].status === "refuted" ? "틀린 것으로 확인됨" : "수정됨"}</summary>${olds.map((o) => `<div class="old" id="${o.id}">${idBtn(o.id)} ${esc(o.text)} <span class="small">(${esc((o.createdAt ?? "").slice(0, 10))})</span></div>`).join("")}</details>` : ""}
 </article>`;
@@ -1618,7 +1619,7 @@ ${c.inProgress ? `<span class="m">${gpill("good", "진행 중")} ${promptAction(
   // open questions across the library: the three most recent collections open, the rest folded per collection
   const withQ = sorted.filter((c) => c.openQuestions?.length);
   const totalQ = withQ.reduce((n, c) => n + c.openQuestions.length, 0);
-  const oqGroup = (c, open) => `<details class="oq sgroup"${open ? " open" : ""}><summary><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a><span class="muted small">${c.openQuestions.length}개${c.lastRun ? ` · ${esc(c.lastRun)}` : ""}</span>${c.inProgress ? `<span class="pill">진행 중</span>` : ""}</summary><ul>${c.openQuestions.map((q) => `<li data-search="${searchText(q, c.title)}">${inline(withIntent(q)[0], hcite)}${withIntent(q)[1] ? `<small class="muted" style="display:block">의도: ${inline(withIntent(q)[1], hcite)}</small>` : ""}</li>`).join("")}</ul><div class="oqact">${promptAction("이 질문들로 이어서 하기", continuePrompt(c), { preview: true, hint: "이 조사의 열린 질문을 담은 프롬프트를 복사합니다" })}<a class="muted small" href="${esc(c.name)}/index.html#key">보드의 핵심 결론 보기 →</a></div></details>`;
+  const oqGroup = (c, open) => `<details class="oq sgroup"${open ? " open" : ""}><summary><a href="${esc(c.name)}/index.html">${esc(c.title ?? c.name)}</a><span class="muted small">${c.openQuestions.length}개${c.lastRun ? ` · ${esc(c.lastRun)}` : ""}</span>${c.inProgress ? `<span class="pill">진행 중</span>` : ""}</summary><ul>${c.openQuestions.map((q) => `<li data-search="${searchText(q, c.title)}">${inline(withIntent(q)[0], hcite)}${withIntent(q)[1] ? `<small class="muted" style="display:block">의도: ${inline(withIntent(q)[1], hcite)}</small>` : ""}</li>`).join("")}</ul><div class="oqact">${promptAction("이 질문들로 이어서 하기", continuePrompt(c), { preview: true, hint: "이 조사의 열린 질문을 담은 프롬프트를 복사합니다" })}<a class="muted small" href="${esc(c.name)}/index.html#judge">보드의 판단 자료 보기 →</a></div></details>`;
   const openSection = withQ.length
     ? `<section id="openq">${sectionHead("", "미해결 질문", `아직 답하지 못한 질문 ${totalQ}개 (${withQ.length}개 조사). 최근 조사 ${Math.min(3, withQ.length)}개는 펼쳐져 있고 나머지는 제목을 누르면 열립니다.`)}<div class="panel oqs">${withQ.map((c, i) => oqGroup(c, i < 3)).join("")}</div></section>`
     : "";

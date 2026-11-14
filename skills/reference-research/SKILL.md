@@ -125,7 +125,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 
 // claim add — kind: fact|pattern|benchmark|failure|gap|opinion|hypothesis
 // subject = 5–12 char title the board shows (always give one) · key = headline finding (board 판단 자료 관찰) · asOf = date a price/number was true · scope = where it applies; "원리" = a principle about human cognition or theory (freshness rule, §2)
-// against = refs that speak AGAINST this finding (the board draws them as the red counter-evidence line) · about = what it is about: E#, axis ids, topic id
+// against = refs that speak AGAINST this finding (the board shows them as a 반대 관찰 row under the observation) · about = what it is about: E#, axis ids, topic id
 {"collection":"…","claims":[
   {"text":"…","kind":"pattern","subject":"세로 탭 상태","sources":["S2","S9"],"tags":["vertical-tabs"]},
   {"text":"무료 단계를 표 맨 왼쪽에 둔다","kind":"pattern","subject":"단계 구성","sources":["S1","S2"],"against":["S3"],"about":["E4"]},
@@ -370,7 +370,7 @@ For references that feed a course or curriculum design ("AI 교육 커리큘럼 
 
 ## 10. Agents read the library over MCP
 `scripts/mcp.mjs` is a **read-only** MCP server, started by the plugin as `reference-library`.
-Tools: `list_collections` · `search_references` (semantic + keyword, returns preview image paths) · `get_reference` (notes from every collection, snapshot images, changes, citing findings) · `search_findings` (claims with evidence + confidence) · `get_patterns` (axis → how each product solves it, across collections) · `get_board` (summary + findings) · `get_brief` (purpose, assumptions, changes) · `get_conclusion` (question, answer, decision, evidence, counter-evidence, open questions) · `get_rationale` (why-traces by topic, pattern or ref, with basis 공식 · 정황 · 추정).
+Tools: `list_collections` · `search_references` (semantic + keyword, returns preview image paths) · `get_reference` (notes from every collection, snapshot images, changes, citing findings) · `search_findings` (claims with evidence + confidence) · `get_patterns` (axis → how each product solves it, across collections) · `get_board` (summary + findings) · `get_brief` (purpose, assumptions, changes) · `get_conclusion` (question, observations, counter-observations, options, agent memo, open questions; no answer) · `get_rationale` (why-traces by topic, pattern or ref, with basis 공식 · 정황 · 추정).
 `search_references` and `search_findings` take `since` (YYYY-MM-DD) and `fresh_only`: undated sources never pass, and a finding passes when at least one source does.
 - Before starting new research, an agent can call `search_references` / `get_patterns` to reuse what the library already knows (complements `ref run start`).
 - Outside a research session (planning, design, writing), use these tools to ground answers in prior references; open returned image paths with Read.

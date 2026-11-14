@@ -70,7 +70,7 @@ grep -q 'id="judge"' "$B"; grep -q 'class="otbl"' "$B"; grep -q 'data-pd="op0"' 
 grep -q 'class="ob counter"' "$B"
 grep -q 'data-src="S2"' "$B"   # no capture: details beside the chip instead of a jump
 fails grep -q 'id="map"' "$B"
-fails grep -q '<span class="lab">답' "$B"
+fails grep -q 'class="lab">답<' "$B"
 echo "judgment board ok"
 step "v2 library read as-is"
 V2="$T/v2"; mkdir -p "$V2/old"
@@ -83,9 +83,10 @@ printf '%s\n' '{"id":"C1","text":"old finding","kind":"pattern","subject":"s","s
 REF_LIBRARY="$V2" "$R" claim list old | grep -q 'C1 \[pattern, high\]'
 REF_LIBRARY="$V2" "$R" report '{"collection":"old","open":false}' | grep -q index.html
 grep -q '열람 미기록' "$V2/old/index.html"; echo "v2 board renders (reading unrecorded)"
-printf '%s\n' '## 핵심 결론' '- 질문: q?' '- 답: old answer [C1]' '- 근거: old finding [C1] [S1]' > "$V2/old/SUMMARY.md"
+printf '%s\n' '## 핵심 결론' '- 질문: q?' '- 답: old answer [C1]' '- 제안: old proposal [C1]' '- 근거: old finding [C1] [S1]' > "$V2/old/SUMMARY.md"
 REF_LIBRARY="$V2" "$R" report '{"collection":"old","open":false}' >/dev/null
-grep -q '에이전트 메모 (참고)' "$V2/old/index.html"; grep -q 'old answer' "$V2/old/index.html"
+grep -q '에이전트 메모 (참고)' "$V2/old/index.html"; grep -q '해석: old answer' "$V2/old/index.html"; grep -q '다음 단계 후보: old proposal' "$V2/old/index.html"
+fails grep -q 'class="lab">답<' "$V2/old/index.html"
 fails grep -q 'class="otbl"' "$V2/old/index.html"
 echo "old summary: 답 folded into the agent memo, no options table"
 step "mcp"

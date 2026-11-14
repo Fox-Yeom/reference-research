@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko" data-variant="b">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>판단 시안 B — 선택지 중심</title>
+<link rel="stylesheet" href="judgment.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+  <a class="brand" href="#"><i aria-hidden="true"></i>References</a>
+  <div class="srch"><label class="search"><input id="q" type="search" placeholder="검색" aria-label="이 조사에서 검색" autocomplete="off"><kbd>/</kbd></label>
+  <p class="scope"><span>범위 <b>이 조사</b></span><a href="g-neon-mix.html#home">라이브러리 전체</a></p></div>
+  <div><p class="grp">구역</p><nav class="navl secs" id="secs" aria-label="구역"></nav></div>
+  <div class="sfoot">2026-11-13 기준</div>
+</aside>
+<main>
+  <div id="app" class="stack"></div>
+  <footer>판단 시안 B · 선택지 중심. 데이터: <code>dev/demo.sh</code> 예시 조사(<code>data.js</code>). 선택지·관찰 문장은 그 캡처와 노트를 다시 쓴 것이다.</footer>
+</main>
+</div>
+<div id="sres" class="sres" hidden role="region" aria-label="검색 결과"></div>
+<aside id="panel" class="panel" hidden aria-labelledby="panel-title"><header><h2 id="panel-title"></h2><button type="button" class="x" aria-label="근거 패널 닫기">닫기</button></header><div class="body"></div></aside>
+<script src="data.js"></script>
+<script src="common.js"></script>
+<script>document.body.insertAdjacentHTML("beforeend", Draft.viewerHtml());</script>
+<script src="judgment.js"></script>
+</body>
+</html>

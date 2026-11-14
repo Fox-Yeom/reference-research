@@ -253,7 +253,8 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
 
   // ---- review lists ----
   const dupes = [];
-  for (let i = 0; i < refs.length; i++) for (let j = i + 1; j < refs.length; j++) if (refs[i].ids && refs[j].ids && sameWork(refs[i].ids, refs[j].ids)) dupes.push(`${refs[i].id} = ${refs[j].id} (${Object.entries(refs[i].ids).map(([k, v]) => `${k}:${v}`).join(" ")})`);
+  const liveRefs = refs.filter((r) => !r.mergedInto);
+  for (let i = 0; i < liveRefs.length; i++) for (let j = i + 1; j < liveRefs.length; j++) if (liveRefs[i].ids && liveRefs[j].ids && sameWork(liveRefs[i].ids, liveRefs[j].ids)) dupes.push(`${liveRefs[i].id} = ${liveRefs[j].id} (${Object.entries(refs[i].ids).map(([k, v]) => `${k}:${v}`).join(" ")})`);
   const byHost = new Map();
   for (const r of refs) if (r.entity) {
     const h = hostOf(r.url);
@@ -298,7 +299,7 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
     noTopic.length ? `\nFill and run: ref topic set '${JSON.stringify({ topics: topics.length ? [] : [{ id: "<topic-id>", label: "<주제 이름>" }], assign: Object.fromEntries(noTopic.map((c) => [c.name, "<topic-id>"])) })}'` : "",
     `### Counter-evidence candidates: ${counter.length} SUMMARY lines (set with ref claim add {update:"C#", against:["S#"]})`,
     ...counter.map((l) => `- ${l}`),
-    `### Same work, separate refs: ${dupes.length}`,
+    `### Same work, separate refs: ${dupes.length}${dupes.length ? " (merge with ref source merge '{\"keep\":\"S#\",\"drop\":\"S#\"}', --dry-run first)" : ""}`,
     ...dupes.map((l) => `- ${l}`),
     `### One host, several products: ${split.length} (merge with aliases or set parent via ref entity set)`,
     ...split.slice(0, 60).map((l) => `- ${l}`),

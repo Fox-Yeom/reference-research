@@ -53,6 +53,7 @@ import { fileURLToPath } from "node:url";
 import { archiveDates, capture, storeScreens } from "./capture.mjs";
 import { connectorList, connectorStatus, fetchCandidates } from "./connectors.mjs";
 import * as ev from "./evidence.mjs";
+import { mergeRefs } from "./merge.mjs";
 import { report, coverage } from "./report.mjs";
 import { migrate, migrateGrades, migrateRoles, migrateV3 } from "./migrate.mjs";
 import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate } from "./store.mjs";
@@ -258,11 +259,12 @@ try {
     case "source": {
       const sub = args.shift();
       if (sub === "add") print(await ev.addSources(await jsonArg(args[0])));
+      else if (sub === "merge") print(await mergeRefs(await jsonArg(args.find((a) => !a.startsWith("--"))), { dryRun: bool(args, "--dry-run") }));
       else if (sub === "list") {
         const refs = await readRefs();
         const name = args[0] ? collectionName(args[0]) : null;
-        print(refs.filter((r) => !name || (r.categories ?? []).includes(name)).map((r) => `- ${r.id} [${r.type}/${r.credibility}] ${r.label ?? r.title ?? ""} — ${r.url} ‹${(r.categories ?? []).join(", ")}›`).join("\n") || "(none)");
-      } else fail("usage: ref source add '<json>' | ref source list [collection]");
+        print(refs.filter((r) => !r.mergedInto && (!name || (r.categories ?? []).includes(name))).map((r) => `- ${r.id} [${r.type}/${r.credibility}] ${r.label ?? r.title ?? ""} — ${r.url} ‹${(r.categories ?? []).join(", ")}›`).join("\n") || "(none)");
+      } else fail("usage: ref source add '<json>' | ref source list [collection] | ref source merge '{\"keep\":\"S#\",\"drop\":\"S#\"}' [--dry-run]");
       break;
     }
     case "collect":

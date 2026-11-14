@@ -122,4 +122,25 @@ grep -q 'page did not load' <<<"$out" || { echo "$out"; exit 1; }
 fails grep -q 'chrome-error' "$REF_LIBRARY/refs.jsonl"
 fails grep -q 'nonexistent.invalid' "$REF_LIBRARY/refs.jsonl"
 [ ! -e "$REF_LIBRARY/refs/chromewebdata" ]; echo "unreachable page reported, nothing saved"
+step "merge a duplicate reference (#22)"
+ids=($("$R" source add '{"collection":"smoke","sources":[{"url":"https://dup.example/a","label":"Dup — a","type":"official"},{"url":"https://dup.example/b","label":"Dup — b","type":"official"}]}' | awk '/^S[0-9]+ /{print $1}'))
+KEEP=${ids[0]}; DROP=${ids[1]}
+"$R" claim add "{\"collection\":\"smoke\",\"text\":\"cites the duplicate\",\"kind\":\"fact\",\"subject\":\"d\",\"sources\":[\"$DROP\"]}" >/dev/null
+before="$(library_hash)"
+"$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\"}" --dry-run | grep -q 'dry run'
+[ "$before" = "$(library_hash)" ]; echo "dry run wrote nothing"
+"$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\"}" | grep -q "merged $DROP → $KEEP"
+node -e '
+const fs=require("fs"),[lib,keep,drop]=process.argv.slice(1),last=(f)=>{const m=new Map();for(const l of fs.readFileSync(f,"utf8").trim().split("\n")){const o=JSON.parse(l);m.set(o.id,o)}return m};
+const refs=last(lib+"/refs.jsonl"),claims=last(lib+"/claims.jsonl"),col=JSON.parse(fs.readFileSync(lib+"/smoke/collection.json"));
+const ok=refs.get(drop).mergedInto===keep&&refs.get(keep).aliases.includes("dup.example/b")&&[...claims.values()].every(c=>!(c.sources||[]).includes(drop))&&!col.members.some(m=>m.ref===drop)&&col.members.some(m=>m.ref===keep);
+if(!ok)process.exit(1)' "$REF_LIBRARY" "$KEEP" "$DROP"
+fails grep -q "^- $DROP " <<<"$("$R" source list smoke)"
+"$R" source add '{"url":"https://dup.example/b"}' | grep -q "^$KEEP (updated)"   # the old URL now finds the kept ref
+fails "$R" source merge "{\"keep\":\"$KEEP\",\"drop\":\"$DROP\"}"   # already merged
+printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"get_reference\",\"arguments\":{\"id\":\"$DROP\"}}}" \
+  | "$ROOT/scripts/run-mcp.sh" 2>/dev/null > "$T/mcp-merge.txt"
+grep -q "was merged into $KEEP" "$T/mcp-merge.txt"; echo "merge ok: $DROP → $KEEP"
 echo; echo "PASS — scratch: $T"

@@ -230,7 +230,8 @@ export const saveRuns = (list) => appendJsonl(FILES.runs, list);
 /** Same URL (or alias) first; otherwise a reference that carries the same work identifier (M8). */
 export function findRef(refs, url, ids = idsFromUrl(url)) {
   const n = normUrl(url);
-  return refs.find((r) => r.normUrl === n || (r.aliases ?? []).includes(n)) ?? (Object.keys(ids).length ? refs.find((r) => sameWork(r.ids ?? idsFromUrl(r.url), ids)) : undefined);
+  const live = refs.filter((r) => !r.mergedInto); // a merged ref is a pointer: its URL now lives on the kept ref's aliases
+  return live.find((r) => r.normUrl === n || (r.aliases ?? []).includes(n)) ?? (Object.keys(ids).length ? live.find((r) => sameWork(r.ids ?? idsFromUrl(r.url), ids)) : undefined);
 }
 
 export function refSlug(refs, url) {

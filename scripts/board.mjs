@@ -1008,7 +1008,8 @@ export function renderBoard(d) {
   const memberIds = new Set(d.members.map((m) => m.r.id));
   const byRef = new Map(d.members.map((m) => [m.r.id, m]));
   // S# chips open the capture in place (#27); a source without a capture shows its details next to the chip, never jumps
-  const cite = (id) => {
+  const cite = (raw) => {
+    const id = d.refById?.get(raw)?.mergedInto ?? raw; // a summary may still name a ref that was merged away
     if (id.startsWith("C")) return `<a class="cite" href="#${id}" title="${esc(d.titleOf(id))}">${id}</a>`;
     if (byRef.get(id)?.thumb) return `<a class="cite" href="#${id}" data-open-ref="${id}" title="${esc(d.titleOf(id))} — 화면 보기">${id}</a>`;
     const r = d.refById?.get(id);

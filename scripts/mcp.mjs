@@ -109,7 +109,7 @@ server.registerTool(
     const [refs, axes, t] = await Promise.all([readRefs(), readAxes(), titles()]);
     const idx = tagIndex(axes);
     const col = collection ? collectionName(collection) : null;
-    const pool = refs.filter((r) => (!col || (r.categories ?? []).includes(col)) && passes(r, since, fresh_only));
+    const pool = refs.filter((r) => !r.mergedInto && (!col || (r.categories ?? []).includes(col)) && passes(r, since, fresh_only));
     let sem = new Map();
     try {
       const { similar } = await import("./embed.mjs");
@@ -138,10 +138,13 @@ server.registerTool(
   },
   async ({ id }) => {
     const [refs, claims, axes, t, ents] = await Promise.all([readRefs(), readClaims(), readAxes(), titles(), readEntities()]);
-    const r = refs.find((x) => x.id === id);
-    if (!r) return text(`reference not found: ${id}`);
+    const hit = refs.find((x) => x.id === id);
+    if (!hit) return text(`reference not found: ${id}`);
+    // a merged ref answers with the ref it was folded into
+    const r = hit.mergedInto ? refs.find((x) => x.id === hit.mergedInto) ?? hit : hit;
     const idx = tagIndex(axes);
     return text({
+      ...(hit !== r ? { merged_from: hit.id, note: `${hit.id} was merged into ${r.id}` } : {}),
       ...refBrief(r, axes, idx, t),
       type: r.type,
       credibility: r.credibility,

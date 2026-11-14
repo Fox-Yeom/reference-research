@@ -5,7 +5,7 @@
 import { promises as fs, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { briefRows, channelCounts, collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, freshWarnings, mustCollection, staleKeyClaims } from "./evidence.mjs";
-import { FILES, LIB, SOURCE_LED, bad, coverageTypes, freshness, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, saveRuns, writeCollection } from "./store.mjs";
+import { FILES, LIB, SOURCE_LED, bad, coverageTypes, freshness, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, readTopics, saveRuns, writeCollection } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { renderBoard, renderHome, splitSummary } from "./board.mjs";
 import { run } from "./capture.mjs";
@@ -270,6 +270,7 @@ async function boardData(col, members, refs, claims, summary, cite, cov, relp) {
     changes: ms.flatMap((m) => (m.r.changes ?? []).map((c) => ({ r: m.r, c }))),
     stale: ms.filter((m) => m.r.snapshots?.length && daysSince(m.r.lastCaptured) > 90).map((m) => m.r),
     sources,
+    refById: byId,
     titleOf,
     catTitle: (n) => titles.get(n) ?? n,
     curriculum: col.domain === "curriculum" ? await (await import("./curriculum.mjs")).curriculumData(col, refs) : null,
@@ -287,8 +288,11 @@ const safeRead = (f) => {
 
 /** <LIB>/index.html — every category and the patterns they share. */
 export async function writeHome() {
-  const [cols, refs, claims, axes, runs] = await Promise.all([listCollections(), readRefs(), readClaims(), readAxes(), readRuns()]);
+  const [cols, refs, claims, axes, runs, topics] = await Promise.all([listCollections(), readRefs(), readClaims(), readAxes(), readRuns(), readTopics()]);
   const idx = tagIndex(axes);
+  // board G home: findings recorded per run (events), for the timeline, activity hexes and KPI sparklines
+  const createdIn = new Map();
+  for (const c of claims) for (const e of c.events ?? []) if (e.type === "created" || e.type === "revises" || e.type === "refutes") createdIn.set(e.run, (createdIn.get(e.run) ?? 0) + 1);
   const byId = new Map(refs.map((r) => [r.id, r]));
   // plans/<name>.json → which product plans draw on each collection (home card badge)
   const plansOf = new Map();
@@ -321,9 +325,13 @@ export async function writeHome() {
     const openQ = openQuestions.length;
     const stale = rs.filter((r) => r.snapshots?.length && r.lastCaptured && daysSince(r.lastCaptured) > 90).length;
     const cur = runs.find((r) => r.id === c.currentRun);
+    const myRuns = runs.filter((r) => r.collection === c.name);
     return {
       name: c.name,
       title: c.title ?? c.name,
+      topic: c.topic ?? null,
+      runsAt: myRuns.map((r) => r.startedAt),
+      newByRun: myRuns.map((r) => createdIn.get(r.id) ?? 0),
       description: c.description,
       goal: c.goal ?? c.question ?? lastRun?.goal ?? null,
       lastRun: lastRun?.startedAt?.slice(0, 10) ?? null,
@@ -372,6 +380,8 @@ export async function writeHome() {
     .sort((a, b) => b.categories.length - a.categories.length || b.cited - a.cited || String(a.product ?? "").localeCompare(String(b.product ?? "")));
   const html = renderHome({
     cats,
+    topics,
+    today: new Date().toISOString().slice(0, 10),
     axes: axRows.filter((a) => Object.keys(a.cats).length),
     recent,
     findings,

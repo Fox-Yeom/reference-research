@@ -45,7 +45,7 @@ Goal frame: references must serve 5 purposes (시행착오 절감 · 벤치마�
 - [ ] **research mode** (`domain: research`): papers — prior work, research gaps, citation-grade sources
 
 ## Library content (maintainer's own, not shipped)
-- [ ] `budget-app-category`: 17 refs, 0 claims — write claims
+- [ ] one collection with 17 refs, 0 claims — write claims
 - [ ] optional: design-visualization research for boards
 - [ ] Fill dates on 1,162 undated refs (`ref fresh`, `ref date`), most from bare-year `published` values
 - [ ] Rewrite old collections' `question` where it holds run notes: the board head now shows it

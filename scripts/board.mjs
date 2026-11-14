@@ -2,7 +2,7 @@
  * board — the HTML template for every collection board and the library home (self-contained, dark neon: board draft G, docs/BOARD-DRAFTS.md).
  *
  * Board: 한눈에 보기 · (커리큘럼 비교) · 패턴 비교 · 레퍼런스 · 발견과 근거 · 조사 기록 · 출처
- * Design follows the reference-library research (reference-library-ui-category): search-first [C42], one filter row
+ * Design follows the reference-library research: search-first [C42], one filter row
  * [C43], image-first cards + product rows [C44], insights traced to evidence [C45], library size as one sentence
  * [C46], editorial tone [C49], no popups/ads [C48].
  */

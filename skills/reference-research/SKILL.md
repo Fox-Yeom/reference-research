@@ -32,7 +32,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | thing | id | what |
 |---|---|---|
 | reference | `S#` | one URL, **global**. Snapshots (captures over time), notes from every category, change history. Belongs to any number of categories |
-| category | collection name | a research theme (`budget-app-category`, `ai-agent-terminal-category`). Members = refs + role (direct/indirect/trend; older members may still read analogous) |
+| category | collection name | a research theme (`note-app-pricing`, `photo-app-onboarding`). Members = refs + role (direct/indirect/trend; older members may still read analogous) |
 | claim | `C#` | one finding citing ≥1 `S#`; global, remembers which categories recorded/confirmed it |
 | run | `R#` | one research session in one category |
 | axis | `axes.json` | **tag normalization**: free-form pattern tags grouped into global axes (`limit-gauge-pace` + `traffic-light-limits` + `pace-line-chart` → 남은 한도·예산 게이지). facet `pattern` drives comparisons; `market` / `platform` / `positioning` are listed apart |
@@ -332,7 +332,7 @@ Only when research feeds a concrete product plan. The plan lives in `plans/<plan
 ## 9. Curriculum mode (`domain: "curriculum"`)
 For references that feed a course or curriculum design ("AI 교육 커리큘럼 만들기 전"). Sections 0–7 still apply; this replaces the screen-oriented parts.
 
-**Start**: `ref run start '{"collection":"ai-literacy-office-workers","title":"직장인 AI 활용 교육","domain":"curriculum","kind":"category","goal":"비전공 직장인 대상 AI 활용 커리큘럼 설계 — 무엇을·어떤 순서로·몇 시간"}'`. Put the **audience** in the goal; every judgment below is relative to it.
+**Start**: `ref run start '{"collection":"python-intro-course","title":"파이썬 입문 강의","domain":"curriculum","kind":"category","goal":"비전공 성인 대상 파이썬 입문 커리큘럼 설계 — 무엇을·어떤 순서로·몇 시간"}'`. Put the **audience** in the goal; every judgment below is relative to it.
 
 **Discovery angles** (same minimums: ≥ 8 queries, ≥ 3 KR, ≥ 3 EN; longlist ≥ 12 with URLs):
 | angle | example queries | becomes |

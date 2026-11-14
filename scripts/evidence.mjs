@@ -13,8 +13,8 @@ import { axisOf, readAxes, tagIndex } from "./axes.mjs";
 import { connectorNames } from "./connectors.mjs";
 import {
   CHANNELS, CHANNEL_KO, CLAIM_KINDS, announce, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
-  FRESH_KO, channelOf, confidence, daysSince, freshness, ensureCollection, findRef, latestSnapshot, nextId, normUrl, readClaims, readCollection, readRefs,
-  readRuns, recomputeConfidence, refSlug, saveClaims, saveRefs, saveRuns, splitLabel, writeCollection,
+  FRESH_KO, ID_KINDS, READ_LEVELS, channelOf, confidence, daysSince, freshness, ensureCollection, findEntity, findRef, idsFromUrl, latestSnapshot, nextId, normUrl, readClaims, readCollection, readEntities, readRefs,
+  readRuns, recomputeConfidence, refSlug, saveClaims, saveRefs, saveRuns, splitLabel, writeCollection, readTopics,
 } from "./store.mjs";
 
 const STALE_DAYS = 90;
@@ -175,7 +175,7 @@ export async function showRun(name) {
 }
 
 export async function startRun(params, findRelated) {
-  const col = await ensureCollection(params.collection ?? params.project, { kind: params.kind, domain: params.domain, title: params.title, description: params.description ?? params.project_description });
+  const col = await ensureCollection(params.collection ?? params.project, { kind: params.kind, domain: params.domain, title: params.title, description: params.description ?? params.project_description, topic: params.topic });
   if (params.brief) mergeBrief(col, params.brief, params.brief_reason);
   const runs = await readRuns();
   const run = { id: nextId("R", runs), collection: col.name, goal: params.goal ?? params.brief?.purpose ?? null, domain: col.domain, kind: col.kind ?? null, startedAt: new Date().toISOString(), ...(col.brief ? { brief: col.brief } : {}) };
@@ -228,18 +228,23 @@ export async function addSources(params) {
   const list = params.sources ?? [params];
   if (!list.length) bad("sources[] is required");
   const col = params.collection ? await mustCollection(params.collection) : null;
-  const refs = await readRefs();
+  const [refs, entities] = await Promise.all([readRefs(), readEntities()]);
   const now = new Date().toISOString();
   const touched = new Map();
   const out = [];
   for (const it of list) {
     if (!it.url) bad("each source needs url");
+    if (it.read !== undefined && it.read !== null && !READ_LEVELS.includes(it.read)) bad(`read must be ${READ_LEVELS.join(" or ")} (or null to clear)`);
+    if (it.ids && (typeof it.ids !== "object" || Object.keys(it.ids).some((k) => !ID_KINDS.includes(k)))) bad(`ids keys must be ${ID_KINDS.join(", ")}`);
+    for (const [k, kind] of [["entity", "product"], ["org", "org"]]) if (it[k] && !findEntity(entities, it[k], kind)) bad(`${k} "${it[k]}" is not in entities.json — add it with \`ref entity set\` first`);
     if (it.type && !SOURCE_TYPES.includes(it.type)) bad(`source type must be one of ${SOURCE_TYPES.join(", ")}`);
     if (it.credibility && !["A", "B", "C", "D"].includes(it.credibility)) bad("credibility must be A, B, C or D");
     if (it.channel && !CHANNELS.includes(it.channel)) bad(`channel must be one of ${CHANNELS.join(", ")}`);
     if (it.published && !/^\d{4}-\d{2}-\d{2}/.test(it.published)) bad(`published must be YYYY-MM-DD, got "${it.published}"; leave it out when only the year or month is known`);
-    let r = findRef(refs, it.url);
+    const ids = { ...idsFromUrl(it.url), ...(it.ids ?? {}) };
+    let r = findRef(refs, it.url, ids);
     const isNew = !r;
+    if (r && normUrl(it.url) !== r.normUrl && !(r.aliases ?? []).includes(normUrl(it.url))) r.aliases = [...(r.aliases ?? []), normUrl(it.url)]; // same work, another address
     if (!r) {
       const { product, page } = splitLabel(it.label ?? it.title ?? "");
       r = { id: nextId("S", refs), slug: refSlug(refs, it.url), url: it.url, normUrl: normUrl(it.url), aliases: [], label: it.label ?? it.title ?? null, product: product || null, page, screens: [], tags: [], categories: [], notes: [], snapshots: [], changes: [], firstSeen: now, run: col?.currentRun ?? null };
@@ -247,6 +252,10 @@ export async function addSources(params) {
     }
     for (const k of ["title", "publisher", "published", "label", "description", "summary", "channel"]) if (it[k] !== undefined) r[k] = it[k]; // summary = one-line 요지 shown in the board's 자료 목록
     if (it.published) r.publishedFrom = "manual";
+    if (Object.keys(ids).length) r.ids = { ...(r.ids ?? {}), ...ids };
+    if (it.read !== undefined) r.read = it.read || undefined; // M11: full = read the source itself, snippet = only a search snippet/abstract
+    if (it.entity) r.entity = findEntity(entities, it.entity, "product").id;
+    if (it.org) r.org = findEntity(entities, it.org, "org").id;
     if (it.type) r.type = it.type;
     r.type ??= "other";
     if (it.credibility) Object.assign(r, { credibility: it.credibility, credibilitySet: true });
@@ -370,16 +379,21 @@ export async function addClaims(params) {
   const list = params.claims ?? [params];
   const col = await mustCollection(params.collection ?? params.project);
   const run = col.currentRun ?? null;
-  const [claims, refs] = await Promise.all([readClaims(), readRefs()]);
+  const [claims, refs, entities, topics, axes] = await Promise.all([readClaims(), readRefs(), readEntities(), readTopics(), readAxes()]);
   const refById = new Map(refs.map((r) => [r.id, r]));
   const byId = new Map(claims.map((c) => [c.id, c]));
   const now = new Date().toISOString();
   const errors = [];
   const warnings = [];
-  const META = ["subject", "key", "asOf", "scope"];
+  const META = ["subject", "key", "asOf", "scope", "about", "against"];
+  // M10: what a claim is about — entity (E#), axis id or topic id; M11: against = sources that speak against it
+  const aboutOk = (id) => entities.some((e) => e.id === id) || topics.some((t) => t.id === id) || axes.axes.some((a) => a.id === id);
   list.forEach((c, i) => {
     const at = `claims[${i}]`;
     if (c.asOf != null && (!/^\d{4}-\d{2}-\d{2}$/.test(String(c.asOf)) || Number.isNaN(Date.parse(c.asOf)))) errors.push(`${at}: asOf must be a real YYYY-MM-DD date`);
+    if (c.about !== undefined && (!Array.isArray(c.about) || c.about.some((x) => !aboutOk(x)))) errors.push(`${at}: about must list known ids (E#, axis id, topic id): ${[].concat(c.about).filter((x) => !aboutOk(x)).join(", ")}`);
+    if (c.against !== undefined && (!Array.isArray(c.against) || c.against.some((s) => !refById.has(s)))) errors.push(`${at}: against must list known ref ids (S#)`);
+    if (c.against?.some((s) => (c.sources ?? byId.get(c.update)?.sources ?? []).includes(s))) errors.push(`${at}: a source cannot be both for and against the claim`);
     if (c.update) {
       if (!byId.has(c.update)) errors.push(`${at}: update ${c.update} not found`);
       else if (!META.some((k) => c[k] !== undefined)) errors.push(`${at}: update needs one of ${META.join(", ")}`);
@@ -413,6 +427,8 @@ export async function addClaims(params) {
       if (c.key !== undefined) old.key = !!c.key;
       if (c.asOf !== undefined) old.asOf = c.asOf || null;
       if (c.scope !== undefined) old.scope = c.scope || null;
+      if (c.about !== undefined) old.about = c.about.length ? [...new Set(c.about)] : undefined;
+      if (c.against !== undefined) old.against = c.against.length ? [...new Set(c.against)] : undefined;
       old.updatedAt = now;
       write.push(old);
       out.push(`${old.id} updated (${META.filter((k) => c[k] !== undefined).join(", ")})`);
@@ -440,6 +456,8 @@ export async function addClaims(params) {
       ...(c.key ? { key: true } : {}),
       ...(c.asOf ? { asOf: c.asOf } : {}),
       ...(c.scope ? { scope: c.scope } : {}),
+      ...(c.about?.length ? { about: [...new Set(c.about)] } : {}),
+      ...(c.against?.length ? { against: [...new Set(c.against)] } : {}),
       collections: [col.name],
       status: "active",
       run,

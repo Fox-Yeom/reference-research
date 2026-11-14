@@ -12,7 +12,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readAxes, tagIndex } from "./axes.mjs";
 import {
-  CHANNELS, FILES, ROLES, announce, looksLikeArticle, SCREEN_TYPES, TYPE_CRED, abs, addMember, bad, daysSince, ensureCollection, findRef, latestSnapshot,
+  CHANNELS, FILES, ROLES, announce, looksLikeArticle, SCREEN_TYPES, TYPE_CRED, abs, addMember, bad, daysSince, ensureCollection, findRef, idsFromUrl, latestSnapshot,
   nextId, normUrl, readRefs, refSlug, rel, saveRefs, splitLabel, stamp, writeCollection,
 } from "./store.mjs";
 
@@ -377,6 +377,8 @@ function upsertRef(refs, url, finalUrl, item, ctx) {
     refs.push(ref);
   }
   for (const u of [url, finalUrl]) if (u && normUrl(u) !== ref.normUrl && !ref.aliases.includes(normUrl(u))) ref.aliases.push(normUrl(u));
+  const ids = { ...idsFromUrl(url), ...(finalUrl ? idsFromUrl(finalUrl) : {}) };
+  if (Object.keys(ids).length) ref.ids = { ...ids, ...(ref.ids ?? {}) };
   ref.screens = [...new Set([...ref.screens, ...screens])];
   ref.tags = [...new Set([...ref.tags, ...other])];
   if (item.label && !ref.label) Object.assign(ref, { label: item.label, product, page });
@@ -388,6 +390,7 @@ function upsertRef(refs, url, finalUrl, item, ctx) {
 function addSnapshot(ref, snap, ctx) {
   const prev = latestSnapshot(ref);
   ref.snapshots.push(snap);
+  ref.read = "full"; // M11: a capture means the page itself was looked at — it also lifts an earlier snippet-only record (same rule as `ref migrate v3`)
   ref.lastCaptured = snap.at;
   if (snap.meta?.title) ref.title = snap.meta.title;
   if (snap.meta?.description) ref.description = snap.meta.description;

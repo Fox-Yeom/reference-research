@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "docs/drafts/g-neon-mix.html"
+        ],
+        "createdAt": "2026-11-13T08:34:25.984Z",
+        "reason": "user confirmed: 2026-11-13 maintainer asked for a neon look from ponytail reference screenshots and chose glow on accents only"
+      }
+    ]
+  }
+}

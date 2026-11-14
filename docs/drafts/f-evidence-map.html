@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ko" data-view="board" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>시안 F 근거 지도 — 레퍼런스 보드</title>
+<style>
+:root{
+  --desk:#e9eef2;--paper:#fff;--paper-2:#f4f7f9;--ink:#13202a;--ink-2:#41505d;--ink-3:#586773;--rule:#d3dce3;--rule-2:#e6ecf0;
+  --teal:#0b6e66;--teal-soft:#dcf0ed;--green:#15784a;--green-soft:#ddf1e5;--amber:#905300;--amber-soft:#fbeed6;--red:#bf2a22;--red-soft:#fbe3df;--blue:#1d5bcc;--blue-soft:#e3ebfb;
+  --bar:#0f2a3a;--bar-2:#173c51;--bar-muted:#bcd2de;--shadow:0 1px 2px rgba(19,32,42,.06),0 8px 24px rgba(19,32,42,.07);
+  --sans:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+:root[data-theme=dark]{
+  --desk:#0b1116;--paper:#121a21;--paper-2:#18222b;--ink:#e7eef3;--ink-2:#b3c0ca;--ink-3:#98a7b2;--rule:#2a3843;--rule-2:#1f2a33;
+  --teal:#5fd3c6;--teal-soft:#143331;--green:#5fd197;--green-soft:#163225;--amber:#f2b55a;--amber-soft:#382a12;--red:#ff8a7c;--red-soft:#3b1c19;--blue:#8fb2ff;--blue-soft:#1c2a45;
+  --bar:#081720;--bar-2:#11283a;--bar-muted:#a9c2d0;--shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{scroll-padding-top:110px;-webkit-text-size-adjust:100%;color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+body{margin:0;background:var(--desk);color:var(--ink);font:15px/1.6 var(--sans);word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased}
+::selection{background:#b9e3dd;color:#13202a}
+a{color:var(--teal);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+button{font:inherit;color:inherit;cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+.bar{position:sticky;top:0;z-index:30;background:var(--bar);color:#fff}
+.bar-row{max-width:1440px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:14px}
+.brand{font-weight:700;color:#fff;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.brand i{display:inline-block;width:18px;height:12px;border-top:3px solid #5fd3c6;border-bottom:3px solid #ffb35c;border-radius:2px}
+.views{display:flex;gap:4px;background:var(--bar-2);padding:3px;border-radius:8px}
+.views a{color:var(--bar-muted);text-decoration:none;padding:5px 12px;border-radius:6px;font-size:14px;white-space:nowrap}
+.views a[aria-current=page]{background:#fff;color:#0f2a3a;font-weight:600}
+.search{margin-left:auto;position:relative;flex:0 1 340px}
+.search input{width:100%;font:inherit;font-size:14px;padding:8px 36px 8px 12px;border-radius:7px;border:1px solid transparent;background:rgba(255,255,255,.12);color:#fff;outline:none}
+.search input::placeholder{color:var(--bar-muted)}.search input:focus{background:#fff;color:#13202a}
+.search kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:12px var(--mono);color:var(--bar-muted);border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:0 5px}
+.themebtn{border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:7px;padding:6px 10px;font-size:13px}
+#searchinfo{max-width:1440px;margin:12px auto 0;padding:0 24px;color:var(--ink-2);font-size:14px}
+main{max-width:1440px;margin:0 auto;padding:20px 24px 120px}
+.sheet{background:var(--paper);border-radius:10px;box-shadow:var(--shadow);margin:0 0 18px}
+.sheet>header{padding:20px 26px 6px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.sheet>header h2{font-size:20px;margin:0;letter-spacing:-.01em}
+.sheet>header p{margin:0;color:var(--ink-2);font-size:14px;flex-basis:100%}
+.lede{padding:22px 26px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end}
+.meta{color:var(--ink-3);font-size:13.5px;margin:0 0 4px}
+h1{font-size:28px;line-height:1.25;margin:0 0 8px;letter-spacing:-.02em}
+.goal{margin:0;font-size:16px;max-width:72ch}.goal b{color:var(--ink-3);font-weight:500;margin-right:8px}
+.how{margin:0;padding:0;list-style:none;font-size:13px;color:var(--ink-2);display:grid;gap:4px}
+.how kbd{font:12px var(--mono);border:1px solid var(--rule);border-radius:4px;padding:0 5px;background:var(--paper-2)}
+/* explorer: columns of nodes, edges drawn over them, details beside */
+.explore{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:0;border-top:1px solid var(--rule-2)}
+.map{position:relative;padding:18px 22px 22px;min-width:0}
+.cols4{position:relative;z-index:1;display:grid;grid-template-columns:1.25fr 1.15fr 1fr .85fr;gap:0 46px;align-items:start}
+.colh{font-size:13px;font-weight:700;color:var(--ink-3);margin:0 0 8px;display:flex;justify-content:space-between}
+.colh span{font-weight:500}
+.node{display:block;width:100%;text-align:left;background:var(--paper);border:1.5px solid var(--rule);border-radius:9px;padding:8px 10px;margin:0 0 9px;font-size:13.5px;line-height:1.45;color:var(--ink);transition:opacity .2s,border-color .2s,box-shadow .2s,transform .15s;position:relative}
+.node:hover{border-color:var(--teal)}
+.node b{display:block;font-size:12.5px;color:var(--ink-3);font-weight:600;margin-bottom:1px}
+.node .tx{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.node.ans .tx{font-weight:700;font-size:15px}
+.node.counter{background:var(--red-soft);border-color:var(--red)}.node.counter b{color:var(--red)}
+.node .s{position:absolute;right:8px;top:8px;width:10px;height:10px;border-radius:50%;background:var(--green)}
+.node .s.mid{background:linear-gradient(90deg,var(--amber) 50%,transparent 50%);box-shadow:inset 0 0 0 2px var(--amber)}
+.node.ref{padding:5px;display:grid;grid-template-columns:52px 1fr;gap:8px;align-items:center}
+.node.ref img{width:52px;height:36px;object-fit:cover;object-position:top;border-radius:5px;display:block}
+.node.ref b{margin:0;color:var(--ink);font-size:13px;overflow-wrap:normal}.node.ref small{display:block;font-size:12px;color:var(--ink-3)}
+/* unrelated nodes recede by tone, not opacity, so their text stays readable */
+.map.has-sel .node:not(.on){color:var(--ink-3);background:var(--paper-2);border-color:var(--rule-2)}
+.map.has-sel .node:not(.on) img{opacity:.4}
+.map.has-sel .node:not(.on) .s{opacity:.35}
+.map.has-sel .node.sel{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft);transform:translateX(2px)}
+.edges{position:absolute;inset:0;z-index:0;pointer-events:none;width:100%;height:100%;overflow:visible}
+.edges path{fill:none;stroke-width:2.5;stroke-linecap:round;transition:opacity .2s,stroke-width .2s}
+.edges .g{stroke:var(--green)}.edges .m{stroke:var(--amber)}.edges .r{stroke:var(--red);stroke-dasharray:7 6}.edges .t{stroke:var(--teal)}
+.map.has-sel .edges path{opacity:.12}
+.map.has-sel .edges path.on{opacity:1;stroke-width:4}
+/* detail: A's galley with margin marks */
+.detail{border-left:1px solid var(--rule-2);padding:18px 22px 22px;background:var(--paper-2);border-radius:0 0 10px 0;position:relative}
+.detail .stick{position:sticky;top:120px}
+.detail h3{margin:0 0 4px;font-size:13px;color:var(--ink-3);font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.detail .t{margin:0 0 10px;font-size:18px;font-weight:700;line-height:1.45}
+.detail .marks{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--rule);padding-top:10px;margin-top:10px}
+.detail .shot{display:block;width:100%;padding:0;border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:12px;aspect-ratio:16/10;background:var(--paper);position:relative}
+.detail .shot img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;transition:transform .3s}
+.detail .shot:hover img{transform:scale(1.025)}
+.detail .chain{margin:12px 0 0;padding:0;list-style:none;font-size:13.5px}
+.detail .chain li{display:flex;gap:8px;padding:5px 0;border-top:1px solid var(--rule-2)}
+.detail .chain li:first-child{border-top:0}
+.detail .chain b{flex:none;font:600 12px var(--mono);color:var(--teal);padding-top:2px;min-width:26px}
+.mark{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;line-height:1.3}
+.mark svg{flex:none;width:20px;height:20px}
+.mark.strong{color:var(--green)}.mark.medium{color:var(--amber)}.mark.contested{color:var(--red)}.mark.query{color:var(--amber)}.mark.new{color:var(--blue)}.mark.synthetic{color:var(--ink-3)}
+.why{font-weight:400;color:var(--ink-2)}
+.id{white-space:nowrap;font:600 12px/1 var(--mono);color:var(--teal);background:var(--teal-soft);border:0;border-radius:4px;padding:4px 6px;margin:0 2px;vertical-align:1px;text-decoration:none;display:inline-block}
+.pick{font-size:12.5px;border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:3px 10px;color:var(--ink-2);white-space:nowrap;transition:background .15s,color .15s}
+.pick:hover{border-color:var(--teal);color:var(--teal)}.pick.is-on{background:var(--teal);border-color:var(--teal);color:var(--paper)}
+.btn{font-size:14px;font-weight:600;border:0;border-radius:7px;padding:9px 14px;background:#0b6e66;color:#fff;transition:transform .12s,background .15s}
+.btn:hover{background:#095a54}.btn:active{transform:translateY(1px)}
+.btn.ghost{background:var(--teal-soft);color:var(--ink)}
+.btn.is-done{background:#15784a;color:#fff}
+.seg{display:inline-flex;gap:2px;background:var(--paper-2);border:1px solid var(--rule);border-radius:8px;padding:2px}
+.seg button{border:0;background:none;border-radius:6px;padding:4px 11px;font-size:13px;color:var(--ink-2)}
+.seg button[aria-pressed=true]{background:var(--paper);color:var(--ink);font-weight:650;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.toolbar{padding:4px 26px 12px;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
+/* below the map: captures and patterns (B's stops) */
+.caps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;padding:4px 26px 24px}
+.cap .shot{display:block;width:100%;padding:0;border:1px solid var(--rule);border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:var(--paper-2);transition:transform .18s,box-shadow .18s}
+.cap .shot:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.cap img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.cap h3{margin:8px 0 0;font-size:14.5px}.cap p{margin:2px 0 0;font-size:12.5px;color:var(--ink-2)}
+.prow{padding:12px 26px 16px;border-top:1px solid var(--rule-2)}
+.prow:first-of-type{border-top:0}
+.prow h3{margin:0;font-size:16px}.prow .lbl{font-size:13px;color:var(--ink-3)}
+.prow .verdict{margin:6px 0 0;font-size:14px;color:var(--teal);font-weight:600}
+.stops{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin:12px 0 0;padding:0;list-style:none;position:relative}
+.stops::before{content:"";position:absolute;left:10%;right:10%;top:9px;height:5px;border-radius:3px;background:var(--teal)}
+.stops li{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;font-size:12.5px;color:var(--ink-2);min-width:0}
+.stops .stn{width:22px;height:22px;border-radius:50%;background:var(--paper);border:4.5px solid var(--teal);position:relative;z-index:1;padding:0;transition:transform .15s}
+.stops .stn.full{background:var(--teal)}.stops li.off .stn{border-color:var(--rule)}
+.stops .stn:hover{transform:scale(1.18)}
+.stops b{color:var(--ink);font-size:13px}
+.qrow{display:grid;grid-template-columns:92px minmax(0,1fr) 200px;gap:0 18px;padding:12px 26px;border-top:1px solid var(--rule-2)}
+.qrow:first-of-type{border-top:0}
+.qrow .lab{font-size:13.5px;color:var(--ink-3)}
+.qrow p{margin:0}.qrow .src{font-size:13px;color:var(--ink-3);margin-top:3px}
+.qrow .mg{border-left:1px dashed var(--rule);padding-left:14px}
+.nomatch{margin:0;padding:12px 26px 18px;color:var(--ink-2);font-size:14px}
+[data-group].is-empty>.caps,[data-group].is-empty>.prow,[data-group].is-empty>.qrow,[data-group].is-empty>.toolbar,[data-group].is-empty>.explore{display:none}
+.synth{font-size:11.5px;color:var(--ink-3);border:1px dashed var(--rule);border-radius:4px;padding:0 5px;margin-left:4px}
+.tray{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:40;display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:calc(100vw - 32px);background:#13202a;color:#fff;border-radius:10px;padding:10px 12px 10px 16px;box-shadow:0 8px 28px rgba(0,0,0,.3)}
+.tray-n{font-weight:600;font-size:14px}.tray-ids{display:flex;gap:4px;flex-wrap:wrap}
+.tray-id{font:600 12px var(--mono);background:rgba(255,255,255,.14);border-radius:4px;padding:3px 4px 3px 7px}
+.tray-id button{border:0;background:none;color:#c6d3dc;padding:0 3px;font-size:14px;line-height:1}
+.tray-copy{border:0;border-radius:6px;background:#fff;color:#13202a;font-weight:600;padding:7px 12px}.tray-copy.is-done{background:#bff0d2}
+.tray-clear{border:0;background:none;color:#c6d3dc;font-size:13px}
+.vw{border:0;padding:0;width:100vw;height:100vh;max-width:none;max-height:none;background:#0d151b;color:#e7eef3}
+.vw::backdrop{background:rgba(5,10,14,.72)}
+.vw[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.vw-top{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #24323d;flex-wrap:wrap}
+.vw-title{margin-right:auto}.vw-count{color:#a5b4bf;font-size:13px}
+.vw-top button,.vw-top a{font-size:13px;color:#e7eef3;background:#1a2731;border:0;border-radius:6px;padding:6px 11px;text-decoration:none}
+.vw-top button:hover,.vw-top a:hover{background:#243541}.vw-top button:disabled{opacity:.4}
+.vw-body{display:grid;grid-template-columns:minmax(0,1fr) 360px;min-height:0}
+.vw-stage{position:relative;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:16px}
+.vw-stage img{max-width:100%;height:auto;border-radius:6px}
+.vw-prev,.vw-next{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:rgba(26,39,49,.92);color:#fff;font-size:22px}
+.vw-prev{left:14px}.vw-next{right:14px}
+.vw-side{overflow:auto;border-left:1px solid #24323d;padding:16px 20px;font-size:14px;color:#cad6de}
+.vw-side h3{font-size:13px;color:#a5b4bf;margin:18px 0 6px}
+.vw-side dl{margin:0}.vw-side dt{color:#8fa3b0;font-size:12.5px;margin-top:8px}.vw-side dd{margin:0}
+.vw-side ul{padding-left:18px;margin:0}.vw-side li{margin:4px 0}
+.vw-meta{margin:0;color:#a5b4bf;font-size:13px}
+.vw-tags span{display:inline-block;font-size:12px;background:#1a2731;border-radius:4px;padding:1px 7px;margin:6px 4px 0 0}
+.vw-side .pick{margin-top:14px;background:#1a2731;border-color:#33465a;color:#e7eef3}.vw-side .pick.is-on{background:#0b6e66}
+.vw-strip{display:flex;gap:8px;padding:10px 16px;border-top:1px solid #24323d;overflow-x:auto}
+.vw-strip button{padding:0;border:2px solid transparent;border-radius:4px;background:none;opacity:.5}.vw-strip button.is-on{opacity:1;border-color:#5fd3c6}
+.vw-strip img{height:56px;display:block;border-radius:2px}
+footer{max-width:1440px;margin:0 auto;padding:0 24px 40px;color:var(--ink-3);font-size:13px}
+@media (max-width:1240px){.explore{grid-template-columns:1fr}.detail{border-left:0;border-top:1px solid var(--rule-2);border-radius:0 0 10px 10px}.detail .stick{position:static}.caps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){
+  .cols4{grid-template-columns:1fr 1fr;gap:14px 18px}.edges{display:none}
+  .lede{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .bar-row{padding:8px 16px;flex-wrap:wrap;gap:8px 10px}.search{flex-basis:100%;order:3}
+  main{padding:14px 12px 120px}
+  .map{padding:14px}.cols4{grid-template-columns:1fr}
+  .sheet>header,.lede,.toolbar,.prow{padding-left:16px;padding-right:16px}
+  .caps{grid-template-columns:1fr 1fr;padding:4px 16px 18px}
+  .qrow{grid-template-columns:1fr;padding:12px 16px}.qrow .mg{border:0;padding:6px 0 0}
+  h1{font-size:23px}
+  .vw-body{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 38vh}.vw-side{border-left:0;border-top:1px solid #24323d}
+  #searchinfo,footer{padding-left:16px;padding-right:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-row">
+  <a class="brand" href="#"><i aria-hidden="true"></i>References</a>
+  <nav class="views" aria-label="화면"><a href="#" data-view-link="board">조사 보드</a><a href="#home" data-view-link="home">라이브러리 홈</a></nav>
+  <label class="search"><input id="q" type="search" placeholder="레퍼런스·발견·패턴 검색" aria-label="검색" autocomplete="off"><kbd>/</kbd></label>
+  <button type="button" class="themebtn" id="theme" aria-pressed="false">어둡게</button>
+</div></header>
+<p id="searchinfo" hidden></p>
+<main id="app"></main>
+<footer>시안 F · 근거 지도. 데이터: <code>dev/demo.sh</code> 예시 조사, 홈의 다른 조사는 가상 예시입니다.</footer>
+<script src="data.js"></script>
+<script src="common.js"></script>
+<script>
+const { B, H, esc, ref, claim, col, ctitle, claimsCiting } = Draft;
+const SVG = {
+  strong: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10.5l4.2 4.2L17 4.8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  medium: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10.5l4.2 4.2L12 9.4" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15.5" cy="6.5" r="1.8" fill="currentColor"/></svg>',
+  contested: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10h16M6 16l4-6 4 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  query: '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.6 7.6a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.6M10 14.6v.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  new: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5v15M2.5 10h15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  synthetic: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 3h14v14H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2.4"/></svg>',
+};
+const mark = (k, word, why = "") => `<span class="mark ${k}">${SVG[k]}<span>${word}${why ? ` <span class="why">${why}</span>` : ""}</span></span>`;
+const id = (x) => (x.startsWith("S") ? `<button type="button" class="id" data-open="${x}">${x}</button>` : `<a class="id" href="#${x}">${x}</a>`);
+const ids = (a) => (a || []).map(id).join("");
+const pick = (x) => `<button type="button" class="pick" data-pick="${x}" aria-pressed="false">${x} 담기</button>`;
+const sheet = (sid, title, desc, inner, group = true) => `<section class="sheet" id="${sid}"${group ? " data-group" : ""}><header><h2>${title}</h2>${desc ? `<p>${desc}</p>` : ""}</header>${inner}</section>`;
+
+// a generic explorer: nodes in columns, edges [from, to, kind]; selecting a node lights everything connected to it
+function explorer(root, nodes, edges, detail, first) {
+  const map = root.querySelector(".map"), svg = map.querySelector(".edges");
+  const adj = new Map(); edges.forEach(([a, b]) => { (adj.get(a) || adj.set(a, []).get(a)).push(b); (adj.get(b) || adj.set(b, []).get(b)).push(a); });
+  // walk outward but never back through the column we came from, so a claim does not light every sibling claim
+  const colOf = new Map(nodes.map((n) => [n.id, n.col]));
+  const reach = (start) => { const seen = new Set([start]); const go = (n, dir) => (adj.get(n) || []).forEach((m) => { const d = Math.sign(colOf.get(m) - colOf.get(n)); if (!seen.has(m) && (dir === 0 || d === dir)) { seen.add(m); go(m, dir || d); } }); go(start, 0); return seen; };
+  function draw() {
+    const box = map.getBoundingClientRect(); svg.setAttribute("viewBox", `0 0 ${box.width} ${box.height}`);
+    svg.innerHTML = edges.map(([a, b, k]) => {
+      if (colOf.get(a) === colOf.get(b)) return ""; // same column: linked for selection, not drawn
+      const A = map.querySelector(`[data-node="${a}"]`), Bn = map.querySelector(`[data-node="${b}"]`); if (!A || !Bn || !A.offsetParent || !Bn.offsetParent) return "";
+      const ra = A.getBoundingClientRect(), rb = Bn.getBoundingClientRect(), [L, R] = ra.left < rb.left ? [ra, rb] : [rb, ra];
+      const x1 = L.right - box.left, y1 = L.top + L.height / 2 - box.top, x2 = R.left - box.left, y2 = R.top + R.height / 2 - box.top, mx = (x1 + x2) / 2;
+      return `<path class="${k}" data-a="${a}" data-b="${b}" d="M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}"/>`;
+    }).join("");
+    if (cur) highlight(cur);
+  }
+  let cur = null;
+  // redraws only re-apply the highlight; the detail panel is rebuilt on a real selection, so its buttons stay put
+  function highlight(nid) {
+    const on = reach(nid);
+    map.classList.add("has-sel");
+    map.querySelectorAll("[data-node]").forEach((n) => { n.classList.toggle("on", on.has(n.dataset.node)); n.classList.toggle("sel", n.dataset.node === nid); n.setAttribute("aria-pressed", n.dataset.node === nid); });
+    svg.querySelectorAll("path").forEach((p) => p.classList.toggle("on", on.has(p.dataset.a) && on.has(p.dataset.b)));
+    return on;
+  }
+  function select(nid, focus = true) {
+    cur = nid; const on = highlight(nid);
+    root.querySelector(".stick").innerHTML = detail(nid, on);
+    Draft.renderTray();
+    if (focus) map.querySelector(`[data-node="${nid}"]`)?.focus({ preventScroll: true });
+  }
+  map.addEventListener("click", (e) => { const n = e.target.closest("[data-node]"); if (n) select(n.dataset.node); });
+  // arrow keys walk the columns
+  map.addEventListener("keydown", (e) => {
+    const n = e.target.closest("[data-node]"); if (!n || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
+    e.preventDefault();
+    const cols = [...map.querySelectorAll(".col")], c = n.closest(".col"), list = [...c.querySelectorAll("[data-node]")], i = list.indexOf(n);
+    let t = null;
+    if (e.key === "ArrowDown") t = list[i + 1]; if (e.key === "ArrowUp") t = list[i - 1];
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const nc = cols[cols.indexOf(c) + (e.key === "ArrowRight" ? 1 : -1)]; if (nc) { const l2 = [...nc.querySelectorAll("[data-node]")]; t = l2.find((x) => x.classList.contains("on")) || l2[Math.min(i, l2.length - 1)]; } }
+    if (t) select(t.dataset.node);
+  });
+  new ResizeObserver(draw).observe(map);
+  // search hides nodes; redraw so edges to hidden nodes disappear
+  document.getElementById("q").addEventListener("input", () => requestAnimationFrame(draw));
+  addEventListener("load", draw);
+  draw(); select(first, false);
+}
+const kindOf = (c) => (claim(c)?.strength === "강함" ? "g" : "m");
+function drawBoard() {
+  const E = B.evidence;
+  const nodes = [
+    { id: "question", col: 0 }, { id: "answer", col: 0 }, { id: "proposal", col: 0 },
+    ...E.map((_, i) => ({ id: "e" + i, col: 1 })), { id: "counter", col: 1 },
+    ...B.claims.map((c) => ({ id: c.id, col: 2 })), ...B.refs.map((r) => ({ id: r.id, col: 3 })),
+  ];
+  const edges = [["question", "answer", "t"], ["answer", "e0", "g"], ["answer", "e1", "g"], ["answer", "e2", "m"], ["e1", "counter", "r"], ["proposal", "C1", "g"], ["proposal", "C5", "g"],
+    ...E.flatMap((e, i) => e.claims.map((c) => ["e" + i, c, kindOf(c)])), ["counter", "C6", "r"],
+    ...B.claims.flatMap((c) => c.sources.map((s) => [c.id, s, c.id === "C6" ? "r" : kindOf(c.id)]))];
+  const node = (nid, label, text, cls = "", extra = "") => `<button type="button" class="node ${cls}" data-node="${nid}" aria-pressed="false" data-search="${esc(label + " " + text)}"><b>${label}</b><span class="tx">${esc(text)}</span>${extra}</button>`;
+  const lede = `<section class="sheet lede" id="top"><div><p class="meta">${B.kind} · ${B.domain} · 마지막 조사 ${B.date}</p><h1>${esc(B.title)}</h1><p class="goal"><b>왜 조사했나</b>${esc(B.goal)}</p></div>
+<ul class="how"><li>칸을 누르면 이어진 근거·발견·화면만 밝아집니다</li><li><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 로 칸 사이를 옮겨 다닙니다</li><li>오른쪽 칸에서 담기·화면 보기를 합니다</li></ul></section>`;
+  const mapSheet = `<section class="sheet" id="key" data-group><header><h2>근거 지도</h2><p>결론에서 근거, 발견, 캡처까지 이어진 선입니다. 초록은 근거 강함, 주황은 보통, 빨간 점선은 반대 근거입니다.</p></header>
+<div class="explore"><div class="map"><svg class="edges" aria-hidden="true"></svg><div class="cols4">
+<div class="col"><p class="colh">결론</p>${node("question", "질문", B.question)}${node("answer", "답", B.answer.text, "ans")}${node("proposal", "제안", B.proposal.text)}</div>
+<div class="col"><p class="colh">근거 <span>${E.length} · 반대 1</span></p>${E.map((e, i) => node("e" + i, `근거 ${i + 1}`, e.text, "", `<i class="s ${e.strength === "강함" ? "" : "mid"}"></i>`)).join("")}${node("counter", `반대 근거 · 근거 ${B.counter.against}`, B.counter.text, "counter")}</div>
+<div class="col"><p class="colh">발견 <span>${B.claims.length}</span></p>${B.claims.map((c) => node(c.id, `${c.id} · ${c.kind}`, c.text, "", `<i class="s ${c.strength === "강함" ? "" : "mid"}"></i>`)).join("")}</div>
+<div class="col"><p class="colh">캡처 <span>${B.refs.length}</span></p>${B.refs.map((r) => `<button type="button" class="node ref" data-node="${r.id}" aria-pressed="false" data-search="${esc(r.id + " " + r.product + " " + r.page)}"><img src="${r.images[0]}" alt=""><span><b>${r.id} ${esc(r.product)}</b><small>${r.role}</small></span></button>`).join("")}</div>
+</div></div><aside class="detail"><div class="stick"></div></aside></div></section>`;
+  const caps = sheet("refs", "캡처한 화면", "화면을 누르면 페이지 안에서 크게 봅니다.",
+    `<div class="caps">${B.refs.map((r) => `<article class="cap" data-search="${esc([r.id, r.product, r.page, r.role, ...r.tags.map((t) => t.label)].join(" "))}"><button type="button" class="shot" data-open="${r.id}" aria-label="${esc(r.product)} 캡처 열기"><img loading="lazy" src="${r.images[0]}" alt=""></button><h3>${esc(r.product)} ${id(r.id)}</h3><p>${r.role} · 발견 ${claimsCiting(r.id).length}개 · ${r.tags.map((t) => esc(t.label)).slice(0, 2).join(", ")}</p></article>`).join("")}</div>`);
+  const axes = sheet("axes", "패턴 비교", "질문 하나가 노선 하나입니다. 해법을 쓰는 제품의 정거장만 채워져 있습니다.",
+    B.axes.filter((a) => a.members.length).sort((a, b) => b.members.length - a.members.length).map((a) => { const used = new Map(a.members.map((m) => [m.ref, m.tags]));
+      return `<div class="prow" data-search="${esc([a.label, a.question, a.verdict, ...a.members.map((m) => ref(m.ref).product)].join(" "))}"><h3>${esc(a.question)} <span class="lbl num">${a.members.length}/${B.refs.length} 제품</span></h3><span class="lbl">${esc(a.label)}</span>${a.verdict ? `<p class="verdict">결론: ${esc(a.verdict.replace(/\s*\[C\d+\]/, ""))} ${id("C1")}</p>` : ""}
+<ol class="stops">${B.refs.map((r) => `<li class="${used.has(r.id) ? "" : "off"}"><button type="button" class="stn ${used.has(r.id) ? "full" : ""}" data-open="${r.id}" aria-label="${esc(r.product)} ${used.has(r.id) ? "씀" : "쓰지 않음"}"></button><b>${esc(r.product)}</b><span>${used.has(r.id) ? used.get(r.id).map(esc).join(" · ") : "쓰지 않음"}</span></li>`).join("")}</ol></div>`; }).join(""));
+  const open = sheet("open", "피할 것과 추가 질문", "답에 따라 결론이 달라질 수 있는 질문입니다.",
+    B.avoid.map((a) => `<div class="qrow" data-search="${esc(a.text)}"><span class="lab">피할 것</span><p>${esc(a.text)} ${ids(a.claims)}</p><div class="mg">${mark("query", "추정", "직접 확인 안 됨")}</div></div>`).join("") +
+    B.open.map((o, i) => `<div class="qrow" data-search="${esc(o.text + " " + o.why)}"><span class="lab">${i ? "" : "추가 질문"}</span><div><p>${esc(o.text)}</p><p class="src">확인할 이유: ${esc(o.why)} ${ids(o.claims)}</p></div><div class="mg">${mark("query", "답 없음")}</div></div>`).join("") +
+    `<div class="qrow"><span class="lab">이어서</span><div><button type="button" class="btn" data-copy="continue">이 조사 이어서 하기 — 프롬프트 복사</button></div><div class="mg">${mark("new", `검색 ${B.rounds.length}바퀴`, esc(B.rounds.at(-1).stopped))}</div></div>`);
+  document.getElementById("app").innerHTML = lede + mapSheet + caps + axes + open + Draft.trayHtml() + Draft.viewerHtml();
+  const label = { question: "질문", answer: "답", proposal: "제안", counter: "반대 근거" };
+  explorer(document.getElementById("key"), nodes, edges, (nid, on) => {
+    const linkedRefs = [...on].filter((x) => /^S\d/.test(x)), linkedClaims = [...on].filter((x) => /^C\d/.test(x));
+    let head, text, marks = "", act = "";
+    if (/^S\d/.test(nid)) { const r = ref(nid); head = `${r.id} ${esc(r.product)} · ${r.role}`; text = r.note.find((n) => n[0] === "기능")?.[1] || r.page; marks = mark("new", `발견 ${linkedClaims.length}개가 이 화면을 인용`); act = `<button type="button" class="shot" data-open="${r.id}" aria-label="${esc(r.product)} 캡처 크게 보기"><img src="${r.images[0]}" alt=""></button>`; }
+    else if (/^C\d/.test(nid)) { const c = claim(nid); head = `${c.id} · ${c.kind} · ${esc(c.subject)}`; text = c.text; marks = (c.strength === "강함" ? mark("strong", "근거 강함") : mark("medium", "근거 보통")) + (nid === "C6" ? mark("contested", "근거 2를 반박") : "") + mark("new", `출처 ${c.sources.length}곳`); act = pick(nid); }
+    else if (/^e\d/.test(nid)) { const e = E[+nid.slice(1)]; head = `근거 ${+nid.slice(1) + 1}`; text = e.text; marks = (e.strength === "강함" ? mark("strong", "근거 강함") : mark("medium", "근거 보통")) + (e.countered ? mark("contested", "반대 근거 있음") : ""); act = e.claims.map(pick).join(" "); }
+    else { head = label[nid]; text = nid === "question" ? B.question : nid === "answer" ? B.answer.text : nid === "proposal" ? B.proposal.text : B.counter.text; marks = nid === "counter" ? mark("contested", "근거 2를 반박") : nid === "answer" ? mark("contested", "반대 근거 1개", "근거 2에 걸림") : nid === "proposal" ? mark("strong", "근거 강함") : mark("new", "이번 회차에 정함", "R1"); act = nid === "counter" ? pick("C6") : nid === "answer" ? B.answer.claims.map(pick).join(" ") : ""; }
+    return `<h3>${head}</h3><p class="t">${esc(text)}</p>${act ? `<div>${act}</div>` : ""}<div class="marks">${marks}</div>
+<ul class="chain">${linkedClaims.filter((c) => c !== nid).slice(0, 4).map((c) => `<li><b>${c}</b><span>${esc(claim(c).text)}</span></li>`).join("")}</ul>
+${!/^S\d/.test(nid) && linkedRefs.length ? `<p style="margin:10px 0 0;font-size:13px;color:var(--ink-2)">이어진 화면 ${linkedRefs.length}개: ${ids(linkedRefs)}</p>` : ""}`;
+  }, "answer");
+}
+function drawHome() {
+  const C = H.collections, topics = [...new Set(C.map((c) => c.topic))];
+  const nodes = [...topics.map((t) => ({ id: "t:" + t, col: 0 })), ...C.map((c) => ({ id: c.id, col: 1 })), ...H.patterns.map((p, i) => ({ id: "p" + i, col: 2 })), ...H.shared.map((s) => ({ id: "s:" + s.ref, col: 3 }))];
+  const edges = [...C.map((c) => ["t:" + c.topic, c.id, "t"]), ...H.patterns.flatMap((p, i) => Object.keys(p.in).map((k) => [k, "p" + i, p.verdict ? "g" : "m"])), ...H.shared.flatMap((s) => s.in.map((k) => [k, "s:" + s.ref, "t"]))];
+  const totals = { refs: C.reduce((n, c) => n + c.refs, 0), claims: C.reduce((n, c) => n + c.claims, 0), open: C.reduce((n, c) => n + c.open, 0) };
+  const lede = `<section class="sheet lede" id="top"><div><p class="meta">레퍼런스 라이브러리 · 2026-11-13 기준 · 가상 예시 조사 4개 포함</p><h1>조사해 둔 레퍼런스</h1><p class="goal">조사 ${C.length}개 · 레퍼런스 ${totals.refs}개 · 발견 ${totals.claims}개 · 추가 질문 ${totals.open}개. 조사를 누르면 같은 패턴과 레퍼런스를 쓴 다른 조사가 함께 밝아집니다.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button type="button" class="btn" data-copy="new">새 조사 시작 — 프롬프트 복사</button><button type="button" class="btn ghost" data-copy="ask">라이브러리에 묻기 — 프롬프트 복사</button></div></div>
+<ul class="how"><li>칸을 누르면 이어진 것만 밝아집니다</li><li><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 로 옮겨 다닙니다</li></ul></section>`;
+  const node = (nid, label, text, extra = "") => `<button type="button" class="node" data-node="${nid}" aria-pressed="false" data-search="${esc(label + " " + text)}"><b>${label}</b><span class="tx">${text}</span>${extra}</button>`;
+  const mapSheet = `<section class="sheet" id="map" data-group><header><h2>조사 지도</h2><p>주제 → 조사 → 겹치는 패턴 → 겹치는 레퍼런스. 초록 선은 결론이 있는 패턴, 주황 선은 결론이 아직 없는 패턴입니다.</p></header>
+<div class="explore"><div class="map"><svg class="edges" aria-hidden="true"></svg><div class="cols4">
+<div class="col"><p class="colh">주제 <span>${topics.length}</span></p>${topics.map((t) => node("t:" + t, "주제", `${esc(t)} · 조사 ${C.filter((c) => c.topic === t).length}개`)).join("")}</div>
+<div class="col"><p class="colh">조사 <span>${C.length}</span></p>${C.map((c) => node(c.id, `${c.date.slice(5).replace("-", ".")} · 레퍼런스 ${c.refs}${c.synthetic ? " · 가상 예시" : ""}`, esc(c.title))).join("")}</div>
+<div class="col"><p class="colh">겹치는 패턴 <span>${H.patterns.length}</span></p>${H.patterns.map((p, i) => node("p" + i, p.verdict ? "결론 있음" : "결론 없음", esc(p.question), `<i class="s ${p.verdict ? "" : "mid"}"></i>`)).join("")}</div>
+<div class="col"><p class="colh">겹치는 레퍼런스 <span>${H.shared.length}</span></p>${H.shared.map((s) => `<button type="button" class="node ref" data-node="s:${s.ref}" aria-pressed="false" data-search="${esc(s.product)}"><img src="${ref(s.ref).images[0]}" alt=""><span><b>${s.ref} ${esc(s.product)}</b><small>조사 ${s.in.length}개</small></span></button>`).join("")}</div>
+</div></div><aside class="detail"><div class="stick"></div></aside></div></section>`;
+  const openq = sheet("openq", "추가 질문", "아직 답하지 않은 질문입니다.",
+    B.open.map((o) => `<div class="qrow" data-search="${esc(o.text)}"><span class="lab">메모 앱 요금제</span><div><p>${esc(o.text)}</p><p class="src">${esc(o.why)}</p></div><div class="mg">${mark("query", "답 없음")}</div></div>`).join("") +
+    `<div class="qrow"><span class="lab"></span><div><button type="button" class="btn ghost" data-copy="continue">이 질문들로 이어서 하기 — 프롬프트 복사</button></div><div></div></div>`);
+  const recent = sheet("recent", "최근 활동", "조사 회차마다 무엇을 얻었는지입니다.",
+    H.recent.map((r) => `<div class="qrow" data-search="${esc(col(r.collection).title + " " + r.result)}"><span class="lab num">${r.date.slice(5).replace("-", ".")}</span><div><p><b>${ctitle(r.collection)}</b> ${r.run}</p><p class="src">${esc(r.result)}</p></div><div class="mg">${mark("new", `새 발견 ${r.newClaims}개`)}</div></div>`).join(""));
+  document.getElementById("app").innerHTML = lede + mapSheet + recent + openq + Draft.trayHtml() + Draft.viewerHtml();
+  explorer(document.getElementById("map"), nodes, edges, (nid, on) => {
+    if (nid.startsWith("t:")) { const t = nid.slice(2), cs = C.filter((c) => c.topic === t); return `<h3>주제</h3><p class="t">${esc(t)}</p><div class="marks">${mark("new", `조사 ${cs.length}개`)}</div><ul class="chain">${cs.map((c) => `<li><b>${c.date.slice(5).replace("-", ".")}</b><span>${ctitle(c.id)}</span></li>`).join("")}</ul>`; }
+    if (nid.startsWith("p")) { const p = H.patterns[+nid.slice(1)]; return `<h3>겹치는 패턴 · ${esc(p.label)}</h3><p class="t">${esc(p.question)}</p><div class="marks">${p.verdict ? mark("strong", "결론 있음", esc(p.verdict)) : mark("query", "결론 없음", "verdict 미기록")}</div><ul class="chain">${Object.entries(p.in).map(([k, n]) => `<li><b class="num">${n}</b><span>${ctitle(k)} · 제품 ${n}곳</span></li>`).join("")}</ul>`; }
+    if (nid.startsWith("s:")) { const s = H.shared.find((x) => "s:" + x.ref === nid), r = ref(s.ref); return `<h3>${s.ref} · 겹치는 레퍼런스</h3><p class="t">${esc(s.product)}</p><button type="button" class="shot" data-open="${s.ref}" aria-label="${esc(s.product)} 캡처 크게 보기"><img src="${r.images[0]}" alt=""></button><div class="marks">${mark("new", `조사 ${s.in.length}개에 걸침`)}</div><ul class="chain">${s.in.map((k) => `<li><b>·</b><span>${ctitle(k)}</span></li>`).join("")}</ul>`; }
+    const c = col(nid), linked = [...on].filter((x) => H.collections.some((k) => k.id === x) && x !== nid);
+    return `<h3>${esc(c.topic)} · ${esc(c.domain)} · ${c.date}${c.synthetic ? `<span class="synth">가상 예시</span>` : ""}</h3><p class="t">${esc(c.title)}</p><p style="margin:0;color:var(--ink-2);font-size:14px">${esc(c.question)}</p><p style="margin:6px 0 0;font-weight:700">${esc(c.answer)}</p>
+${c.thumbs ? `<button type="button" class="shot" data-open="S1" aria-label="캡처 크게 보기"><img src="${c.thumbs[0]}" alt=""></button>` : ""}
+<div class="marks">${c.open ? mark("query", `추가 질문 ${c.open}개`) : mark("strong", "열린 질문 없음")}${c.mixed ? mark("contested", "근거 엇갈림", "4 대 3") : ""}${mark("new", `레퍼런스 ${c.refs} · 발견 ${c.claims} · 회차 ${c.runs}`)}</div>
+${linked.length ? `<p style="margin:10px 0 0;font-size:13px;color:var(--ink-2)">패턴이나 레퍼런스를 함께 쓰는 조사: ${linked.map((k) => ctitle(k)).join(", ")}</p>` : ""}
+${c.synthetic ? "" : `<div style="margin-top:12px"><button type="button" class="btn" data-copy="continue">이어서 조사하기 — 프롬프트 복사</button></div>`}`;
+  }, "note-app-pricing");
+}
+Draft.theme(document.getElementById("theme"));
+Draft.route(drawBoard, drawHome);
+Draft.bindSearch(document.getElementById("q"));
+</script>
+</body>
+</html>

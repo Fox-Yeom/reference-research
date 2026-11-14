@@ -41,6 +41,7 @@
  *   ref migrate [--dry-run] [--plan name]     one-time v1 → v2
  *   ref migrate roles [--dry-run]     analogous → indirect, keeps roleWas
  *   ref migrate grades [--dry-run] [--keep S1,S2]   captured articles typed official/docs → blog (grade C), keeps typeWas; --keep pins a company's own announcements
+ *   ref migrate v3 [--dry-run] [--out report.md]   v2 → v3: fills read/ids/product entities, prints a review list (topics, counter-evidence, duplicates); safe to run twice
  *   ref compact                       rewrite JSONL files without superseded lines
  *
  * "-" reads JSON from stdin. Images worth looking at are printed after "IMAGES:" — open them with the Read tool.
@@ -53,7 +54,7 @@ import { archiveDates, capture, storeScreens } from "./capture.mjs";
 import { connectorList, connectorStatus, fetchCandidates } from "./connectors.mjs";
 import * as ev from "./evidence.mjs";
 import { report, coverage } from "./report.mjs";
-import { migrate, migrateGrades, migrateRoles } from "./migrate.mjs";
+import { migrate, migrateGrades, migrateRoles, migrateV3 } from "./migrate.mjs";
 import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate } from "./store.mjs";
 import { spawnSync } from "node:child_process";
 
@@ -462,6 +463,7 @@ try {
     case "migrate": {
       const dryRun = bool(args, "--dry-run");
       if (args[0] === "roles") print(await migrateRoles({ dryRun }));
+      else if (args[0] === "v3") print(await migrateV3({ dryRun, out: flag(args, "--out") }));
       else if (args[0] === "grades") print(await migrateGrades({ dryRun, keep: (flag(args, "--keep") ?? "").split(",").filter(Boolean) }));
       else print(await migrate({ dryRun, plan: flag(args, "--plan") }));
       break;

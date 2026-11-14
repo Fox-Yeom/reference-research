@@ -7,6 +7,8 @@ T="$(mktemp -d -t ref-test)"
 export REF_HOME="$T/home" REF_LIBRARY="$T/lib" REF_CAPTURE="${REF_CAPTURE:-chrome}"
 R="$ROOT/scripts/ref"
 step() { printf '\n== %s\n' "$*"; }
+# `! cmd` does not stop a `set -e` script, so expected failures need an explicit check
+fails() { if "$@" >/dev/null 2>&1; then echo "expected to fail: $*"; exit 1; fi; }
 step "syntax";   for f in "$ROOT"/scripts/*.mjs; do node --check "$f"; done; echo ok
 step "manifest"; (cd "$ROOT" && claude plugin validate . && claude plugin validate .claude-plugin/plugin.json) | grep -E '✔|✘|⚠'
 step "doctor";   "$R" doctor
@@ -20,7 +22,7 @@ step "flow"
 "$R" run round '{"collection":"smoke","queries":[{"q":"smoke","via":"hn"}],"candidates":[{"url":"https://news.ycombinator.com/item?id=1","via":"hn"}],"new_axes":["b"]}' | grep -q '커넥터 1'
 "$R" run show smoke | grep -q '커넥터 후보: hn 1'
 "$R" run show smoke | grep -q '질의 2개 (최소 8)'
-! "$R" run round '{"collection":"smoke","queries":[{"q":"smoke","via":"web"}]}' 2>/dev/null
+fails "$R" run round '{"collection":"smoke","queries":[{"q":"smoke","via":"web"}]}'
 "$R" migrate roles --dry-run
 "$R" migrate grades --dry-run
 "$R" fresh smoke | head -1
@@ -36,6 +38,20 @@ before="$(library_hash)"
 "$R" fetch hn '{"q":"design system","limit":3}' | head -2 || echo "(hn unreachable: read-only check still runs)"
 [ "$before" = "$(library_hash)" ] && echo "library untouched"
 step "report";   "$R" report '{"collection":"smoke","open":false}' | grep -c index.html
+step "v3 model (topics, entities, ids, read, against, migration)"
+"$R" topic set '{"topics":[{"id":"smoke-topic","label":"스모크"}],"assign":{"smoke":"smoke-topic"}}' | grep -q 'smoke → smoke-topic'
+fails "$R" topic set '{"assign":{"smoke":"no-such-topic"}}'
+"$R" entity set '{"entities":[{"kind":"product","name":"Example","aliases":["example.com"]}],"link":{"S1":"example.com"}}' | grep -q 'S1.entity → E1'
+"$R" source add '{"collection":"smoke","url":"https://doi.org/10.1000/xyz","label":"Paper — p","type":"paper"}' | grep -q '^S2 '
+"$R" source add '{"url":"https://example.org/mirror","ids":{"doi":"10.1000/XYZ"}}' | grep -q '^S2 (updated)'   # same work, other address
+"$R" source add '{"collection":"smoke","sources":[{"url":"https://a.example/x","label":"A — x","type":"official","read":"snippet"},{"url":"https://b.example/x","label":"B — x","type":"official","read":"snippet"}]}' >/dev/null
+"$R" claim add '{"collection":"smoke","text":"two skimmed sources","kind":"fact","subject":"s","sources":["S3","S4"],"against":["S2"],"about":["E1"]}' | grep -q 'C1 \[fact, medium\]'   # snippet-only: at most medium
+"$R" source add '{"url":"https://a.example/x","read":"full"}' | grep -q 'C1→high'
+fails "$R" claim add '{"collection":"smoke","text":"x","kind":"fact","sources":["S3"],"against":["S3"]}'
+"$R" migrate v3 --dry-run | grep -q 'dry run'
+"$R" migrate v3 >/dev/null
+"$R" migrate v3 | grep -q 'product entities: 0 new · 0 refs linked'   # second run changes nothing
+"$R" report '{"collection":"smoke","open":false}' | grep -c index.html
 step "mcp"
 printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}' \
   '{"jsonrpc":"2.0","method":"notifications/initialized"}' \

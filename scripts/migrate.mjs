@@ -9,7 +9,7 @@
 import { promises as fs, existsSync } from "node:fs";
 import * as path from "node:path";
 import {
-  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, confidence, listCollections, looksLikeArticle, readClaims, readRefs, recomputeConfidence, saveRefs, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
+  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, confidence, hostOf, listCollections, looksLikeArticle, readClaims, readRefs, recomputeConfidence, saveRefs, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
 } from "./store.mjs";
 
 const ROLE_SET = new Set(ROLES);
@@ -200,3 +200,123 @@ export async function migrate({ dryRun = false, plan = null } = {}) {
 }
 
 export { nextId };
+
+/**
+ * v2 → v3 (docs/DATA-MODEL.md §14, issue #19): fills what can be derived, lists what needs a person.
+ * Applied: ref.read = full where a note, summary or snapshot shows the source was read · ref.ids from URLs ·
+ *          product entities from exact product names (one entity per normalized name, variants kept as aliases).
+ * Review only (never written): topics per collection, counter-evidence candidates from SUMMARY "반대 근거" lines,
+ *          same-work duplicates, products split across one host, missing head fields, members without role, axes without description.
+ * Safe to run twice: the second run changes nothing. Run on a git-committed library; one commit reverts it.
+ */
+export async function migrateV3({ dryRun = false, out = null } = {}) {
+  const { readEntities, writeEntities, readTopics, normName, idsFromUrl, sameWork, readState, collectionDir } = await import("./store.mjs");
+  const { readAxes, tagUsage } = await import("./axes.mjs");
+  const [refs, claims, cols, entities, topics, axes, use] = await Promise.all([readRefs(), readClaims(), listCollections(), readEntities(), readTopics(), readAxes(), tagUsage()]);
+  const changed = new Map();
+  const touch = (r) => changed.set(r.id, r);
+  const count = { read: 0, ids: 0, entityNew: 0, entityLinked: 0 };
+
+  // read level: a note, a summary or a capture means someone looked at the source itself
+  for (const r of refs) {
+    if (r.read || !(r.notes?.length || r.summary || r.snapshots?.length)) continue;
+    r.read = "full";
+    count.read++;
+    touch(r);
+  }
+  // identifiers on the face of the URL or its aliases
+  for (const r of refs) {
+    const ids = Object.assign({}, ...[r.url, ...(r.aliases ?? []).map((a) => `https://${a}`)].map(idsFromUrl));
+    const add = Object.fromEntries(Object.entries(ids).filter(([k]) => !r.ids?.[k]));
+    if (!Object.keys(add).length) continue;
+    r.ids = { ...(r.ids ?? {}), ...add };
+    count.ids++;
+    touch(r);
+  }
+  // product entities: exact normalized names only; fuzzy matches go to the review list
+  const groups = new Map();
+  for (const r of refs) if (r.product && !r.entity) (groups.get(normName(r.product)) ?? groups.set(normName(r.product), []).get(normName(r.product))).push(r);
+  for (const [key, rs] of groups) {
+    if (!key) continue;
+    let ent = entities.find((e) => e.kind === "product" && (normName(e.name) === key || (e.aliases ?? []).some((a) => normName(a) === key)));
+    if (!ent) {
+      const names = Object.entries(rs.reduce((m, r) => ({ ...m, [r.product]: (m[r.product] ?? 0) + 1 }), {})).sort((a, b) => b[1] - a[1]).map(([n]) => n);
+      ent = { id: nextId("E", entities), kind: "product", name: names[0], aliases: names.slice(1) };
+      entities.push(ent);
+      count.entityNew++;
+    }
+    for (const r of rs) {
+      r.entity = ent.id;
+      count.entityLinked++;
+      touch(r);
+    }
+  }
+
+  // ---- review lists ----
+  const dupes = [];
+  for (let i = 0; i < refs.length; i++) for (let j = i + 1; j < refs.length; j++) if (refs[i].ids && refs[j].ids && sameWork(refs[i].ids, refs[j].ids)) dupes.push(`${refs[i].id} = ${refs[j].id} (${Object.entries(refs[i].ids).map(([k, v]) => `${k}:${v}`).join(" ")})`);
+  const byHost = new Map();
+  for (const r of refs) if (r.entity) {
+    const h = hostOf(r.url);
+    (byHost.get(h) ?? byHost.set(h, new Set()).get(h)).add(r.entity);
+  }
+  const split = [...byHost].filter(([, s]) => s.size > 1).map(([h, s]) => `${h}: ${[...s].map((id) => `${id} ${entities.find((e) => e.id === id)?.name}`).join(" · ")}`);
+  const counter = [];
+  for (const c of cols) {
+    const sum = await fs.readFile(path.join(collectionDir(c.name), "SUMMARY.md"), "utf8").catch(() => "");
+    for (const line of sum.split("\n").filter((l) => /반대 근거/.test(l))) {
+      const ids = [...line.matchAll(/\b([SC]\d+)\b/g)].map((m) => m[1]);
+      if (ids.length) counter.push(`${c.name}: ${line.replace(/^[-*\s]+/, "").slice(0, 120)}  → cited ${ids.join(", ")}`);
+    }
+  }
+  const noTopic = cols.filter((c) => !c.topic || !topics.some((t) => t.id === c.topic));
+  const head = cols.map((c) => [c.name, ["title", "goal", "question"].filter((k) => !c[k])]).filter(([, m]) => m.length);
+  const noRole = cols.map((c) => [c.name, c.members.filter((m) => !m.role).length]).filter(([, n]) => n);
+  const noDesc = axes.axes.filter((a) => !a.description).map((a) => a.id);
+  const unused = axes.axes.filter((a) => !a.tags.some((t) => use.has(t)) && !axes.axes.some((x) => x.broader === a.id)).map((a) => a.id);
+  const byId = new Map(refs.map((r) => [r.id, r]));
+  const active = claims.filter((c) => c.status === "active");
+  const states = active.reduce((m, c) => ({ ...m, [readState(c, byId)]: (m[readState(c, byId)] ?? 0) + 1 }), {});
+  const shifts = {};
+  for (const c of active) {
+    const next = confidence(c, byId);
+    if (next !== c.confidence) shifts[`${c.confidence} → ${next}`] = (shifts[`${c.confidence} → ${next}`] ?? 0) + 1;
+  }
+
+  const lines = [
+    `# ref migrate v3 ${dryRun ? "(dry run — nothing written)" : "(applied)"}`,
+    "",
+    "## Applied",
+    `- read = full: ${count.read} refs (note, summary or capture present)`,
+    `- identifiers from URLs: ${count.ids} refs`,
+    `- product entities: ${count.entityNew} new · ${count.entityLinked} refs linked`,
+    `- claim strength changes: ${Object.entries(shifts).map(([k, n]) => `${k} ${n}`).join(", ") || "none"}`,
+    `- reading of cited sources (active claims): full ${states.full ?? 0} · snippet ${states.snippet ?? 0} · unrecorded ${states.unknown ?? 0} (board marks unrecorded as 열람 미기록)`,
+    "",
+    "## Review (not written)",
+    `### Topics: ${noTopic.length} collections without one`,
+    ...noTopic.map((c) => `- ${c.name} · ${c.title ?? ""} · ${c.goal ?? c.description ?? ""}`),
+    noTopic.length ? `\nFill and run: ref topic set '${JSON.stringify({ topics: topics.length ? [] : [{ id: "<topic-id>", label: "<주제 이름>" }], assign: Object.fromEntries(noTopic.map((c) => [c.name, "<topic-id>"])) })}'` : "",
+    `### Counter-evidence candidates: ${counter.length} SUMMARY lines (set with ref claim add {update:"C#", against:["S#"]})`,
+    ...counter.map((l) => `- ${l}`),
+    `### Same work, separate refs: ${dupes.length}`,
+    ...dupes.map((l) => `- ${l}`),
+    `### One host, several products: ${split.length} (merge with aliases or set parent via ref entity set)`,
+    ...split.slice(0, 60).map((l) => `- ${l}`),
+    split.length > 60 ? `- … ${split.length - 60} more` : "",
+    `### Board head missing fields: ${head.length}`,
+    ...head.map(([n, m]) => `- ${n}: ${m.join(", ")}`),
+    `### Members without role: ${noRole.reduce((s, [, n]) => s + n, 0)} in ${noRole.length} collections`,
+    ...noRole.map(([n, k]) => `- ${n}: ${k}`),
+    `### Axes without description: ${noDesc.length}${noDesc.length ? ` — ${noDesc.join(", ")}` : ""}`,
+    `### Unused axes: ${unused.length}${unused.length ? ` — ${unused.join(", ")} (remove with ref axes set {remove:[…]})` : ""}`,
+  ].filter((l, i, a) => l !== "" || a[i - 1] !== "");
+  if (!dryRun) {
+    if (count.entityNew) await writeEntities(entities);
+    if (changed.size) await saveRefs([...changed.values()]);
+    if (changed.size) await recomputeConfidence();
+  }
+  const text = lines.join("\n");
+  if (out) await fs.writeFile(out, text + "\n");
+  return text + (dryRun ? "" : "\n\nCommit the library now; re-run `ref report` per collection to refresh boards.");
+}

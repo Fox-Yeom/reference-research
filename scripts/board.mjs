@@ -980,11 +980,6 @@ export function renderBoard(d) {
   const { sum, claimById, keyClaims, keySource, keyLines, openQ, nextS, concl, answer, evItems } = conclusionData(col, d.claims, d.summary);
   const plain = (md) => String(md).replace(/\*\*/g, "").replace(/\[([SC]\d+(?:\s*,\s*[SC]\d+)*)\]/g, "").replace(/\s+/g, " ").trim();
   const continuePrompt = `reference-research 스킬로 "${col.title ?? col.name}" 조사(컬렉션 ${col.name})를 이어서 해줘.${openQ.length ? ` 추가 질문 항목: ${openQ.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}${nextS.length ? ` 다음 할 일: ${nextS.map((q, i) => `${i + 1}) ${plain(q)}`).join(" ")}` : ""}`;
-  const evRow = ({ line, c }, i) => {
-    const head = `<b class="evn">${i + 1}</b>${line ? inline(line, cite) : esc(splitTitle(c)[0])}${concl.counterOf === `근거 ${i + 1}` ? ` <span class="role fr-unknown">반대 근거 있음</span>` : ""}`;
-    if (!c) return `<div class="evrow"><div class="plain">${head}</div></div>`;
-    return `<details class="evrow"><summary><span class="t">${head}</span>${confBadge(c.confidence)}</summary><div class="evbody"><p>${esc(c.text)}</p>${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}<div class="cmeta" style="margin-top:8px">${idBtn(c.id)}${c.asOf ? `<span class="sep">·</span><span>기준 ${esc(c.asOf)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}</span></div></div></details>`;
-  };
   const evShown = evItems.slice(0, 3);
   const openSection =
     openQ.length || nextS.length
@@ -1027,14 +1022,6 @@ export function renderBoard(d) {
   const question = concl.question ?? col.question ?? goal;
   const decision = concl.decision ?? null;
   const meta = `${productCount}개 ${esc(unit)} · 레퍼런스 ${d.members.length}개 · 발견 ${active.length}개 · ${d.runs.length}회차`;
-  const eyebrow = `<div class="eyebrow">${esc(KIND_KO[col.kind] ?? col.kind ?? "")} · ${esc(DOMAIN_KO[col.domain] ?? col.domain)}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}</div>`;
-  const row = (label, html, cls = "") => (html ? `<div class="crow ${cls}"><span class="cl">${label}</span><div>${html}</div></div>` : "");
-  const stat = (title, rows, bar = true) => {
-    const shown = rows.filter(([, n, , always]) => n || always);
-    return `<div class="hstat"><h4>${title}</h4>${bar ? `<span class="sbar">${shown.filter(([, n]) => n).map(([, n, cls]) => `<i class="${cls}" style="flex:${n}"></i>`).join("")}</span>` : ""}<ul>${shown.map(([label, n, cls, always]) => `<li${always && !n ? ' class="miss"' : ""}><span>${cls ? `<i class="dot ${cls}"></i>` : ""}${esc(label)}</span><b>${n}</b></li>`).join("")}</ul></div>`;
-  };
-  const f = d.process.fresh;
-  const hside = `<aside class="hside">${stat("근거 세기", [["강함", conf("high"), "s-good"], ["보통", conf("medium"), "s-warn"], ["약함", conf("low"), "s-bad"], ["가설", conf("hypothesis"), "s-none"]])}${stat("자료 신선도", [["신선", f.fresh, "s-good"], ["날짜 미상", f.unknown, "s-warn"], ["지난 자료", f.stale, "s-none"]])}${stat("채널", d.process.channels.rows.map((r) => [r.label, r.count, "", d.process.channels.missing.includes(r.label)]), false)}</aside>`;
   // ---- board G head: crumb, title, goal, format; KPI cards; conclusion galley with margin marks; evidence map ----
   const R = d.refById ?? new Map([...d.sources, ...d.members.map((m) => m.r)].map((r) => [r.id, r]));
   const claimsIn = (t) => idsIn(t).filter((x) => x.startsWith("C")).map((x) => claimById.get(x)).filter(Boolean);
@@ -1045,7 +1032,7 @@ export function renderBoard(d) {
   // counter-evidence: a claim's `against` sources (v3) first, else the summary's labelled 반대 근거 line
   const v3i = evC.findIndex((c) => c?.against?.length);
   const counter = v3i >= 0
-    ? { of: v3i, text: `반대 출처 ${evC[v3i].against.map((id) => R.get(id)?.product ?? R.get(id)?.label ?? id).join(", ")}`, ids: evC[v3i].against, claims: [{ ...evC[v3i], id: evC[v3i].id, subject: "반대 출처", kind: "failure", sources: evC[v3i].against }], v3: true }
+    ? { of: v3i, text: `반대 출처 ${evC[v3i].against.map((id) => R.get(id)?.product ?? R.get(id)?.label ?? id).join(", ")}`, ids: evC[v3i].against, claims: [], refs: evC[v3i].against, v3: true }
     : concl.counter
       ? { of: Number(concl.counterOf?.match(/근거\s*(\d+)/)?.[1] ?? 0) - 1, text: plain(concl.counter), ids: idsIn(concl.counter), claims: claimsIn(concl.counter) }
       : null;
@@ -1057,7 +1044,7 @@ export function renderBoard(d) {
     grow("answer", "답", `<p class="ans">${inline(answer, cite)}</p>`, [counter && counter.of >= 0 ? mark("contested", "반대 근거", `근거 ${counter.of + 1}`) : "", ansClaims[0] ? strengthMark(ansClaims[0]) : "", readMark(ansClaims[0])].join(""), refsFor(ansClaims));
     if (decision) grow("decision", "제안", `<p>${inline(decision, cite)}</p>`, strengthMark(claimsIn(decision)[0]), refsFor(claimsIn(decision)));
     evShown.forEach((x, i) => grow(`e${i}`, i ? "" : "근거", `<p>${i + 1}. ${x.line ? inline(x.line, cite) : esc(splitTitle(x.c)[0])}</p>`, [strengthMark(evC[i]), counter?.of === i ? mark("contested", "반대 근거") : "", readMark(evC[i])].join(""), refsFor(evC[i] ? [evC[i]] : [], idsIn(x.line).filter((y) => y.startsWith("S")))));
-    if (counter) grow("counter", "반대 근거", `<p>${counter.of >= 0 ? `<b>근거 ${counter.of + 1}</b> · ` : ""}${counter.v3 ? `${esc(counter.text)} ${counter.ids.map(cite).join("")}` : inline(concl.counter, cite)}</p>`, mark("contested", counter.of >= 0 ? `근거 ${counter.of + 1} 반박` : "반박"), refsFor(counter.claims, counter.ids.filter((y) => y.startsWith("S"))), "counter");
+    if (counter) grow("counter", "반대 근거", `<p>${counter.of >= 0 ? `<b>근거 ${counter.of + 1}</b> · ` : ""}${counter.v3 ? `${esc(counter.text)} ${counter.ids.map(cite).join("")}` : inline(concl.counter, cite)}</p>`, mark("contested", counter.of >= 0 ? `근거 ${counter.of + 1} 반박` : "반박"), refsFor(counter.claims ?? [], counter.ids.filter((y) => y.startsWith("S"))), "counter");
   }
   const citedIds = [...new Set(rowsG.flatMap((h) => (h.match(/data-cites="([^"]*)"/)?.[1] ?? "").split(" ").filter(Boolean)))].filter((id) => byRef.get(id)?.thumb).slice(0, 10);
   const citedPanel = citedIds.length ? `<aside class="cited" id="cited"><h3>인용 캡처</h3><p id="citednote">줄 선택 전</p><div class="cg">${citedIds.map((id) => `<button type="button" data-open-ref="${id}" data-rail="${id}"><img loading="lazy" src="${esc(byRef.get(id).thumb)}" alt=""><span>${id} ${esc(short(byRef.get(id).r.product ?? byRef.get(id).r.label ?? "", 14))}</span></button>`).join("")}</div></aside>` : "";
@@ -1066,11 +1053,11 @@ export function renderBoard(d) {
     return { tag: m?.role ? ({ direct: "직접", indirect: "간접", trend: "트렌드", analogous: "유사" }[m.role] ?? "자료") : (TYPE_KO[r?.type] ?? "자료"), name: r?.product ?? r?.label ?? id, frames: m?.frames.length ?? 0, view: !!m?.thumb };
   };
   const dc = (c) => ({ id: c.id, subject: c.subject ?? splitTitle(c)[0], kindKo: KIND[c.kind]?.[0] ?? c.kind, strength: STRENGTH_KO[c.confidence] ?? "기록", sources: c.sources ?? [] });
-  const nodesFor = { answer: ["답", plain(answer ?? ""), ansClaims], decision: ["제안", plain(decision ?? ""), claimsIn(decision)], ...Object.fromEntries(evShown.map((x, i) => [`e${i}`, [`근거 ${i + 1}`, plain(x.line ?? x.c?.text ?? ""), evC[i] ? [evC[i]] : []]])), ...(counter ? { counter: ["반대 근거", counter.text, counter.claims] } : {}) };
+  const nodesFor = { answer: ["답", plain(answer ?? ""), ansClaims], decision: ["제안", plain(decision ?? ""), claimsIn(decision)], ...Object.fromEntries(evShown.map((x, i) => [`e${i}`, [`근거 ${i + 1}`, plain(x.line ?? x.c?.text ?? ""), evC[i] ? [evC[i]] : []]])), ...(counter ? { counter: ["반대 근거", counter.text, counter.claims, counter.refs ?? []] } : {}) };
   const mapSection = answer && evShown.length
     ? `<section id="map">${sectionHead(next(), "근거 노선", "개요의 노드나 위 핵심 결론의 줄을 고르면 아래 상세가 그 노드의 발견과 자료로 바뀜. 빨간 점선 하나가 반대 근거. 자료 노드를 누르면 캡처가 열림.")}
 <div class="dgwrap">${dgOverview("ov", { question, answer: { text: plain(answer), ids: ansClaims.map((c) => c.id) }, evidence: evShown.map((x, i) => ({ strength: STRENGTH_KO[evC[i]?.confidence] ?? "기록", ids: evC[i] ? [evC[i].id, ...evC[i].sources.slice(0, 2)] : idsIn(x.line) })), counter: counter && counter.of >= 0 ? { of: counter.of, text: counter.text, ids: counter.ids.slice(0, 3) } : null, selected: "answer" })}</div>
-${Object.entries(nodesFor).map(([k, [label, text, cs]]) => `<div class="dgdet" data-for="${k}"${k === "answer" ? "" : " hidden"}><h3>${esc(label)} 상세</h3>${cs.length ? `<div class="dgwrap">${dgDetail(`dt-${k}`, { label, text, claims: cs.map(dc), refOf })}</div>` : `<p class="muted small">이 줄에 연결된 발견 번호(C#)가 없음 — 요약의 줄 끝에 [C#]를 달면 여기에 그려짐.</p>`}</div>`).join("")}</section>`
+${Object.entries(nodesFor).map(([k, [label, text, cs, rs = []]]) => `<div class="dgdet" data-for="${k}"${k === "answer" ? "" : " hidden"}><h3>${esc(label)} 상세</h3>${cs.length || rs.length ? `<div class="dgwrap">${dgDetail(`dt-${k}`, { label, text, claims: cs.map(dc), refs: rs, refOf })}</div>` : `<p class="muted small">이 줄에 연결된 발견 번호(C#)가 없음 — 요약의 줄 끝에 [C#]를 달면 여기에 그려짐.</p>`}</div>`).join("")}</section>`
     : "";
   const unread = active.filter((c) => readState(c, R) === "unknown").length;
   const ghead = `<div class="ghead"><div><p class="crumb"><a href="../index.html">라이브러리</a> / <b>${esc(col.title ?? col.name)}</b></p><h1>${esc(col.title ?? col.name)}</h1>${goal ? `<p class="sub">${inline(goal, cite)}</p>` : ""}<p class="gmeta">조사 형식 ${esc(DOMAIN_KO[col.domain] ?? col.domain)} · ${esc(KIND_KO[col.kind] ?? col.kind ?? "조사")} · ${meta}${lastRun ? ` · 마지막 조사 ${esc(lastRun.startedAt.slice(0, 10))}` : ""}${otherCats.length ? ` · 공유 조사 ${otherCats.length}` : ""}</p></div><div class="tools">${promptAction("이어서 조사", continuePrompt, { hint: "추가 질문 항목과 다음 할 일을 담은 프롬프트를 복사합니다" }).replace('class="pbtn', 'class="pbtn go')}</div></div>`;
@@ -1252,7 +1239,7 @@ ${d.coverageWarn ? `<div class="note">${esc(d.coverageWarn)}</div>` : ""}</secti
     return `<article class="claim" id="${c.id}" data-kind="${esc(c.kind ?? "")}" data-run="${esc(c.run ?? "")}" data-conf="${esc(c.confidence ?? "")}" data-search="${searchText(c.id, c.subject, c.text, c.run)}">
   <div class="chead"><h4 class="ctitle">${c.key ? `<span class="star">핵심</span>` : ""}${esc(title)}</h4>${confBadge(c.confidence)}</div>
   ${body ? `<p class="cbody${body.length > 150 ? " clamp" : ""}">${esc(body)}</p>${body.length > 150 ? `<button class="more" type="button">더 보기</button>` : ""}` : ""}
-  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 핵심 결론은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(runLabel(c.run))}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${c.against?.length ? `<span class="sep">·</span><span class="chip against" title="이 발견에 반대되는 자료">반대 출처 ${c.against.map((id) => esc(id)).join(", ")}</span>` : ""}${readState(c, d.refById ?? new Map(d.sources.map((r) => [r.id, r]))) === "unknown" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 원문으로 읽었다는 기록이 없음">열람 미기록</span>` : readState(c, d.refById ?? new Map(d.sources.map((r) => [r.id, r]))) === "snippet" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 요약으로만 읽음 — 근거 세기 최대 보통">요약만 읽음</span>` : ""}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
+  <div class="cmeta">${idBtn(c.id)}${d.staleKey.has(c.id) ? `<span class="sep">·</span><span class="role fr-stale" title="이 핵심 결론은 12개월이 지났거나 날짜를 모르는 자료만 인용합니다">지난 자료만 인용</span>` : ""}${c.run ? `<span class="sep">·</span><span class="run" title="${esc(runGoal(c.run) || c.run)}">${esc(runLabel(c.run))}</span>` : ""}${date ? `<span class="sep">·</span><span>${esc(date)}</span>` : ""}<span class="sep">·</span><span>출처 ${c.sources.length}${mix ? ` (${esc(mix)})` : ""}</span>${c.asOf ? `<span class="sep">·</span><span title="이 수치가 맞았던 날짜">기준 ${esc(c.asOf)}</span>` : ""}${c.scope ? `<span class="sep">·</span><span>${esc(c.scope)}</span>` : ""}${c.against?.length ? `<span class="sep">·</span><span class="chip against" title="이 발견에 반대되는 자료">반대 출처 ${c.against.map((id) => esc(id)).join(", ")}</span>` : ""}${((rs) => (rs === "unknown" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 원문으로 읽었다는 기록이 없음">열람 미기록</span>` : rs === "snippet" ? `<span class="sep">·</span><span class="chip unread" title="인용한 자료를 요약으로만 읽음 — 근거 세기 최대 보통">요약만 읽음</span>` : ""))(readState(c, R))}${fixed ? `<span class="sep">·</span>${fixed}` : ""}<span class="sep">·</span>${promptAction("다시 확인", recheck, { hint: "이 발견을 다시 확인하라는 프롬프트를 복사합니다 (컬렉션 · 번호 · 출처 포함)" })}</div>
   ${c.sources.length ? `<div class="evidence">${evidence(c.sources)}</div>` : ""}
   ${olds.length ? `<details class="prev"><summary>이전 버전 ${olds.length}개 — ${olds[0].status === "refuted" ? "틀린 것으로 확인됨" : "수정됨"}</summary>${olds.map((o) => `<div class="old" id="${o.id}">${idBtn(o.id)} ${esc(o.text)} <span class="small">(${esc((o.createdAt ?? "").slice(0, 10))})</span></div>`).join("")}</details>` : ""}
 </article>`;
@@ -1445,7 +1432,6 @@ ${c.missing.length ? `<div class="note">강의 구조가 기록되지 않은 강
 export function renderHome(h) {
   const titleOf = new Map(h.cats.map((c) => [c.name, c.title ?? c.name]));
   const hcite = (id) => `<span class="cite" title="${esc(id)}">${esc(id)}</span>`; // ids on the home have no single board to link to
-  const domains = ["design", "strategy", "voice", "travel", "research", "dev", "curriculum"].map((dm) => [dm, h.cats.filter((c) => (c.domain ?? "design") === dm).length]).filter(([, n]) => n);
   const patternAxes = h.axes.filter((a) => a.facet === "pattern");
   const shared = patternAxes.filter((a) => Object.keys(a.cats).length > 1).sort((a, b) => Object.keys(b.cats).length - Object.keys(a.cats).length || Object.values(b.cats).reduce((x, y) => x + y, 0) - Object.values(a.cats).reduce((x, y) => x + y, 0) || a.label.localeCompare(b.label));
   const otherFacets = h.axes.filter((a) => a.facet !== "pattern" && Object.keys(a.cats).length > 1);

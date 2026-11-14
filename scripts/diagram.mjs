@@ -112,25 +112,26 @@ export function overview(slug, { question, answer, evidence, counter, selected }
 }
 
 /**
- * Evidence detail for one node: node → its claims (≤3) → the captures/sources they cite (≤5);
- * the rest collapse into one dashed "+N" node so the figure stays within 9 nodes.
+ * Evidence detail for one node: node → its claims → the sources they cite. At most 2 claims and 4 sources are drawn,
+ * each row adding one dashed "+N" node for the rest, so the figure never exceeds 9 nodes (1 + 3 + 5).
+ * With `refs` and no claims (counter-evidence), the node links straight to those sources.
  */
-export function detail(slug, { label, text, claims, refOf }) {
-  const cl = claims.slice(0, 3);
+export function detail(slug, { label, text, claims = [], refs: direct = [], refOf }) {
+  const cl = claims.slice(0, 2);
   const extraClaims = claims.length - cl.length;
-  const allRefs = [...new Set(cl.flatMap((c) => c.sources))];
-  const refs = allRefs.slice(0, 5);
+  const allRefs = cl.length ? [...new Set(cl.flatMap((c) => c.sources))] : [...new Set(direct)];
+  const refs = allRefs.slice(0, 4);
   const moreRefs = allRefs.length - refs.length;
   const W = 820, rw = 136, rg = 16, cw = 176, cg = 40;
   const refNodes = [...refs, ...(moreRefs ? ["+refs"] : [])];
   const clNodes = [...cl.map((c) => c.id), ...(extraClaims ? ["+claims"] : [])];
-  const nEdges = cl.reduce((n, c) => n + c.sources.filter((s) => refs.includes(s)).length + (c.sources.some((s) => !refs.includes(s)) ? 1 : 0), 0);
+  const nEdges = cl.length ? cl.reduce((n, c) => n + c.sources.filter((s) => refs.includes(s)).length + (c.sources.some((s) => !refs.includes(s)) ? 1 : 0), 0) : refNodes.length;
   const g2 = Math.max(64, nEdges * 12 + 28);
-  const y0 = 24, y1 = y0 + 56 + 64, y2 = y1 + 56 + g2;
+  const y0 = 24, y1 = y0 + 56 + 64, y2 = (cl.length ? y1 + 56 : y0 + 56) + g2;
   const cx0 = (W - (clNodes.length * cw + (clNodes.length - 1) * cg)) / 2;
   const rx0 = (W - (refNodes.length * rw + (refNodes.length - 1) * rg)) / 2;
   const nodes = [
-    { key: "root", x: (W - 200) / 2, y: y0, w: 200, h: 56, tag: label, name: cut(text, 14), sub: cl.map((c) => c.id).join(" · "), cls: "sel" },
+    { key: "root", x: (W - 200) / 2, y: y0, w: 200, h: 56, tag: label, name: cut(text, 14), sub: cl.length ? cl.map((c) => c.id).join(" · ") : refs.join(" · "), cls: "sel" },
     ...clNodes.map((id, i) => {
       if (id === "+claims") return { key: id, x: cx0 + i * (cw + cg), y: y1, w: cw, h: 56, tag: "더", name: `발견 +${extraClaims}`, sub: "발견 구역에서", cls: "more" };
       const c = cl.find((x) => x.id === id);
@@ -142,11 +143,11 @@ export function detail(slug, { label, text, claims, refOf }) {
       return { key: id, x: rx0 + i * (rw + rg), y: y2, w: rw, h: 56, tag: r.tag, name: cut(r.name, 9), sub: `${id}${r.frames ? ` · 화면 ${r.frames}` : ""}`, cls: `ext${r.view ? " view" : ""}`, attrs: r.view ? ` data-open-ref="${esc(id)}" tabindex="0" role="button"` : "" };
     }),
   ];
-  const list = [
-    ...clNodes.map((id) => ({ from: "root", to: id })),
-    ...cl.flatMap((c) => [...c.sources.filter((s) => refs.includes(s)).map((s) => ({ from: c.id, to: s })), ...(c.sources.some((s) => !refs.includes(s)) ? [{ from: c.id, to: "+refs" }] : [])]),
-  ];
-  return figure(slug, W, y2 + 56 + 24 + 56, `${label} 상세`, `${label}이 기대는 발견 ${claims.length}개와 그 발견이 인용한 자료 ${allRefs.length}개.`, nodes, list, extraClaims || moreRefs ? [LEGEND.dep, LEGEND.sel, LEGEND.more] : [LEGEND.dep, LEGEND.sel]);
+  const list = cl.length
+    ? [...clNodes.map((id) => ({ from: "root", to: id })), ...cl.flatMap((c) => [...c.sources.filter((s) => refs.includes(s)).map((s) => ({ from: c.id, to: s })), ...(c.sources.some((s) => !refs.includes(s)) ? [{ from: c.id, to: "+refs" }] : [])])]
+    : refNodes.map((id) => ({ from: "root", to: id }));
+  const desc = cl.length ? `${label}: 기대는 발견 ${claims.length}개와 그 발견이 인용한 자료 ${allRefs.length}개.` : `${label}: 연결된 자료 ${allRefs.length}개.`;
+  return figure(slug, W, y2 + 56 + 24 + 56, `${label} 상세`, desc, nodes, list, extraClaims || moreRefs ? [LEGEND.dep, LEGEND.sel, LEGEND.more] : [LEGEND.dep, LEGEND.sel]);
 }
 
 /** collections (top row) → references several of them share (bottom row); ≤6 collections and ≤3 references */

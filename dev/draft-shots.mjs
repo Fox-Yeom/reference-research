@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Screenshots + measurements for the board drafts (issue #13): node dev/draft-shots.mjs [docs/drafts]
+// Screenshots + measurements for board drafts or built boards: node dev/draft-shots.mjs [docs/drafts] | <page.html …> [--out dir]
 // For every draft x view (board, home) x width: a capped full-page JPEG, text contrast (WCAG 2.x), sideways overflow.
 // Writes <dir>/shots/*.webp and <dir>/measure.json.
 import { writeFileSync, mkdirSync, readdirSync } from "node:fs";
@@ -8,10 +8,16 @@ import { pathToFileURL } from "node:url";
 import puppeteer from "puppeteer-core";
 import { findChrome } from "../scripts/capture.mjs";
 
-const dir = path.resolve(process.argv[2] ?? "docs/drafts");
 const WIDTHS = [390, 768, 1280, 1600];
 const CAP = 9000; // px of page height kept per screenshot: whole page at every width, still bounded
-const drafts = readdirSync(dir).filter((f) => /^[a-z]-.+\.html$/.test(f)).sort();
+// targets: a drafts folder (every <letter>-<name>.html, board and #home views) or explicit page files (one view each)
+const argv = process.argv.slice(2);
+const outAt = argv.indexOf("--out");
+const outDir = outAt >= 0 ? path.resolve(argv.splice(outAt, 2)[1]) : null;
+const files = argv.filter((a) => a.endsWith(".html")).map((f) => path.resolve(f));
+const dir = files.length ? (outDir ?? path.resolve("docs/board-shots")) : path.resolve(argv[0] ?? "docs/drafts");
+const drafts = files.length ? files : readdirSync(dir).filter((f) => /^[a-z]-.+\.html$/.test(f)).sort().map((f) => path.join(dir, f));
+const nameOf = (f) => (files.length ? `${path.basename(path.dirname(f)) === path.basename(path.dirname(path.dirname(f))) ? "" : path.basename(path.dirname(f))}-${path.basename(f, ".html")}`.replace(/^-/, "") : path.basename(f, ".html"));
 mkdirSync(path.join(dir, "shots"), { recursive: true });
 
 // Runs in the page: every visible element with its own text, contrast against the first opaque background behind it.
@@ -76,12 +82,12 @@ async function sweep(p) {
 const browser = await puppeteer.launch({ executablePath: process.env.REF_CHROME || findChrome(), headless: true });
 const result = {};
 for (const f of drafts) {
-  const name = f.replace(/\.html$/, "");
-  for (const view of ["board", "home"]) {
+  const name = nameOf(f);
+  for (const view of files.length ? ["page"] : ["board", "home"]) {
     for (const w of WIDTHS) {
       const p = await browser.newPage();
       await p.setViewport({ width: w, height: 900, deviceScaleFactor: 1 });
-      await p.goto(pathToFileURL(path.join(dir, f)).href + (view === "home" ? "#home" : ""), { waitUntil: "networkidle0" });
+      await p.goto(pathToFileURL(f).href + (view === "home" ? "#home" : ""), { waitUntil: "networkidle0" });
       // lazy images below the fold would shoot as empty frames: load them all first
       await p.evaluate(async () => { const imgs = [...document.images]; imgs.forEach((i) => (i.loading = "eager")); await Promise.all(imgs.map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))); });
       await new Promise((r) => setTimeout(r, 300));
@@ -98,8 +104,8 @@ for (const f of drafts) {
         await p.evaluate((t) => { document.documentElement.dataset.theme = t; }, cur);
         await new Promise((r) => setTimeout(r, 300));
       }
-      if (view === "board" && (w === 1280 || w === 390)) {
-        await p.evaluate(() => document.querySelector("[data-open]")?.click());
+      if (view !== "home" && (w === 1280 || w === 390) && (await p.$("[data-open], [data-view], [data-open-ref]"))) {
+        await p.evaluate(() => (document.querySelector("[data-open]") ?? document.querySelector(".card [data-view]") ?? document.querySelector("[data-open-ref]"))?.click());
         await new Promise((r) => setTimeout(r, 400));
         const vm = await p.evaluate(AUDIT);
         result[name][`viewer-${w}`] = vm;

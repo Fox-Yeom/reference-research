@@ -32,14 +32,16 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | thing | id | what |
 |---|---|---|
 | reference | `S#` | one URL, **global**. Snapshots (captures over time), notes from every category, change history. Belongs to any number of categories |
-| category | collection name | a research theme (`budget-app-category`, `ai-agent-terminal-category`). Members = refs + role (direct/indirect/trend; older members may still read analogous) |
+| category | collection name | a research theme (`note-app-pricing`, `photo-app-onboarding`). Members = refs + role (direct/indirect/trend; older members may still read analogous) |
 | claim | `C#` | one finding citing ≥1 `S#`; global, remembers which categories recorded/confirmed it |
 | run | `R#` | one research session in one category |
 | axis | `axes.json` | **tag normalization**: free-form pattern tags grouped into global axes (`limit-gauge-pace` + `traffic-light-limits` + `pace-line-chart` → 남은 한도·예산 게이지). facet `pattern` drives comparisons; `market` / `platform` / `positioning` are listed apart |
 | plan | `plans/<name>.json` | **optional** — a product plan's items linked to claims with positions. Kept outside the categories so references stay reusable |
+| topic | `topics.json` | what a category is about (`요금·수익`, `첫 화면·온보딩`); **one per category** (`collection.topic`). The library home groups by it; `domain` only picks the board layout ("조사 형식") |
+| entity | `E#` in `entities.json` | a product or an organization, so the same product across pages and categories is one thing: ref `entity` (product), ref `org` (publisher). Names stay as display strings |
 
 **The re-encounter rule** — references are never duplicated. When research B meets something research A already collected:
-- same URL (any tracking params / redirect alias) → `capture`/`store`/`source add` **reuse** it, add B's category, merge tags. If its last snapshot is older than `refresh_days` (default 30) it is **re-captured** and the change vs. the previous snapshot is recorded (title, headings, CTAs, nav, colors, fonts; store: version, rating, screenshots). `"force":true` re-captures anyway.
+- same URL (any tracking params / redirect alias) — or the **same work identifier** (DOI, PubMed, PMC, arXiv, App Store/Play id: `ids`, read from the URL or given) → `capture`/`store`/`source add` **reuse** it, add B's category, merge tags. If its last snapshot is older than `refresh_days` (default 30) it is **re-captured** and the change vs. the previous snapshot is recorded (title, headings, CTAs, nav, colors, fonts; store: version, rating, screenshots). `"force":true` re-captures anyway.
 - same *axis* but a different URL (e.g. limit gauges in a budget app and in a dev tool) → `ref run start` lists library refs from **other** categories that are close to this run (local embeddings, ranked by goal and by category centroid). Review them and `ref collect` the ones on the same axis — that adds B's category to them, and their notes/claims from A become visible in B.
 
 ## Commands
@@ -68,6 +70,9 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | `ref report '<json>'` | category board `<collection>/index.html`, conclusion first: 머리(질문 · 답 · 제안) · 근거 3개와 반대 근거 · 기획 의도(분야별 이름, 역추적 카드) · 패턴 비교 · (커리큘럼 비교) · 피할 것 · 추가 질문 항목 · 레퍼런스(검색 `/`, 역할·패턴·회차·정렬, 보기 3종: 격자 · 제품별 · **흐름**, 화면 뷰어 + 정보 패널; 캡처 없는 자료는 **자료 목록** 표) · 발견과 근거 · 전체 요약 · 조사 과정(접힘: 개요 · 바퀴 · 채널 · 신선도 · 회차 기록) · 출처. `reader` picks the order: `decision` · `practitioner` (default) · `archive`. Ids are copy buttons. Plus library home `~/references/index.html` and `README.md`. One template (`scripts/board.mjs`) for every board: change it, re-run `ref report` per collection |
 | `ref plan set\|show\|link\|delta` | optional plan layer (see §8) |
 | `ref course set '<json>'` / `ref course show <collection>` | curriculum mode: a course's structure (modules · topics · hours) / comparison: topic coverage, usual order, gaps vs. basis (see §9) |
+| `ref topic set '<json>'` / `ref topic show` | topic registry: `{"topics":[{"id","label","description","order"}],"assign":{"<collection>":"<topic id>"}}` — one topic per category |
+| `ref entity set '<json>'` / `ref entity show [query]` | entity registry (products, organizations): `{"entities":[{"kind":"product","name","aliases","org"}],"link":{"S#":"E#"}}` |
+| `ref migrate v3 [--dry-run] [--out file]` | fill v3 fields in an older library (reading level, identifiers, product entities) and print a review list (topics, counter-evidence, duplicates). Commit the library first; safe to run twice |
 | `ref axes show [collection]` · `ref axes suggest [collection]` · `ref axes set '<json>'` | axes with products/categories · candidate groupings for unmapped tags · define/merge axes |
 | `ref embed [--rebuild]` · `ref compact` | refresh vectors (automatic in run/similar) · rewrite JSONL |
 
@@ -75,7 +80,8 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 ```jsonc
 // run start — domain: design | dev | strategy | voice | travel | research | curriculum ("related": false skips the embedding search)
 // brief = the confirmed table (§1): keys purpose, audience, problem, success, value_types, scope, fixed, exclude, assumptions. purpose and audience also land on the category (board header: 목적 · 대상); "goal" overrides the run's goal
-{"collection":"…","brief":{"purpose":"which decision this run supports","audience":"who the result is for","problem":"…","success":"…","value_types":["디자인·UX"],"scope":["direct","trend"],"fixed":"…","exclude":"…","assumptions":["…"]},"question":"one-line question","domain":"design","kind":"category","description":"…"}
+// topic = an id from topics.json (`ref topic show`; add one with `ref topic set` and ask the user if none fits) · title = the board's title
+{"collection":"…","brief":{"purpose":"which decision this run supports","audience":"who the result is for","problem":"…","success":"…","value_types":["디자인·UX"],"scope":["direct","trend"],"fixed":"…","exclude":"…","assumptions":["…"]},"question":"one-line question","title":"…","topic":"pricing","domain":"design","kind":"category","description":"…"}
 
 // brief set — a change after round 0; reason goes on the history
 {"collection":"…","brief":{"scope":["direct"]},"reason":"0바퀴 뒤 직접 경쟁으로 좁힘"}
@@ -106,7 +112,9 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 // source add — type: official|docs|store|repo|paper|report|press|community|blog|listicle|other ; credibility A–D (default from type)
 // channel: primary|interpretation|reaction|rationale (default from type) · published = a full YYYY-MM-DD the page states, else leave it out
 // capture reads the date from the page and prints `published:`. If it prints unknown, set it on the same URL: {"sources":[{"url":"…","published":"2026-09-30"}]}
-{"collection":"…","sources":[{"url":"…","label":"VoiceMode — GitHub README","type":"repo","publisher":"VoiceMode","published":"2026-05-01","summary":"one-line 요지 (board 자료 목록)","note":"…","role":"trend"}]}
+// read = how you read it: "full" (the page/paper itself) or "snippet" (only a search snippet, abstract or preview). A claim whose sources are all snippet is at most 보통
+// ids = {doi, pmid, pmcid, arxiv, app} when the URL does not carry them · entity / org = E# or a registered name (`ref entity set` first)
+{"collection":"…","sources":[{"url":"…","label":"VoiceMode — GitHub README","type":"repo","publisher":"VoiceMode","published":"2026-05-01","summary":"one-line 요지 (board 자료 목록)","note":"…","role":"trend","read":"full","entity":"VoiceMode"}]}
 
 // collect
 {"collection":"…","refs":["S5","S18"],"role":"indirect","note":"why it belongs here"}
@@ -117,8 +125,10 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 
 // claim add — kind: fact|pattern|benchmark|failure|gap|opinion|hypothesis
 // subject = 5–12 char title the board shows (always give one) · key = headline finding (board 핵심 결론) · asOf = date a price/number was true · scope = where it applies; "원리" = a principle about human cognition or theory (freshness rule, §2)
+// against = refs that speak AGAINST this finding (the board draws them as the red counter-evidence line) · about = what it is about: E#, axis ids, topic id
 {"collection":"…","claims":[
   {"text":"…","kind":"pattern","subject":"세로 탭 상태","sources":["S2","S9"],"tags":["vertical-tabs"]},
+  {"text":"무료 단계를 표 맨 왼쪽에 둔다","kind":"pattern","subject":"단계 구성","sources":["S1","S2"],"against":["S3"],"about":["E4"]},
   {"text":"개인 유료 첫 단계 월 5–14천원","kind":"benchmark","subject":"개인 유료 가격","asOf":"2026-10-15","key":true,"sources":["S1","S2"]},
   {"update":"C7","subject":"기업 단계","key":true},
   {"confirms":"C3","sources":["S12"]},
@@ -286,7 +296,8 @@ For a REUSED ref, add only what is new for this category's angle. Only state wha
 Turn every finding you would put in a summary into a claim, written **from the images/pages you looked at in this session** (not from memory of older notes):
 - `pattern` · `benchmark` (price, rating, count, speed) · `failure` (complaints, shutdowns, pitfalls) · `gap` (nobody does it — needs a query aimed at it first) · `fact` · `opinion` · `hypothesis` (no source)
 - **always a `subject`** (5–12 chars — the board's title line; `claim add` warns without one) · `asOf` on every price/number · `key:true` on the 2–4 findings a reader must not miss (`{"update":"C#","key":true}` for existing ones)
-- cite every supporting ref; prefer ≥2 independent publishers
+- cite every supporting ref; prefer ≥2 independent publishers. Record how you read each source (`read`: full / snippet) — snippet-only findings cap at 보통, and the board marks findings whose sources have no reading record as 열람 미기록
+- **counter-evidence goes on the claim**: a source that contradicts it → `against:["S#"]` (new claim or `{"update":"C#","against":[…]}`). The board's 반대 근거 line and evidence map read it; the summary's `- 반대 근거:` bullet is the prose for the same thing
 - **key claims**: need ≥ 1 신선 source unless `scope:"원리"`; `ref fresh <collection>` lists the ones that do not, and what to fix. A key claim also cannot rest on a 왜 or 결과 that is only 추정: check that yourself
 - baseline claim seen again → `confirms`; partly wrong → `revises`; wrong → `refutes`
 **Normalize tags** whenever `note`/`capture` warns "tags not on any axis": `ref axes suggest <collection>` proposes mutual-nearest pairs and nearest axes from tag names only — expect surface matches (scroll-storytelling ~ scrollback-context). Judge against the notes (same *solution*, not same words), then `ref axes set` (add to an existing axis, or create one with a Korean label + one-line description). An axis may span categories — that is the point (AI 한도 게이지 ≈ 가계부 예산 게이지).
@@ -321,7 +332,7 @@ Only when research feeds a concrete product plan. The plan lives in `plans/<plan
 ## 9. Curriculum mode (`domain: "curriculum"`)
 For references that feed a course or curriculum design ("AI 교육 커리큘럼 만들기 전"). Sections 0–7 still apply; this replaces the screen-oriented parts.
 
-**Start**: `ref run start '{"collection":"ai-literacy-office-workers","title":"직장인 AI 활용 교육","domain":"curriculum","kind":"category","goal":"비전공 직장인 대상 AI 활용 커리큘럼 설계 — 무엇을·어떤 순서로·몇 시간"}'`. Put the **audience** in the goal; every judgment below is relative to it.
+**Start**: `ref run start '{"collection":"ai-skills-course","title":"직장인 생성형 AI 교육","domain":"curriculum","kind":"category","goal":"비전공 직장인 대상 생성형 AI 커리큘럼 설계 — 무엇을·어떤 순서로·몇 시간"}'`. Put the **audience** in the goal; every judgment below is relative to it.
 
 **Discovery angles** (same minimums: ≥ 8 queries, ≥ 3 KR, ≥ 3 EN; longlist ≥ 12 with URLs):
 | angle | example queries | becomes |

@@ -90,6 +90,8 @@ export async function setAxes(params) {
       a.axes.push(ax);
     }
     for (const k of ["label", "facet", "description", "question", "verdict"]) if (it[k] !== undefined) ax[k] = it[k];
+    // M9: one broader axis per axis (SKOS broader); the parent lives in the same file and may carry no tags of its own
+    if (it.broader !== undefined) ax.broader = it.broader || null;
     for (const t of it.tags ?? []) {
       if (!use.has(t)) out.push(`⚠ ${id}: tag "${t}" is not used anywhere (kept, will match future notes)`);
       for (const other of a.axes) if (other !== ax) other.tags = other.tags.filter((x) => x !== t);
@@ -99,7 +101,16 @@ export async function setAxes(params) {
   if (params.tag_labels) a.tagLabels = { ...(a.tagLabels ?? {}), ...params.tag_labels };
   for (const id of params.remove ?? []) a.axes = a.axes.filter((x) => x.id !== id);
   for (const t of params.untag ?? []) for (const ax of a.axes) ax.tags = ax.tags.filter((x) => x !== t);
-  a.axes = a.axes.filter((x) => x.tags.length || (params.axes ?? []).some((i) => (i.id ?? slugify(i.label, 40)) === x.id));
+  const parents = new Set(a.axes.map((x) => x.broader).filter(Boolean));
+  a.axes = a.axes.filter((x) => x.tags.length || parents.has(x.id) || (params.axes ?? []).some((i) => (i.id ?? slugify(i.label, 40)) === x.id));
+  for (const x of a.axes) {
+    if (!x.broader) continue;
+    if (!a.axes.some((p) => p.id === x.broader)) bad(`${x.id}: broader "${x.broader}" is not an axis`);
+    for (let p = x.broader, seen = new Set([x.id]); p; p = a.axes.find((y) => y.id === p)?.broader) {
+      if (seen.has(p)) bad(`${x.id}: broader chain loops back (${[...seen, p].join(" → ")})`);
+      seen.add(p);
+    }
+  }
   await writeAxes(a);
   const noLabel = [...use.keys()].filter((t) => !a.tagLabels?.[t]);
   out.push(`${a.axes.length} axes · ${a.axes.reduce((s, x) => s + x.tags.length, 0)} tags mapped · ${[...use.keys()].filter((t) => !tagIndex(a).has(t)).length} unmapped · ${noLabel.length} without a plain-words label${noLabel.length ? ` (${noLabel.slice(0, 8).join(", ")}${noLabel.length > 8 ? "…" : ""} — "tag_labels")` : ""}`);

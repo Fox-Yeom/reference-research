@@ -281,3 +281,9 @@ Issue #13. `scripts/board.mjs`가 만드는 **컬렉션 보드**와 **라이브�
    - `docs/DATA-MODEL.md` §6·§12의 라벨(주제, 개체)
    - 모든 제목·라벨의 명사형 통일
 3. 교체 뒤 README 스크린샷(`dev/demo.sh`)을 다시 찍는다.
+
+## 7. 구현 (#19)
+
+G는 #19에서 `scripts/board.mjs`(보드·홈)와 `scripts/diagram.mjs`(다이어그램)로 옮겼다. 데이터는 저장 모델 v3(`docs/DATA-MODEL.md` §14)를 쓰고, 필드가 없는 옛 라이브러리에서는 요약 문장과 기존 규칙으로 대신 그린다.
+- 렌더 증거: `docs/board-shots/` — 데모 보드·홈 4개 폭(390·768·1280·1600)과 v3 필드가 없는 옛 라이브러리 보드(390·1280), `measure.json`(대비·가로 넘침, `node dev/draft-shots.mjs <page.html …> --out docs/board-shots`).
+- 시안에서 바뀐 점: 전체 요약·출처·조사 과정·기획 의도·`reader`별 순서를 그대로 옮겼고, 구역 번호는 뺐다. 활동 히트맵은 녹색 한 계열이다. 밝은 테마는 아직 없다.

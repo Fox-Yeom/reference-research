@@ -19,7 +19,7 @@ import { z } from "zod";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { WHY_BASIS_KO, WHY_RANK, conclusionData, rationaleOf } from "./board.mjs";
 import { BRIEF_FIELDS, briefRows, collectionClaims } from "./evidence.mjs";
-import { LIB, abs, collectionDir, collectionName, freshness, latestSnapshot, listCollections, readClaims, readCollection, readRefs, readRuns, refDate } from "./store.mjs";
+import { LIB, abs, collectionDir, collectionName, freshness, latestSnapshot, listCollections, readClaims, readCollection, readEntities, readRefs, readRuns, readState, readTopics, refDate } from "./store.mjs";
 
 const text = (o) => ({ content: [{ type: "text", text: typeof o === "string" ? o : JSON.stringify(o, null, 2) }] });
 const KIND = { pattern: "패턴", benchmark: "기준치", fact: "사실", gap: "빈틈", failure: "실패 사례", opinion: "의견", hypothesis: "가설" };
@@ -72,7 +72,7 @@ server.registerTool(
     annotations: { readOnlyHint: true },
   },
   async () => {
-    const [cols, claims, runs] = await Promise.all([listCollections(), readClaims(), readRuns()]);
+    const [cols, claims, runs, topics] = await Promise.all([listCollections(), readClaims(), readRuns(), readTopics()]);
     return text(
       cols.map((c) => ({
         name: c.name,
@@ -80,6 +80,7 @@ server.registerTool(
         description: c.description ?? null,
         kind: c.kind,
         domain: c.domain,
+        topic: c.topic ? { id: c.topic, label: topics.find((t) => t.id === c.topic)?.label ?? null } : null,
         references: c.members.length,
         findings: claims.filter((x) => (x.collections ?? []).includes(c.name) && x.status === "active").length,
         last_run: runs.filter((r) => r.collection === c.name).at(-1)?.startedAt?.slice(0, 10) ?? null,
@@ -136,7 +137,7 @@ server.registerTool(
     annotations: { readOnlyHint: true },
   },
   async ({ id }) => {
-    const [refs, claims, axes, t] = await Promise.all([readRefs(), readClaims(), readAxes(), titles()]);
+    const [refs, claims, axes, t, ents] = await Promise.all([readRefs(), readClaims(), readAxes(), titles(), readEntities()]);
     const r = refs.find((x) => x.id === id);
     if (!r) return text(`reference not found: ${id}`);
     const idx = tagIndex(axes);
@@ -145,6 +146,10 @@ server.registerTool(
       type: r.type,
       credibility: r.credibility,
       publisher: r.publisher,
+      ids: r.ids ?? null,
+      read: r.read ?? null,
+      entity: r.entity ? { id: r.entity, name: ents.find((e) => e.id === r.entity)?.name ?? null } : null,
+      org: r.org ? { id: r.org, name: ents.find((e) => e.id === r.org)?.name ?? null } : null,
       notes: (r.notes ?? []).map((n) => ({ collection: t.get(n.collection) ?? n.collection, date: n.at?.slice(0, 10), text: n.text })),
       snapshots: (r.snapshots ?? []).map((s) => ({
         date: s.at.slice(0, 10),
@@ -197,6 +202,9 @@ server.registerTool(
         subject: c.subject,
         text: c.text,
         confidence: c.confidence,
+        read: readState(c, byId),
+        against: (c.against ?? []).map((s) => ({ id: s, label: byId.get(s)?.label ?? byId.get(s)?.url, url: byId.get(s)?.url })),
+        about: c.about ?? [],
         collections: (c.collections ?? []).map((x) => t.get(x) ?? x),
         evidence: c.sources.map((s) => ({ id: s, label: byId.get(s)?.label ?? byId.get(s)?.url, url: byId.get(s)?.url, published: byId.get(s) ? refDate(byId.get(s)) : null, freshness: byId.get(s) ? freshness(byId.get(s)) : null })),
       })),
@@ -237,6 +245,7 @@ server.registerTool(
         label: ax.label,
         facet: ax.facet ?? "pattern",
         question: ax.question ?? null,
+        broader: ax.broader ? { id: ax.broader, label: axes.axes.find((x) => x.id === ax.broader)?.label ?? null } : null,
         products: [...byProduct.values()].map((e) => ({ product: e.product, how: [...e.how], refs: [...e.refs], collections: [...e.collections] })),
       });
     }

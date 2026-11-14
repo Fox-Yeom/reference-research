@@ -5,7 +5,7 @@
  * Collect
  *   ref capture '<json>' | -          capture URLs (Aside or headless Chrome) → refs (re-encounter: reuse + add category, refresh if stale)
  *   ref store   '<json>' | -          App Store / Mac App Store screens
- *   ref source add '<json>'           text-only refs (articles, docs, papers, threads)
+ *   ref source add '<json>'           text-only refs (articles, docs, papers, threads); also edits refs: ids {doi,pmid,pmcid,arxiv,app}, entity, org (E# or registered name), read full|snippet (a claim citing only snippet sources is at most medium)
  *   ref fetch <connector> '<json>' [--json] | list   read-only candidates, newest first; writes nothing to the library (hn: {q, match, since_days, min_points, tags, limit} · github: {repo, q, limit, include_prerelease} · speakerdeck: {account | url, since_days, limit} · appstore: {app | app_id, country, platform})
  *   ref collect '<json>'              add existing refs to a collection (= add a category)
  *   ref uncollect <collection> <S#>
@@ -17,13 +17,15 @@
  *   ref similar <S#|C#|"text"> [--scope refs|claims|all] [--k 8]   local-embedding neighbours
  *   ref categories                    category vectors: nearest categories + shared refs
  *   ref embed [--rebuild]             update local embeddings (.vectors/, git-ignored)
- *   ref axes show [collection] | suggest [collection] | set '<json>'   tag normalization → axes.json
+ *   ref axes show [collection] | suggest [collection] | set '<json>'   tag normalization → axes.json (axis.broader: one parent axis)
  *   ref course set '<json>' | show <collection>   course structure (curriculum mode): modules, topics, hours
+ *   ref topic set '<json>' | show     topic registry (topics.json) {topics:[{id,label,description,order}], assign:{collection: topic}} — one topic per collection
+ *   ref entity set '<json>' | show [query]   entity registry (entities.json) {entities:[{id?,kind:product|org,name,aliases,org,parent,access}], link:{S#: E#}, link_org:{S#: E#}}
  * Evidence
  *   ref brief set '<json>' | show <collection>   {collection, brief:{purpose,audience,problem,success,value_types,scope,fixed,exclude,assumptions}, reason}
- *   ref run start '<json>'            {collection, brief, goal, domain, kind} → R#, baseline + related refs from other categories
+ *   ref run start '<json>'            {collection, brief, goal, question, title, topic, domain, kind} → R#, baseline + related refs from other categories
  *   ref run round '<json>' | show <collection>   {collection, queries:[{q,lang,via}], candidates:[{url,title,published,via}], new_axes:[], dropped:[]} → round line, stop rule; via = connector
- *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope; {update:"C#"} edits that metadata)
+ *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope/about/against; {update:"C#"} edits that metadata) — about: [E#|axis|topic], against: [S#] counter sources
  *   ref delta <collection> [--run R#] run / category / time delta → DELTA.md
  *   ref fresh <collection>            freshness split, key claims resting only on old sources, undated refs to fill first
  *   ref channels <collection>         channel coverage (primary · interpretation · reaction · rationale), Korean sources
@@ -39,6 +41,7 @@
  *   ref migrate [--dry-run] [--plan name]     one-time v1 → v2
  *   ref migrate roles [--dry-run]     analogous → indirect, keeps roleWas
  *   ref migrate grades [--dry-run] [--keep S1,S2]   captured articles typed official/docs → blog (grade C), keeps typeWas; --keep pins a company's own announcements
+ *   ref migrate v3 [--dry-run] [--out report.md]   v2 → v3: fills read/ids/product entities, prints a review list (topics, counter-evidence, duplicates); safe to run twice
  *   ref compact                       rewrite JSONL files without superseded lines
  *
  * "-" reads JSON from stdin. Images worth looking at are printed after "IMAGES:" — open them with the Read tool.
@@ -51,7 +54,7 @@ import { archiveDates, capture, storeScreens } from "./capture.mjs";
 import { connectorList, connectorStatus, fetchCandidates } from "./connectors.mjs";
 import * as ev from "./evidence.mjs";
 import { report, coverage } from "./report.mjs";
-import { migrate, migrateGrades, migrateRoles } from "./migrate.mjs";
+import { migrate, migrateGrades, migrateRoles, migrateV3 } from "./migrate.mjs";
 import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate } from "./store.mjs";
 import { spawnSync } from "node:child_process";
 
@@ -432,6 +435,22 @@ try {
       else fail("usage: ref axes show [collection] | suggest [collection] [--k 3] | set '<json>'");
       break;
     }
+    case "topic": {
+      const rg = await import("./registry.mjs");
+      const sub = args.shift();
+      if (sub === "set") print(await rg.setTopics(await jsonArg(args[0])));
+      else if (sub === "show" || !sub) print(await rg.showTopics());
+      else fail("usage: ref topic set '<json>' | ref topic show");
+      break;
+    }
+    case "entity": {
+      const rg = await import("./registry.mjs");
+      const sub = args.shift();
+      if (sub === "set") print(await rg.setEntities(await jsonArg(args[0])));
+      else if (sub === "show" || !sub) print(await rg.showEntities(args[0]));
+      else fail("usage: ref entity set '<json>' | ref entity show [query]");
+      break;
+    }
     case "doctor":
       print(await doctor());
       break;
@@ -444,6 +463,7 @@ try {
     case "migrate": {
       const dryRun = bool(args, "--dry-run");
       if (args[0] === "roles") print(await migrateRoles({ dryRun }));
+      else if (args[0] === "v3") print(await migrateV3({ dryRun, out: flag(args, "--out") }));
       else if (args[0] === "grades") print(await migrateGrades({ dryRun, keep: (flag(args, "--keep") ?? "").split(",").filter(Boolean) }));
       else print(await migrate({ dryRun, plan: flag(args, "--plan") }));
       break;

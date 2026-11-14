@@ -1,0 +1,152 @@
+{
+ "note-app-pricing-index": {
+  "page-390": {
+   "texts": 580,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 13361
+  },
+  "viewer-390": {
+   "texts": 600,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 13361
+  },
+  "page-768": {
+   "texts": 580,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 10281
+  },
+  "page-1280": {
+   "texts": 603,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 9636
+  },
+  "viewer-1280": {
+   "texts": 625,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 9636
+  },
+  "page-1600": {
+   "texts": 603,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 9400
+  }
+ },
+ "lib-index": {
+  "page-390": {
+   "texts": 100,
+   "minBody": 5.72,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3155
+  },
+  "page-768": {
+   "texts": 100,
+   "minBody": 5.72,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2799
+  },
+  "page-1280": {
+   "texts": 115,
+   "minBody": 5.45,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2568
+  },
+  "page-1600": {
+   "texts": 115,
+   "minBody": 5.45,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 2568
+  }
+ },
+ "old-library-board": {
+  "page-390": {
+   "texts": 595,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 13462
+  },
+  "viewer-390": {
+   "texts": 615,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 13462
+  },
+  "page-768": {
+   "texts": 595,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 10382
+  },
+  "page-1280": {
+   "texts": 618,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 9737
+  },
+  "viewer-1280": {
+   "texts": 640,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 9737
+  },
+  "page-1600": {
+   "texts": 618,
+   "minBody": 4.57,
+   "minLarge": 7.68,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 9458
+  }
+ }
+}

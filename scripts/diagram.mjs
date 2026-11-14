@@ -133,12 +133,12 @@ export function detail(slug, { label, text, claims = [], refs: direct = [], refO
   const nodes = [
     { key: "root", x: (W - 200) / 2, y: y0, w: 200, h: 56, tag: label, name: cut(text, 14), sub: cl.length ? cl.map((c) => c.id).join(" · ") : refs.join(" · "), cls: "sel" },
     ...clNodes.map((id, i) => {
-      if (id === "+claims") return { key: id, x: cx0 + i * (cw + cg), y: y1, w: cw, h: 56, tag: "더", name: `발견 +${extraClaims}`, sub: "발견 구역에서", cls: "more" };
+      if (id === "+claims") return { key: id, x: cx0 + i * (cw + cg), y: y1, w: cw, h: 56, tag: "생략", name: `발견 +${extraClaims}`, sub: "발견 구역에서", cls: "more" };
       const c = cl.find((x) => x.id === id);
       return { key: id, x: cx0 + i * (cw + cg), y: y1, w: cw, h: 56, tag: c.kindKo, tagColor: c.strength === "강함" ? "var(--green)" : c.strength === "보통" ? "var(--amber)" : "var(--muted)", name: cut(`${c.id} ${c.subject ?? ""}`, 12), sub: `근거 ${c.strength} · 출처 ${c.sources.length}` };
     }),
     ...refNodes.map((id, i) => {
-      if (id === "+refs") return { key: id, x: rx0 + i * (rw + rg), y: y2, w: rw, h: 56, tag: "더", name: `자료 +${moreRefs}`, sub: "출처 구역에서", cls: "more" };
+      if (id === "+refs") return { key: id, x: rx0 + i * (rw + rg), y: y2, w: rw, h: 56, tag: "생략", name: `자료 +${moreRefs}`, sub: "출처 구역에서", cls: "more" };
       const r = refOf(id);
       return { key: id, x: rx0 + i * (rw + rg), y: y2, w: rw, h: 56, tag: r.tag, name: cut(r.name, 9), sub: `${id}${r.frames ? ` · 화면 ${r.frames}` : ""}`, cls: `ext${r.view ? " view" : ""}`, attrs: r.view ? ` data-open-ref="${esc(id)}" tabindex="0" role="button"` : "" };
     }),

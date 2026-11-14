@@ -19,7 +19,7 @@
  *   ref embed [--rebuild]             update local embeddings (.vectors/, git-ignored)
  *   ref axes show [collection] | suggest [collection] | set '<json>'   tag normalization → axes.json (axis.broader: one parent axis)
  *   ref course set '<json>' | show <collection>   course structure (curriculum mode): modules, topics, hours
- *   ref topic set '<json>' | show     topic registry (topics.json) {topics:[{id,label,description,order}], assign:{collection: topic}} — one topic per collection
+ *   ref topic set '<json>' | show     topic registry (topics.json) {topics:[{id,label,description,order}], assign:{collection: topic}} — one topic per collection; topic = what the research is about, not a project; add one only after the user confirms
  *   ref entity set '<json>' | show [query]   entity registry (entities.json) {entities:[{id?,kind:product|org,name,aliases,org,parent,access}], link:{S#: E#}, link_org:{S#: E#}}
  * Evidence
  *   ref brief set '<json>' | show <collection>   {collection, brief:{purpose,audience,problem,success,value_types,scope,fixed,exclude,assumptions}, reason}

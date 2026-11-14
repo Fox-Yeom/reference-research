@@ -37,7 +37,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | run | `R#` | one research session in one category |
 | axis | `axes.json` | **tag normalization**: free-form pattern tags grouped into global axes (`limit-gauge-pace` + `traffic-light-limits` + `pace-line-chart` → 남은 한도·예산 게이지). facet `pattern` drives comparisons; `market` / `platform` / `positioning` are listed apart |
 | plan | `plans/<name>.json` | **optional** — a product plan's items linked to claims with positions. Kept outside the categories so references stay reusable |
-| topic | `topics.json` | what a category is about (`요금·수익`, `첫 화면·온보딩`); **one per category** (`collection.topic`). The library home groups by it; `domain` only picks the board layout ("조사 형식") |
+| topic | `topics.json` | what a category is about — its subject, never the project, product or client it serves (`요금·수익`, `첫 화면·온보딩`, `센서·인식 알고리즘`); **one per category** (`collection.topic`). A new topic is added only after the user confirms it (§1). The library home groups by it; `domain` only picks the board layout ("조사 형식") |
 | entity | `E#` in `entities.json` | a product or an organization, so the same product across pages and categories is one thing: ref `entity` (product), ref `org` (publisher). Names stay as display strings |
 
 **The re-encounter rule** — references are never duplicated. When research B meets something research A already collected:
@@ -70,7 +70,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 | `ref report '<json>'` | category board `<collection>/index.html`, conclusion first: 머리(질문 · 답 · 제안) · 근거 3개와 반대 근거 · 기획 의도(분야별 이름, 역추적 카드) · 패턴 비교 · (커리큘럼 비교) · 피할 것 · 추가 질문 항목 · 레퍼런스(검색 `/`, 역할·패턴·회차·정렬, 보기 3종: 격자 · 제품별 · **흐름**, 화면 뷰어 + 정보 패널; 캡처 없는 자료는 **자료 목록** 표) · 발견과 근거 · 전체 요약 · 조사 과정(접힘: 개요 · 바퀴 · 채널 · 신선도 · 회차 기록) · 출처. `reader` picks the order: `decision` · `practitioner` (default) · `archive`. Ids are copy buttons. Plus library home `~/references/index.html` and `README.md`. One template (`scripts/board.mjs`) for every board: change it, re-run `ref report` per collection |
 | `ref plan set\|show\|link\|delta` | optional plan layer (see §8) |
 | `ref course set '<json>'` / `ref course show <collection>` | curriculum mode: a course's structure (modules · topics · hours) / comparison: topic coverage, usual order, gaps vs. basis (see §9) |
-| `ref topic set '<json>'` / `ref topic show` | topic registry: `{"topics":[{"id","label","description","order"}],"assign":{"<collection>":"<topic id>"}}` — one topic per category |
+| `ref topic set '<json>'` / `ref topic show` | topic registry: `{"topics":[{"id","label","description","order"}],"assign":{"<collection>":"<topic id>"}}` — one topic per category; add a topic only after the user confirmed it |
 | `ref entity set '<json>'` / `ref entity show [query]` | entity registry (products, organizations): `{"entities":[{"kind":"product","name","aliases","org"}],"link":{"S#":"E#"}}` |
 | `ref migrate v3 [--dry-run] [--out file]` | fill v3 fields in an older library (reading level, identifiers, product entities) and print a review list (topics, counter-evidence, duplicates). Commit the library first; safe to run twice |
 | `ref axes show [collection]` · `ref axes suggest [collection]` · `ref axes set '<json>'` | axes with products/categories · candidate groupings for unmapped tags · define/merge axes |
@@ -80,7 +80,7 @@ ref() { "$HOME/.reference-research/plugin/scripts/ref" "$@"; }
 ```jsonc
 // run start — domain: design | dev | strategy | voice | travel | research | curriculum ("related": false skips the embedding search)
 // brief = the confirmed table (§1): keys purpose, audience, problem, success, value_types, scope, fixed, exclude, assumptions. purpose and audience also land on the category (board header: 목적 · 대상); "goal" overrides the run's goal
-// topic = an id from topics.json (`ref topic show`; add one with `ref topic set` and ask the user if none fits) · title = the board's title
+// topic = an id from topics.json, chosen by subject (`ref topic show`); none fits → propose one in the brief and `ref topic set` it only after the user confirms (§1) · title = the board's title
 {"collection":"…","brief":{"purpose":"which decision this run supports","audience":"who the result is for","problem":"…","success":"…","value_types":["디자인·UX"],"scope":["direct","trend"],"fixed":"…","exclude":"…","assumptions":["…"]},"question":"one-line question","title":"…","topic":"pricing","domain":"design","kind":"category","description":"…"}
 
 // brief set — a change after round 0; reason goes on the history
@@ -179,7 +179,8 @@ Ask before searching. Models are weak at noticing a vague request on their own, 
 | 간접 (`indirect`) | 같은 문제를 다른 방식으로, 또는 같은 방식으로 다른 고객을. 다른 업종이지만 구조가 같은 것도 여기 넣는다 |
 | 트렌드 (`trend`) | 해외·최신 흐름. 이 분야가 어디로 가는지 |
 
-**Brief**: turn the answers into a table (목적 · 대상 · 문제 · 성공 기준 · 가치 유형 · 범위 · 고정할 것 · 뺄 것 · 가정). Fill blanks yourself and mark them **가정**; scope unknown → all three scopes, marked 가정.
+**Brief**: turn the answers into a table (주제 · 목적 · 대상 · 문제 · 성공 기준 · 가치 유형 · 범위 · 고정할 것 · 뺄 것 · 가정). Fill blanks yourself and mark them **가정**; scope unknown → all three scopes, marked 가정.
+- **주제**: what is being researched, never the project, product or client it serves. Pick from `ref topic show`. None fits → write a proposed new topic (id · 이름, a glossary noun) marked **가정**, so the confirm step asks about it; run `ref topic set` only after the user confirms. When the table is printed instead of confirmed, start without a topic and list the proposal in the report.
 - **Confirm it before searching**: AskUserQuestion, one single-select question "이 개요로 시작할까요?", options `이대로 시작` / `고칠 곳 있음`, with the full table in each option's `preview`. `고칠 곳 있음` → AskUserQuestion again, one question per 가정 slot (≤ 4): the current value first, then 1–3 concrete alternatives. Update the table and confirm again. A prose summary does not count. Without that tool, print the full table.
 - **Print the full table instead, then start**, when the user said "알아서" (in the request or as an answer), or when no slot is 가정.
 - The request already states 문제, 목표 and 가치 유형 → skip round 1 and go straight to the brief.

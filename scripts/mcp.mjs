@@ -19,7 +19,7 @@ import { z } from "zod";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { WHY_BASIS_KO, WHY_RANK, conclusionData, rationaleOf } from "./board.mjs";
 import { BRIEF_FIELDS, briefRows, collectionClaims } from "./evidence.mjs";
-import { LIB, abs, collectionDir, collectionName, freshness, latestSnapshot, listCollections, readClaims, readCollection, readEntities, readRefs, readRuns, refDate } from "./store.mjs";
+import { LIB, abs, collectionDir, collectionName, freshness, latestSnapshot, listCollections, readClaims, readCollection, readEntities, readRefs, readRuns, readState, refDate } from "./store.mjs";
 
 const text = (o) => ({ content: [{ type: "text", text: typeof o === "string" ? o : JSON.stringify(o, null, 2) }] });
 const KIND = { pattern: "패턴", benchmark: "기준치", fact: "사실", gap: "빈틈", failure: "실패 사례", opinion: "의견", hypothesis: "가설" };
@@ -147,6 +147,7 @@ server.registerTool(
       credibility: r.credibility,
       publisher: r.publisher,
       ids: r.ids ?? null,
+      read: r.read ?? null,
       entity: r.entity ? { id: r.entity, name: ents.find((e) => e.id === r.entity)?.name ?? null } : null,
       org: r.org ? { id: r.org, name: ents.find((e) => e.id === r.org)?.name ?? null } : null,
       notes: (r.notes ?? []).map((n) => ({ collection: t.get(n.collection) ?? n.collection, date: n.at?.slice(0, 10), text: n.text })),
@@ -201,6 +202,9 @@ server.registerTool(
         subject: c.subject,
         text: c.text,
         confidence: c.confidence,
+        read: readState(c, byId),
+        against: (c.against ?? []).map((s) => ({ id: s, label: byId.get(s)?.label ?? byId.get(s)?.url, url: byId.get(s)?.url })),
+        about: c.about ?? [],
         collections: (c.collections ?? []).map((x) => t.get(x) ?? x),
         evidence: c.sources.map((s) => ({ id: s, label: byId.get(s)?.label ?? byId.get(s)?.url, url: byId.get(s)?.url, published: byId.get(s) ? refDate(byId.get(s)) : null, freshness: byId.get(s) ? freshness(byId.get(s)) : null })),
       })),

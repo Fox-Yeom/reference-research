@@ -348,7 +348,16 @@ export function publisherKey(r) {
   return h;
 }
 
-/** high: ≥2 independent publishers and score ≥4 (gap: capped at medium) · medium: score ≥2 · low: otherwise. */
+/** M11: what we know about how the cited sources were read — full (≥1 read in full) · snippet (all only skimmed) · unknown (no record). */
+export function readState(claim, refById) {
+  const rs = (claim.sources ?? []).map((s) => refById.get(s)).filter(Boolean);
+  if (rs.some((r) => r.read === "full")) return "full";
+  if (rs.length && rs.every((r) => r.read === "snippet")) return "snippet";
+  return "unknown";
+}
+
+/** high: ≥2 independent publishers and score ≥4 (gap: capped at medium) · medium: score ≥2 · low: otherwise.
+ *  M11: when every source was only skimmed (read: snippet) the claim is at most medium; unrecorded reading keeps the old rule. */
 export function confidence(claim, refById) {
   if (claim.kind === "hypothesis") return "hypothesis";
   const best = new Map();
@@ -360,7 +369,7 @@ export function confidence(claim, refById) {
   }
   const score = [...best.values()].reduce((a, b) => a + b, 0);
   // absence ("nobody does X") is bounded by the search, not by the sources → never high
-  if (best.size >= 2 && score >= 4) return claim.kind === "gap" ? "medium" : "high";
+  if (best.size >= 2 && score >= 4) return claim.kind === "gap" || readState(claim, refById) === "snippet" ? "medium" : "high";
   if (score >= 2) return "medium";
   return "low";
 }

@@ -5,7 +5,7 @@
  * Collect
  *   ref capture '<json>' | -          capture URLs (Aside or headless Chrome) → refs (re-encounter: reuse + add category, refresh if stale)
  *   ref store   '<json>' | -          App Store / Mac App Store screens
- *   ref source add '<json>'           text-only refs (articles, docs, papers, threads); also edits refs: ids {doi,pmid,pmcid,arxiv,app}, entity, org (E# or registered name)
+ *   ref source add '<json>'           text-only refs (articles, docs, papers, threads); also edits refs: ids {doi,pmid,pmcid,arxiv,app}, entity, org (E# or registered name), read full|snippet (a claim citing only snippet sources is at most medium)
  *   ref fetch <connector> '<json>' [--json] | list   read-only candidates, newest first; writes nothing to the library (hn: {q, match, since_days, min_points, tags, limit} · github: {repo, q, limit, include_prerelease} · speakerdeck: {account | url, since_days, limit} · appstore: {app | app_id, country, platform})
  *   ref collect '<json>'              add existing refs to a collection (= add a category)
  *   ref uncollect <collection> <S#>
@@ -17,7 +17,7 @@
  *   ref similar <S#|C#|"text"> [--scope refs|claims|all] [--k 8]   local-embedding neighbours
  *   ref categories                    category vectors: nearest categories + shared refs
  *   ref embed [--rebuild]             update local embeddings (.vectors/, git-ignored)
- *   ref axes show [collection] | suggest [collection] | set '<json>'   tag normalization → axes.json
+ *   ref axes show [collection] | suggest [collection] | set '<json>'   tag normalization → axes.json (axis.broader: one parent axis)
  *   ref course set '<json>' | show <collection>   course structure (curriculum mode): modules, topics, hours
  *   ref topic set '<json>' | show     topic registry (topics.json) {topics:[{id,label,description,order}], assign:{collection: topic}} — one topic per collection
  *   ref entity set '<json>' | show [query]   entity registry (entities.json) {entities:[{id?,kind:product|org,name,aliases,org,parent,access}], link:{S#: E#}, link_org:{S#: E#}}
@@ -25,7 +25,7 @@
  *   ref brief set '<json>' | show <collection>   {collection, brief:{purpose,audience,problem,success,value_types,scope,fixed,exclude,assumptions}, reason}
  *   ref run start '<json>'            {collection, brief, goal, question, title, topic, domain, kind} → R#, baseline + related refs from other categories
  *   ref run round '<json>' | show <collection>   {collection, queries:[{q,lang,via}], candidates:[{url,title,published,via}], new_axes:[], dropped:[]} → round line, stop rule; via = connector
- *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope; {update:"C#"} edits that metadata)
+ *   ref claim add '<json>' | list [collection] [--status s] [--kind k] [--run R#]   (add: subject/key/asOf/scope/about/against; {update:"C#"} edits that metadata) — about: [E#|axis|topic], against: [S#] counter sources
  *   ref delta <collection> [--run R#] run / category / time delta → DELTA.md
  *   ref fresh <collection>            freshness split, key claims resting only on old sources, undated refs to fill first
  *   ref channels <collection>         channel coverage (primary · interpretation · reaction · rationale), Korean sources

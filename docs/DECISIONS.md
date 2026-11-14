@@ -2,6 +2,9 @@
 
 Newest first. One line of context, the decision, why.
 
+## 2026-11-14 · The board shows judgment material, not an answer
+After board G reached the real library, the maintainer found the answer line drew readers into the agent's conclusion, the evidence map said nothing readable (labels cut, "근거 1·2·3", same content as the table), intent cards mixed 의도·결과·시사점, search had no visible scope, and S# chips jumped to the reference section (#27). Reference research normally hands over observations, comparisons and options; the person decides. → Draft A of `docs/BOARD-DRAFTS.md` §8 replaces 핵심 결론 and 근거 노선 with 판단 자료: question → observations with captures (counter right under) → options table (supporting, opposing, references, check, 결정 복사) → the agent's memo folded as 참고. An evidence side panel replaces the map, why-traces become one comparison table, board search shows its scope and gathers results in a panel, S# chips open the capture in place. The summary heading becomes `## 판단 자료` (관찰 · 반대 관찰 · 선택지 · 에이전트 메모); older summaries still render with their 답·제안 as the memo. Why: a reference board is input to a person's decision, so the person must see the material before any reading of it.
+
 ## 2026-11-14 · Topics are subjects, added only after the user confirms
 SKILL.md let an agent read "add one with `ref topic set` and ask the user" as add-then-ask, and gave no rule for what a topic is; the maintainer's first assignment grouped collections by project. → A topic names what is being researched (`요금·수익`), never the project, product or client it serves. A new topic goes into the brief table as 가정 and is added with `ref topic set` only after the user confirms; when the brief is printed instead of confirmed, the run starts without a topic and the proposal goes in the report. Why: references are reused across projects, so subject groups stay findable after a project ends, and the public skill never carries project names.
 

@@ -12,17 +12,17 @@
   const COUNTER = { C2: ["C6"] }; // an observation and what speaks against it
   const BASE = ["C1", "C3"]; // shared by every option
   const OPTIONS = [
-    { id: "o1", name: "기능 단계형", text: "무료 1단과 개인 유료 1단을 나란히 두는 구성", pro: ["C2", "C5"], con: ["C6"], check: B.open[1].text },
-    { id: "o2", name: "부가 서비스형", text: "앱은 무료로 두고 동기화·게시만 판매하는 구성", pro: ["C4"], con: [], conNote: "5곳 중 1곳(Obsidian)만의 구성, 근거 세기 보통", check: B.open[0].text },
-    { id: "o3", name: "유료 단계형", text: "요금표 첫 화면에 ₩0 단계 없이 유료 단계만 두는 구성", pro: ["C6"], con: ["C2"], check: "무료 단계를 표에서 빼도 무료로 시작하려는 사람이 경계를 찾을 수 있나" },
+    { id: "o1", name: "기능 단계형", text: "무료 1단과 개인 유료 1단을 나란히 두는 구성", pro: ["C2", "C5"], con: ["C6"], check: null },
+    { id: "o2", name: "부가 서비스형", text: "앱은 무료로 두고 동기화·게시만 판매하는 구성", pro: ["C4"], con: [], conNote: "근거 1곳(Obsidian) · 근거 세기 보통", check: B.open[0].text },
+    { id: "o3", name: "유료 단계형", text: "요금표 첫 화면에 ₩0 단계 없이 유료 단계만 두는 구성", pro: ["C6"], con: ["C2"], check: "무료로 시작하려는 사람이 경계를 찾기 어려운가 (피할 것 항목의 추정)" },
   ];
   // what each captured pricing page shows (from the notes in data.js)
   const SCREENS = {
     S1: ["Free ₩0", "Plus ₩14,000", "연간 토글 · 최대 20% 절약", "Business ₩30,000 · Enterprise"],
     S2: ["비기너 $0", "프로 $5", "연간 토글 · 20% 할인", "비지니스 $8"],
-    S3: [null, "Starter · Advanced", "월간/연간 토글", "Flexible · Enterprise(영업 문의)"],
-    S4: ["앱 무료(가입 없이)", "Sync $4 · Publish $8(부가 서비스)", "월간/연간 토글", "Commercial 라이선스"],
-    S5: ["Starter ₩0", "Plus ₩9,667", "월간/연간 토글", "Team $5/멤버(최소 3명) · Enterprise 상담"],
+    S3: [null, "Starter · Advanced", "C1", "Flexible · Enterprise(영업 문의)"],
+    S4: ["앱 무료(가입 없이)", "단계 없음 · Sync $4 · Publish $8 부가 서비스", "C1", ""],
+    S5: ["Starter ₩0", "Plus ₩9,667", "C1", "Team $5/멤버(최소 3명) · Enterprise 상담"],
   };
   const COLS = ["무료 단계", "개인 유료 첫 단계", "결제 주기", "팀 단계"];
 
@@ -31,7 +31,7 @@
   const sid = (id) => (id.startsWith("S") ? `<button type="button" class="sid" data-open="${id}" title="${esc(ref(id).product)} 화면">${id}</button>` : `<button type="button" class="sid c" data-panel="claim:${id}" title="${esc(claim(id).subject ?? "")}">${id}</button>`);
   const refsOf = (ids) => [...new Set(ids.flatMap((c) => claim(c).sources))];
   const thumbs = (rids, max = 5) => `<div class="thumbs">${rids.slice(0, max).map((r) => `<button type="button" data-open="${r}"><img loading="lazy" src="${ref(r).images[0]}" alt="${esc(ref(r).product)} 요금제 캡처"><span>${esc(ref(r).product)}</span></button>`).join("")}</div>`;
-  const decideBtn = (o) => `<button type="button" class="decide" data-decide="${o.id}">결정 기록</button>`;
+  const decideBtn = (o) => `<button type="button" class="decide" data-decide="${o.id}">결정 복사</button>`;
   const searchOf = (...xs) => esc(xs.flat().filter(Boolean).join(" "));
   const card = (id, title, lead, body, group) => `<section class="card" id="${id}" data-sg="${group ?? title}"><h2>${title}</h2>${lead ? `<p class="lead">${lead}</p>` : ""}${body}</section>`;
 
@@ -44,7 +44,7 @@
   };
   const obsList = (compact) => `<ul class="obs${compact ? " compact" : ""}">${OBS.map((c) => obRow(c) + (COUNTER[c] ?? []).map((x) => obRow(x, "counter")).join("")).join("")}</ul>`;
   const qRow = () => `<div class="q" data-s="${searchOf(B.question)}" data-sl="${esc(B.question)}" data-sg="판단 자료" id="question"><span class="lab">질문</span><p>${esc(B.question)}</p></div>`;
-  const memo = () => `<details class="memo" id="memo" data-s="${searchOf(B.answer.text, B.proposal.text)}" data-sl="에이전트 메모" data-sg="판단 자료"><summary>에이전트 메모 · 결정 아님</summary><p>해석: ${esc(B.answer.text)} ${B.answer.claims.map(sid).join("")}</p><p>다음 단계 후보: ${esc(B.proposal.text)} ${B.proposal.claims.map(sid).join("")}</p></details>`;
+  const memo = () => `<details class="memo" id="memo" data-s="${searchOf("에이전트 메모", B.answer.text, B.proposal.text)}" data-sl="에이전트 메모" data-sg="판단 자료"><summary>에이전트 메모 (참고)</summary><p>해석: ${esc(B.answer.text)} ${B.answer.claims.map(sid).join("")}</p><p>다음 단계 후보: ${esc(B.proposal.text)} ${B.proposal.claims.map(sid).join("")}</p></details>`;
   const optItems = (ids) => (ids.length ? `<ul>${ids.map((c) => `<li>${esc(claim(c).text)} ${sid(c)}</li>`).join("")}</ul>` : "");
 
   // A: observations, then an options table
@@ -52,7 +52,7 @@
 <tr><th scope="row">받치는 관찰</th>${OPTIONS.map((o) => `<td data-o="${esc(o.name)}">${optItems(o.pro)}</td>`).join("")}</tr>
 <tr><th scope="row">반대 관찰</th>${OPTIONS.map((o) => `<td data-o="${esc(o.name)}">${optItems(o.con)}${o.conNote ? `<span class="none">${esc(o.conNote)}</span>` : ""}</td>`).join("")}</tr>
 <tr><th scope="row">레퍼런스</th>${OPTIONS.map((o) => `<td data-o="${esc(o.name)}">${thumbs(refsOf(o.pro), 3)}</td>`).join("")}</tr>
-<tr><th scope="row">확인할 것</th>${OPTIONS.map((o) => `<td data-o="${esc(o.name)}">${esc(o.check)}</td>`).join("")}</tr>
+<tr><th scope="row">확인 질문</th>${OPTIONS.map((o) => `<td data-o="${esc(o.name)}">${o.check ? esc(o.check) : `<span class="none">기록 없음</span>`}</td>`).join("")}</tr>
 <tr><th scope="row">결정</th>${OPTIONS.map((o) => `<td data-o="${esc(o.name)}"><button type="button" class="more" data-panel="opt:${o.id}">근거</button> ${decideBtn(o)}</td>`).join("")}</tr></tbody></table>`;
 
   // B: option cards side by side
@@ -60,13 +60,13 @@
 <h3>${esc(o.name)}</h3><p>${esc(o.text)}</p>${thumbs(refsOf(o.pro), 3)}
 <h4>받치는 관찰</h4>${optItems(o.pro)}
 <h4 class="c" style="color:var(--coral)">반대 관찰</h4>${optItems(o.con) || `<p class="lab" style="margin:0">${esc(o.conNote ?? "없음")}</p>`}
-<h4>확인할 것</h4><p style="margin:0;font-size:14px">${esc(o.check)}</p>
+<h4>확인 질문</h4><p style="margin:0;font-size:14px">${o.check ? esc(o.check) : `<span class="lab">기록 없음</span>`}</p>
 <div class="acts"><button type="button" class="more" data-panel="opt:${o.id}">근거</button>${decideBtn(o)}</div></article>`).join("")}</div>`;
   const baseList = () => `<div class="base">${BASE.map((c) => `<div data-s="${searchOf(claim(c).text)}" data-sl="${esc(claim(c).text)}" data-sg="공통 기본기" id="base-${c}">${esc(claim(c).text)} ${sid(c)}</div>`).join("")}</div>`;
 
   // C: screens first
   const screens = () => `<table class="cmp"><thead><tr><th scope="col">화면</th>${COLS.map((h) => `<th scope="col">${h}</th>`).join("")}</tr></thead><tbody>${B.refs.map((r) => `<tr id="scr-${r.id}" data-s="${searchOf(r.product, SCREENS[r.id])}" data-sl="${esc(r.product)} 화면" data-sg="화면 비교">
-<td class="prod">${thumbs([r.id], 1)}<b>${esc(r.product)} ${sid(r.id)}</b></td>${SCREENS[r.id].map((v, i) => `<td data-h="${COLS[i]}">${v == null ? `<span class="no">첫 화면에 ₩0 단계 없음</span> ${sid("C6")}` : esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+<td class="prod">${thumbs([r.id], 1)}<b>${esc(r.product)} ${sid(r.id)}</b></td>${SCREENS[r.id].map((v, i) => `<td data-h="${COLS[i]}">${v == null ? `<span class="no">₩0 단계 없음(첫 화면)</span> ${sid("C6")}` : v === "C1" ? `월간/연간 토글 ${sid("C1")}` : v === "" ? `<span class="none">기록 없음</span>` : esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
   const optCompact = () => `<ul class="obs compact">${OPTIONS.map((o) => `<li class="ob" id="opt-${o.id}" data-panel="opt:${o.id}" tabindex="0" data-s="${searchOf(o.name, o.text, o.check)}" data-sl="${esc(o.name)}" data-sg="선택지"><span class="lab">선택지</span><div><p><b>${esc(o.name)}</b> · ${esc(o.text)}</p></div><div class="side2">${decideBtn(o)}</div></li>`).join("")}</ul>`;
 
   // shared: intent comparison table (notes: 기능 · 의도 · 결과 · 시사점)
@@ -75,7 +75,8 @@
     const imp = note(r, "시사점") ?? "";
     const [verb, rest] = imp.includes(" — ") ? imp.split(" — ") : ["", imp];
     const cell = (k, h) => { const v = note(r, k); return `<td data-h="${h}">${v ? esc(v.replace(/\s*\[S\d+\]/g, "")) : `<span class="nil">기록 없음</span>`}</td>`; };
-    return `<tr id="int-${r.id}" data-s="${searchOf(r.product, r.note.map(([, v]) => v))}" data-sl="${esc(r.product)} 설계 의도" data-sg="설계 의도"><td><b>${esc(r.product)} ${sid(r.id)}</b>${r.basis ? `<span class="tag" style="margin-top:4px">${esc(r.basis)}</span>` : ""}<small>${esc((note(r, "기능") ?? "").replace(/\s*\[S\d+\]/g, ""))}</small></td>${cell("의도", "의도")}${cell("결과", "결과")}<td data-h="시사점" class="imp">${verb ? `<em>${esc(verb)}</em>` : ""}${esc(rest)}</td></tr>`;
+    const vcls = { 차용: "v-take", 변형: "v-adapt" }[verb] ?? (verb ? "v-avoid" : "");
+    return `<tr id="int-${r.id}" data-s="${searchOf(r.product, r.note.map(([, v]) => v))}" data-sl="${esc(r.product)} 설계 의도" data-sg="설계 의도"><td><b>${esc(r.product)} ${sid(r.id)}</b>${r.basis ? `<span class="tag" style="margin-top:4px">${esc(r.basis)}</span>` : ""}<small>${esc((note(r, "기능") ?? "").replace(/\s*\[S\d+\]/g, ""))}</small></td>${cell("의도", "의도")}${cell("결과", "결과")}<td data-h="시사점" class="imp">${verb ? `<em class="${vcls}">${esc(verb)}</em>` : ""}${esc(rest)}</td></tr>`;
   }).join("")}</tbody></table>`;
   const refsGrid = () => `<div class="rgrid">${B.refs.map((r) => `<article class="rcard" id="${r.id}" data-s="${searchOf(r.id, r.product, r.page, r.url)}" data-sl="${esc(r.product)} — ${esc(r.page)}" data-sg="레퍼런스"><button type="button" class="img" data-open="${r.id}"><img loading="lazy" src="${r.images[0]}" alt="${esc(r.product)} ${esc(r.page)} 캡처"></button><div><b>${esc(r.product)}</b><span>${r.id} · ${esc(r.role)} · 화면 ${r.images.length}</span></div></article>`).join("")}</div>`;
   const openQs = () => `<ol class="openq">${B.open.map((q, i) => `<li id="oq-${i}" data-s="${searchOf(q.text, q.why)}" data-sl="${esc(q.text)}" data-sg="미해결 질문">${esc(q.text)} ${q.claims.map(sid).join("")}<span>${esc(q.why)}</span></li>`).join("")}</ol>`;
@@ -110,7 +111,7 @@ ${card("open", "미해결 질문", "", openQs())}`;
     } else {
       const o = OPTIONS.find((x) => x.id === id);
       head = `<small>선택지</small>${esc(o.name)}`;
-      body = `<p style="margin:12px 0 0;color:var(--muted)">${esc(o.text)}</p><h3>받치는 관찰</h3>${o.pro.map(pcClaim).join("")}<h3 class="c">반대 관찰</h3>${o.con.length ? o.con.map(pcClaim).join("") : `<p class="lab">${esc(o.conNote ?? "없음")}</p>`}<h3>확인할 것</h3><div class="pcheck">${esc(o.check)}</div><p style="margin-top:14px">${decideBtn(o)}</p>`;
+      body = `<p style="margin:12px 0 0;color:var(--muted)">${esc(o.text)}</p><h3>받치는 관찰</h3>${o.pro.map(pcClaim).join("")}<h3 class="c">반대 관찰</h3>${o.con.length ? o.con.map(pcClaim).join("") : `<p class="lab">${esc(o.conNote ?? "없음")}</p>`}<h3>확인 질문</h3><div class="pcheck">${o.check ? esc(o.check) : "기록 없음"}</div><p style="margin-top:14px">${decideBtn(o)}</p>`;
     }
     P.querySelector("h2").innerHTML = head;
     P.querySelector(".body").innerHTML = body;
@@ -157,7 +158,7 @@ ${card("open", "미해결 질문", "", openQs())}`;
     const groups = new Map();
     for (const el of items()) if (el.dataset.s.toLowerCase().includes(t)) (groups.get(el.dataset.sg) ?? groups.set(el.dataset.sg, []).get(el.dataset.sg)).push(el);
     const n = [...groups.values()].reduce((a, g) => a + g.length, 0);
-    S.innerHTML = `<header><b>"${esc(q.value.trim())}" ${n}건</b><span>범위: 이 조사 · Esc 닫기</span></header>${n ? [...groups].map(([g, els]) => `<h3>${esc(g)} <i>${els.length}</i></h3>${els.map((el) => `<button type="button" class="hit" data-goto="${el.id}">${hl(el.dataset.sl || el.dataset.s, t)}${(el.dataset.sl || "").toLowerCase().includes(t) ? "" : `<small>${snip(el.dataset.s, t)}</small>`}</button>`).join("")}`).join("") : `<p class="none">이 조사에는 맞는 항목이 없습니다.</p>`}<p class="none"><a href="g-neon-mix.html#home">라이브러리 전체에서 찾기</a></p>`;
+    S.innerHTML = `<header><b>"${esc(q.value.trim())}" ${n}건</b><span>범위: 이 조사 · Esc 닫기</span></header>${n ? [...groups].map(([g, els]) => `<h3>${esc(g)} <i>${els.length}</i></h3>${els.map((el) => `<button type="button" class="hit" data-goto="${el.id}">${hl(el.dataset.sl || el.dataset.s, t)}${(el.dataset.sl || "").toLowerCase().includes(t) ? "" : `<small>${snip(el.dataset.s.replace(el.dataset.sl ?? "", ""), t)}</small>`}</button>`).join("")}`).join("") : `<p class="none">이 조사에는 맞는 항목이 없습니다.</p>`}<p class="none"><a href="g-neon-mix.html#home">라이브러리 전체에서 찾기</a></p>`;
     S.hidden = false;
   }
   q.addEventListener("input", runSearch);

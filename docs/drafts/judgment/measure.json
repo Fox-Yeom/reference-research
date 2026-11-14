@@ -34,7 +34,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 3734
+   "height": 3712
   },
   "viewer-1280": {
    "texts": 212,
@@ -43,7 +43,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 3734
+   "height": 3712
   },
   "page-1600": {
    "texts": 180,
@@ -90,7 +90,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 4119
+   "height": 3389
   },
   "viewer-1280": {
    "texts": 198,
@@ -99,7 +99,7 @@
    "fails": 0,
    "failSamples": [],
    "overflowX": false,
-   "height": 4119
+   "height": 3389
   },
   "page-1600": {
    "texts": 166,
@@ -113,7 +113,7 @@
  },
  "drafts-j-refs-first": {
   "page-390": {
-   "texts": 169,
+   "texts": 172,
    "minBody": 5.72,
    "minLarge": 17.9,
    "fails": 0,
@@ -122,7 +122,7 @@
    "height": 7741
   },
   "viewer-390": {
-   "texts": 201,
+   "texts": 204,
    "minBody": 5.72,
    "minLarge": 17.9,
    "fails": 0,
@@ -131,7 +131,7 @@
    "height": 7741
   },
   "page-768": {
-   "texts": 178,
+   "texts": 181,
    "minBody": 5.72,
    "minLarge": 17.9,
    "fails": 0,
@@ -140,7 +140,7 @@
    "height": 4368
   },
   "page-1280": {
-   "texts": 180,
+   "texts": 183,
    "minBody": 5.72,
    "minLarge": 17.9,
    "fails": 0,
@@ -149,7 +149,7 @@
    "height": 3778
   },
   "viewer-1280": {
-   "texts": 212,
+   "texts": 215,
    "minBody": 5.72,
    "minLarge": 17.9,
    "fails": 0,
@@ -158,7 +158,7 @@
    "height": 3778
   },
   "page-1600": {
-   "texts": 180,
+   "texts": 183,
    "minBody": 5.72,
    "minLarge": 17.9,
    "fails": 0,

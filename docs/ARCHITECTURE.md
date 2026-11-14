@@ -27,8 +27,8 @@ Plugin root (`${CLAUDE_PLUGIN_ROOT}`) is a versioned, replaceable cache dir. `CL
 | `registry.mjs` | v3 registries: topics (`topics.json`, one topic per collection) and entities (`entities.json`, products and organizations) |
 | `embed.mjs` | local embeddings, vectors in `<LIB>/.vectors` (derived, git-ignored) |
 | `report.mjs` | board data, SUMMARY/README/DELTA, library home |
-| `board.mjs` | the single HTML template for every board + home (board G: dark neon, KPI cards, conclusion galley with margin marks, evidence map, timeline, activity, viewer, search) |
-| `diagram.mjs` | static SVG figures for the board/home (evidence map overview + detail, shared references, timeline, activity hexes, sparklines) in the diagram-design grammar |
+| `board.mjs` | the single HTML template for every board + home (board G dark neon; the board leads with 판단 자료 — question, observations with captures, options table, folded agent memo — plus an evidence side panel, intent comparison table, timeline, activity, viewer, scoped search) |
+| `diagram.mjs` | static SVG figures for the board/home (shared references, timeline, activity hexes, sparklines) in the diagram-design grammar |
 | `curriculum.mjs` | curriculum mode: course records, topic coverage, order, gaps |
 | `mcp.mjs` | read-only MCP: list_collections, search_references, get_reference, search_findings, get_patterns, get_board |
 | `migrate.mjs` | v1 → v2 library migration (LIB-relative moves only); `ref migrate v3` fills read/ids/product entities and prints a review list |

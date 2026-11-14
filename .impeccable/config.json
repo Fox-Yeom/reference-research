@@ -11,6 +11,18 @@
         ],
         "createdAt": "2026-11-13T08:34:25.984Z",
         "reason": "user confirmed: 2026-11-13 maintainer asked for a neon look from ponytail reference screenshots and chose glow on accents only"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "docs/drafts/h-observe.html",
+          "docs/drafts/i-options.html",
+          "docs/drafts/j-refs-first.html",
+          "docs/drafts/judgment.css"
+        ],
+        "createdAt": "2026-11-14T13:43:25.283Z",
+        "reason": "user confirmed: 2026-11-13 maintainer chose G's neon (glow on accents only); judgment drafts reuse G's tokens and sidebar"
       }
     ]
   }

@@ -1,0 +1,170 @@
+{
+ "drafts-h-observe": {
+  "page-390": {
+   "texts": 167,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7608
+  },
+  "viewer-390": {
+   "texts": 199,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7608
+  },
+  "page-768": {
+   "texts": 178,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4520
+  },
+  "page-1280": {
+   "texts": 180,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3712
+  },
+  "viewer-1280": {
+   "texts": 212,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3712
+  },
+  "page-1600": {
+   "texts": 180,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3338
+  }
+ },
+ "drafts-i-options": {
+  "page-390": {
+   "texts": 160,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7160
+  },
+  "viewer-390": {
+   "texts": 192,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7160
+  },
+  "page-768": {
+   "texts": 164,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4732
+  },
+  "page-1280": {
+   "texts": 166,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3389
+  },
+  "viewer-1280": {
+   "texts": 198,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3389
+  },
+  "page-1600": {
+   "texts": 166,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3081
+  }
+ },
+ "drafts-j-refs-first": {
+  "page-390": {
+   "texts": 172,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7741
+  },
+  "viewer-390": {
+   "texts": 204,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 7741
+  },
+  "page-768": {
+   "texts": 181,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 4368
+  },
+  "page-1280": {
+   "texts": 183,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3778
+  },
+  "viewer-1280": {
+   "texts": 215,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3778
+  },
+  "page-1600": {
+   "texts": 183,
+   "minBody": 5.72,
+   "minLarge": 17.9,
+   "fails": 0,
+   "failSamples": [],
+   "overflowX": false,
+   "height": 3573
+  }
+ }
+}

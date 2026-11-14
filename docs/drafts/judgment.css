@@ -103,7 +103,7 @@ h1{margin:0;font-size:30px;line-height:1.2;letter-spacing:-.02em}
 .obs{list-style:none;margin:0;padding:0}
 .ob{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:8px 14px;padding:14px 0;border-bottom:1px solid var(--line);align-items:start;cursor:pointer}
 .ob:hover{background:linear-gradient(90deg,transparent,rgba(140,152,255,.05),transparent)}
-.ob.is-sel{box-shadow:inset 3px 0 0 var(--n-blue)}
+.ob.is-sel{background:rgba(140,152,255,.08)}
 .ob p{margin:0 0 8px;font-size:15px}
 .ob .side2{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .ob.counter{background:linear-gradient(90deg,rgba(255,122,102,.07),transparent 60%)}

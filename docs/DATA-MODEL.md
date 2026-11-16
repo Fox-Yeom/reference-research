@@ -508,7 +508,7 @@ flowchart TD
 | M2 형식 표시 | 보드 머리 "조사 형식" | — | — |
 | M5 머리 정보 | `title`·`goal`·`question` | `ref report`가 빠진 것을 경고 | 검토 목록 |
 | M6 빈 값 | 역할 없는 멤버, 설명 없는 축, 안 쓰는 축 | — | 검토 목록 |
-| M7 개체 | `entities.json`, `ref.entity`·`ref.org` | `ref entity set`, `ref source add`의 `entity`·`org` | 정규화한 제품 이름이 같으면 개체 하나로 연결, 한 호스트에 여러 제품이면 검토 목록 |
+| M7 개체 | `entities.json`, `ref.entity`·`ref.org` | `ref entity set`, `ref source add`의 `entity`·`org` | 정규화한 제품 이름이 같으면 개체 하나로 연결. 개체는 제품 자체 페이지(유형 official·docs·store·repo, 또는 capture·other이면서 역할 direct·indirect)가 있을 때만 만든다(#23). 기사·논문은 제품 페이지가 연결된 같은 이름의 개체에만 연결하고, `publisher`는 발행처(`org`) 후보로 검토 목록에 보낸다. 한 호스트에 여러 제품이면 검토 목록. 정리는 `ref entity review`(미리보기) · `merge` · `remove` |
 | M8 식별자 | `ref.ids` | URL에서 자동, `ref source add`의 `ids` | URL·별칭에서 채움, 같은 저작물인 레퍼런스 쌍은 검토 목록 |
 | M9 상위 축 | `axis.broader` | `ref axes set`(순환 거부, 태그 없는 상위 축 유지) | — |
 | M10 발견 주어 | `claim.about` | `ref claim add`(E#·축·주제만 허용) | — |

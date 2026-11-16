@@ -21,6 +21,7 @@
  *   ref course set '<json>' | show <collection>   course structure (curriculum mode): modules, topics, hours
  *   ref topic set '<json>' | show     topic registry (topics.json) {topics:[{id,label,description,order}], assign:{collection: topic}} — one topic per collection
  *   ref entity set '<json>' | show [query]   entity registry (entities.json) {entities:[{id?,kind:product|org,name,aliases,org,parent,access}], link:{S#: E#}, link_org:{S#: E#}}
+ *   ref entity merge '{"keep":"E#","drop":"E#"}' [--dry-run] | remove E# … [--dry-run] | review [--out file]   clean up entities: merge (drop stays as a pointer), remove unlinked ones, preview re-judgment
  * Evidence
  *   ref brief set '<json>' | show <collection>   {collection, brief:{purpose,audience,problem,success,value_types,scope,fixed,exclude,assumptions}, reason}
  *   ref run start '<json>'            {collection, brief, goal, question, title, topic, domain, kind} → R#, baseline + related refs from other categories
@@ -455,7 +456,17 @@ try {
       const sub = args.shift();
       if (sub === "set") print(await rg.setEntities(await jsonArg(args[0])));
       else if (sub === "show" || !sub) print(await rg.showEntities(args[0]));
-      else fail("usage: ref entity set '<json>' | ref entity show [query]");
+      else if (sub === "merge" || sub === "remove") {
+        // a mistyped --dry-run must not run the real thing
+        const dryRun = bool(args, "--dry-run");
+        const unknown = args.filter((a) => a.startsWith("--"));
+        if (unknown.length) fail(`unknown option ${unknown.join(" ")} (only --dry-run)`);
+        if (sub === "remove") print(await rg.removeEntities(args, { dryRun }));
+        else if (!args[0]) fail('usage: ref entity merge \'{"keep":"E#","drop":"E#"}\' [--dry-run]');
+        else print(await rg.mergeEntities(await jsonArg(args[0]), { dryRun }));
+      }
+      else if (sub === "review") print(await rg.reviewEntities({ out: flag(args, "--out") }));
+      else fail("usage: ref entity set '<json>' | show [query] | merge '{\"keep\":\"E#\",\"drop\":\"E#\"}' [--dry-run] | remove E# … [--dry-run] | review [--out file]");
       break;
     }
     case "doctor":

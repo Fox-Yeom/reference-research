@@ -24,7 +24,7 @@ Plugin root (`${CLAUDE_PLUGIN_ROOT}`) is a versioned, replaceable cache dir. `CL
 | `capture.mjs` | page capture: one script string runs in Aside's REPL **or** in puppeteer (`chromeRun` injects `openTab/closeTab/sleep/fs/path/console`); scroll frames, stitching, meta, re-encounter/refresh, snapshot deltas; App Store screens |
 | `evidence.mjs` | claims (create/confirm/revise/refute), confidence (≥2 independent publishers & score ≥4 = high), deltas A/C/T, cite check |
 | `axes.mjs` | tag normalization → `axes.json` (falls back to `seed/axes.json`); `axis.broader` = one parent axis |
-| `registry.mjs` | v3 registries: topics (`topics.json`, one topic per collection) and entities (`entities.json`, products and organizations) |
+| `registry.mjs` | v3 registries: topics (`topics.json`, one topic per collection) and entities (`entities.json`, products and organizations); entity cleanup (`ref entity merge` · `remove` · `review`, #23) and the product-page rule's helpers |
 | `embed.mjs` | local embeddings, vectors in `<LIB>/.vectors` (derived, git-ignored) |
 | `report.mjs` | board data, SUMMARY/README/DELTA, library home |
 | `board.mjs` | the single HTML template for every board + home (board G dark neon; the board leads with 판단 자료 — question, observations with captures, options table, folded agent memo — plus an evidence side panel, intent comparison table, timeline, activity, viewer, scoped search) |

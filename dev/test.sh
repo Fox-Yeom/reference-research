@@ -53,6 +53,7 @@ fails "$R" claim add '{"collection":"smoke","text":"x","kind":"fact","sources":[
 "$R" migrate v3 --dry-run | grep -q 'dry run'
 "$R" migrate v3 >/dev/null
 "$R" migrate v3 | grep -q 'product entities: 0 new · 0 refs linked'   # second run changes nothing
+fails grep -q 'Paper' <<<"$("$R" entity show)"   # a paper's label is not a product (#23)
 "$R" report '{"collection":"smoke","open":false}' | grep -c index.html
 step "judgment board (observations, options, memo; S# chips)"
 cat > "$T/sum.md" <<'MD'
@@ -162,4 +163,39 @@ pair=($("$R" source add '{"collection":"smoke","sources":[{"url":"https://work.e
 "$R" source merge "{\"keep\":\"${pair[0]}\",\"drop\":\"${pair[1]}\"}" | grep -q 'same work id'
 "$R" show "${pair[1]}" | grep -q "was merged into ${pair[0]}"
 echo "merge ok: $DROP → $KEEP → $THIRD"
+step "entity cleanup (#23)"
+E="$T/ent"; export REF_LIBRARY="$E"
+"$R" run start '{"collection":"ent","goal":"entity rule","domain":"design","kind":"category"}' >/dev/null
+"$R" source add '{"collection":"ent","sources":[{"url":"https://acme.example/pricing","label":"Acme — pricing","type":"official"},{"url":"https://news.example/acme","label":"Acme 리뷰 (Daily News)","type":"press","publisher":"Daily News"},{"url":"https://journal.example/2015/s","label":"Journal 2015 — study","type":"paper"},{"url":"https://acme.example/pro","label":"Acme Pro — home","type":"official"},{"url":"https://blog.example/acme","label":"Acme — a look","type":"blog"},{"url":"https://beta.example/","label":"Beta — home","type":"capture","role":"direct"}]}' >/dev/null
+m="$("$R" migrate v3)"
+grep -q 'product entities: 3 new · 4 refs linked · 2 refs not a product page' <<<"$m"   # Acme, Acme Pro, Beta (capture + direct); the blog links to Acme
+grep -q -- '- Daily News (1): S2' <<<"$m"   # the outlet goes to the org candidates
+ents="$("$R" entity show)"; fails grep -q 'Journal' <<<"$ents"; fails grep -q 'Daily' <<<"$ents"; grep -q 'E1 \[product\] Acme — 2 refs: S1, S5' <<<"$ents"
+# entities an older rule made: an article title linked to a paper, one nothing points at
+"$R" entity set '{"entities":[{"kind":"product","name":"Journal 2015"},{"kind":"product","name":"Orphan"}],"link":{"S3":"Journal 2015"}}' >/dev/null
+"$R" claim add '{"collection":"ent","text":"pro tier","kind":"fact","subject":"p","sources":["S4"],"about":["E2"]}' >/dev/null
+before="$(library_hash)"
+rv="$("$R" entity review --out "$T/review.md")"
+grep -q -- '- E4 Journal 2015 — S3 (paper)' <<<"$rv"; grep -q -- '- E5 \[product\] Orphan' <<<"$rv"; grep -q 'E1 Acme (2 refs) ← E2 Acme Pro' <<<"$rv"
+grep -q "ref entity set '{\"link\":{\"S3\":null}}'" "$T/review.md"; grep -q 'ref entity remove E4 E5' "$T/review.md"
+"$R" entity merge '{"keep":"E1","drop":"E2"}' --dry-run | grep -q 'dry run'
+"$R" entity remove E5 --dry-run | grep -q 'would remove E5'
+[ "$before" = "$(library_hash)" ]; echo "review and dry runs wrote nothing"
+fails "$R" entity remove E4 E5   # E4 still linked: nothing removed, E5 included
+grep -q '"Orphan"' "$E/entities.json"
+fails "$R" entity merge '{"keep":"E1","drop":"E1"}'
+"$R" entity merge '{"keep":"E1","drop":"E2"}' | grep -q 'merged E2 Acme Pro → E1 Acme'
+node -e '
+const fs=require("fs"),lib=process.argv[1],last=(f)=>{const m=new Map();for(const l of fs.readFileSync(f,"utf8").trim().split("\n")){const o=JSON.parse(l);m.set(o.id,o)}return m};
+const refs=last(lib+"/refs.jsonl"),claims=last(lib+"/claims.jsonl"),ents=JSON.parse(fs.readFileSync(lib+"/entities.json")).entities,e=(id)=>ents.find(x=>x.id===id);
+const ok=refs.get("S4").entity==="E1"&&refs.get("S1").entity==="E1"&&claims.get("C1").about.join()==="E1"&&e("E2").mergedInto==="E1"&&e("E1").aliases.includes("Acme Pro")&&![...refs.values()].some(r=>r.entity==="E2");
+if(!ok)process.exit(1)' "$E"
+fails grep -q '^- E2 ' <<<"$("$R" entity show)"
+fails "$R" entity merge '{"keep":"E1","drop":"E2"}'   # already merged
+fails "$R" entity remove E1                            # still linked (refs, claim, merged id)
+"$R" entity set '{"link":{"S6":"E2"}}' | grep -q 'S6.entity → E1'   # a merged id lands on the kept entity
+"$R" entity set '{"link":{"S3":null}}' >/dev/null
+"$R" entity remove E4 E5 | grep -q 'removed E5'
+fails grep -q '"Journal 2015"' "$E/entities.json"
+echo "entity cleanup ok"
 echo; echo "PASS — scratch: $T"

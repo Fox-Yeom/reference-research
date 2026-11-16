@@ -77,6 +77,11 @@ export function looksLikeArticle(url) {
   }
 }
 export const ENTITY_KINDS = ["product", "org"];
+// #23: a product entity comes only from a product's own page. Articles, papers and reports name their outlet or title in `product`.
+const PRODUCT_TYPES = new Set(["official", "docs", "store", "repo"]);
+const UNTYPED = new Set(["capture", "other", null, undefined]);
+/** roles = the ref's member roles across collections; a direct/indirect member counts only when its type says nothing (capture, other) */
+export const isProductRef = (r, roles = []) => PRODUCT_TYPES.has(r.type) || (UNTYPED.has(r.type) && roles.some((x) => x === "direct" || x === "indirect"));
 export const READ_LEVELS = ["full", "snippet"];
 export const ID_KINDS = ["doi", "pmid", "pmcid", "arxiv", "app"];
 
@@ -276,12 +281,16 @@ export const readTopics = () => readJsonFile(FILES.topics, "topics");
 export const writeTopics = (list) => writeJsonFile(FILES.topics, "topics", list);
 export const readEntities = () => readJsonFile(FILES.entities, "entities");
 export const writeEntities = (list) => writeJsonFile(FILES.entities, "entities", list);
-/** an entity by id, or by name/alias within a kind */
+/** an entity by id (a merged id leads to the entity it was folded into, `ref entity merge`), or by name/alias within a kind */
 export function findEntity(entities, key, kind) {
   if (!key) return null;
-  if (/^E\d+$/.test(key)) return entities.find((e) => e.id === key) ?? null;
+  if (/^E\d+$/.test(key)) {
+    let e = entities.find((x) => x.id === key);
+    for (let i = 0; i < 50 && e?.mergedInto; i++) e = entities.find((x) => x.id === e.mergedInto);
+    return e ?? null;
+  }
   const n = normName(key);
-  return entities.find((e) => (!kind || e.kind === kind) && (normName(e.name) === n || (e.aliases ?? []).some((a) => normName(a) === n))) ?? null;
+  return entities.find((e) => !e.mergedInto && (!kind || e.kind === kind) && (normName(e.name) === n || (e.aliases ?? []).some((a) => normName(a) === n))) ?? null;
 }
 
 // ---------- collections (categories) ----------

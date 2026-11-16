@@ -9,9 +9,10 @@
 import { promises as fs, existsSync } from "node:fs";
 import * as path from "node:path";
 import {
-  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, collectionDir, confidence, hostOf, idsFromUrl, listCollections, normName, readEntities, readState, readTopics, sameWork, writeEntities, looksLikeArticle, readClaims, readRefs, recomputeConfidence, saveRefs, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
+  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, collectionDir, confidence, findEntity, hostOf, idsFromUrl, isProductRef, listCollections, normName, readEntities, readState, readTopics, sameWork, writeEntities, looksLikeArticle, readClaims, readRefs, recomputeConfidence, saveRefs, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
 } from "./store.mjs";
 import { readAxes, tagUsage } from "./axes.mjs";
+import { orgCandidates, rolesByRef } from "./registry.mjs";
 
 const ROLE_SET = new Set(ROLES);
 const SCREEN_SET = new Set(SCREEN_TYPES);
@@ -205,16 +206,19 @@ export { nextId };
 /**
  * v2 → v3 (docs/DATA-MODEL.md §14, issue #19): fills what can be derived, lists what needs a person.
  * Applied: ref.read = full where a note, summary or snapshot shows the source was read · ref.ids from URLs ·
- *          product entities from exact product names (one entity per normalized name, variants kept as aliases).
+ *          product entities from exact product names (one entity per normalized name, variants kept as aliases) — created only
+ *          when a product's own page carries the name (isProductRef, #23); articles with the same name link to it, others don't.
  * Review only (never written): topics per collection, counter-evidence candidates from SUMMARY "반대 근거" lines,
- *          same-work duplicates, products split across one host, missing head fields, members without role, axes without description.
+ *          same-work duplicates, products split across one host, publisher (org) candidates, missing head fields, members without role,
+ *          axes without description.
  * Safe to run twice: the second run changes nothing. Run on a git-committed library; one commit reverts it.
  */
 export async function migrateV3({ dryRun = false, out = null } = {}) {
   const [refs, claims, cols, entities, topics, axes, use] = await Promise.all([readRefs(), readClaims(), listCollections(), readEntities(), readTopics(), readAxes(), tagUsage()]);
   const changed = new Map();
   const touch = (r) => changed.set(r.id, r);
-  const count = { read: 0, ids: 0, entityNew: 0, entityLinked: 0 };
+  const count = { read: 0, ids: 0, entityNew: 0, entityLinked: 0, notProduct: 0 };
+  const roles = rolesByRef(cols);
 
   // read level: a note, a summary or a capture means someone looked at the source itself
   for (const r of refs) {
@@ -237,7 +241,11 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
   for (const r of refs) if (r.product && !r.entity) (groups.get(normName(r.product)) ?? groups.set(normName(r.product), []).get(normName(r.product))).push(r);
   for (const [key, rs] of groups) {
     if (!key) continue;
-    let ent = entities.find((e) => e.kind === "product" && (normName(e.name) === key || (e.aliases ?? []).some((a) => normName(a) === key)));
+    let ent = findEntity(entities, rs[0].product, "product");
+    if (!ent && !rs.some((r) => isProductRef(r, roles.get(r.id)))) {
+      count.notProduct += rs.length; // an outlet or a title: left for the org candidates below
+      continue;
+    }
     if (!ent) {
       const names = Object.entries(rs.reduce((m, r) => ({ ...m, [r.product]: (m[r.product] ?? 0) + 1 }), {})).sort((a, b) => b[1] - a[1]).map(([n]) => n);
       ent = { id: nextId("E", entities), kind: "product", name: names[0], aliases: names.slice(1) };
@@ -259,6 +267,7 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
     const h = hostOf(r.url);
     (byHost.get(h) ?? byHost.set(h, new Set()).get(h)).add(r.entity);
   }
+  const orgs = orgCandidates(refs, entities, roles);
   const split = [...byHost].filter(([, s]) => s.size > 1).map(([h, s]) => `${h}: ${[...s].map((id) => `${id} ${entities.find((e) => e.id === id)?.name}`).join(" · ")}`);
   const counter = [];
   for (const c of cols) {
@@ -288,7 +297,7 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
     "## Applied",
     `- read = full: ${count.read} refs (note, summary or capture present)`,
     `- identifiers from URLs: ${count.ids} refs`,
-    `- product entities: ${count.entityNew} new · ${count.entityLinked} refs linked`,
+    `- product entities: ${count.entityNew} new · ${count.entityLinked} refs linked · ${count.notProduct} refs not a product page (article, paper, report…) left unlinked`,
     `- claim strength changes: ${Object.entries(shifts).map(([k, n]) => `${k} ${n}`).join(", ") || "none"}`,
     `- reading of cited sources (active claims): full ${states.full ?? 0} · snippet ${states.snippet ?? 0} · unrecorded ${states.unknown ?? 0} (board marks unrecorded as 열람 미기록)`,
     "",
@@ -303,6 +312,9 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
     `### One host, several products: ${split.length} (merge with aliases or set parent via ref entity set)`,
     ...split.slice(0, 60).map((l) => `- ${l}`),
     split.length > 60 ? `- … ${split.length - 60} more` : "",
+    `### Publisher (org) candidates: ${orgs.length} names on refs with no product or org entity (register with ref entity set {entities:[{kind:"org",name}], link_org:{S#:name}})`,
+    ...orgs.slice(0, 60).map((o) => `- ${o.name} (${o.refs.length}): ${o.refs.slice(0, 8).join(", ")}${o.refs.length > 8 ? " …" : ""}`),
+    orgs.length > 60 ? `- … ${orgs.length - 60} more` : "",
     `### Board head missing fields: ${head.length}`,
     ...head.map(([n, m]) => `- ${n}: ${m.join(", ")}`),
     `### Members without role: ${noRole.reduce((s, [, n]) => s + n, 0)} in ${noRole.length} collections`,

@@ -298,7 +298,7 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
     noTopic.length ? `\nFill and run: ref topic set '${JSON.stringify({ topics: topics.length ? [] : [{ id: "<topic-id>", label: "<주제 이름>" }], assign: Object.fromEntries(noTopic.map((c) => [c.name, "<topic-id>"])) })}'` : "",
     `### Counter-evidence candidates: ${counter.length} SUMMARY lines (set with ref claim add {update:"C#", against:["S#"]})`,
     ...counter.map((l) => `- ${l}`),
-    `### Same work, separate refs: ${dupes.length}`,
+    `### Same work, separate refs: ${dupes.length}${dupes.length ? " (merge with ref source merge '{\"keep\":\"S#\",\"drop\":\"S#\"}', --dry-run first)" : ""}`,
     ...dupes.map((l) => `- ${l}`),
     `### One host, several products: ${split.length} (merge with aliases or set parent via ref entity set)`,
     ...split.slice(0, 60).map((l) => `- ${l}`),

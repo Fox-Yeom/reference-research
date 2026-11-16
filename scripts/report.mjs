@@ -5,7 +5,7 @@
 import { promises as fs, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { briefRows, channelCounts, collectionClaims, citeCheck, delta, formatCiteCheck, formatClaims, freshWarnings, mustCollection, staleKeyClaims } from "./evidence.mjs";
-import { FILES, LIB, SOURCE_LED, bad, coverageTypes, freshness, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, readTopics, saveRuns, writeCollection } from "./store.mjs";
+import { FILES, LIB, SOURCE_LED, bad, coverageTypes, freshness, abs, collectionDir, daysSince, latestSnapshot, listCollections, readClaims, readRefs, readRuns, readTopics, saveRuns, writeCollection, resolveRefId } from "./store.mjs";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { renderBoard, renderHome, splitSummary } from "./board.mjs";
 import { run } from "./capture.mjs";
@@ -271,6 +271,7 @@ async function boardData(col, members, refs, claims, summary, cite, cov, relp) {
     stale: ms.filter((m) => m.r.snapshots?.length && daysSince(m.r.lastCaptured) > 90).map((m) => m.r),
     sources,
     refById: byId,
+    resolveRef: (id) => resolveRefId(refs, id),
     titleOf,
     catTitle: (n) => titles.get(n) ?? n,
     curriculum: col.domain === "curriculum" ? await (await import("./curriculum.mjs")).curriculumData(col, refs) : null,

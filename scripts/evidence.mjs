@@ -384,11 +384,12 @@ export async function addClaims(params) {
   const warnings = [];
   const META = ["subject", "key", "asOf", "scope", "about", "against"];
   // M10: what a claim is about — entity (E#), axis id or topic id; M11: against = sources that speak against it
-  const aboutOk = (id) => entities.some((e) => e.id === id) || topics.some((t) => t.id === id) || axes.axes.some((a) => a.id === id);
+  const aboutOk = (id) => entities.some((e) => e.id === id && !e.mergedInto) || topics.some((t) => t.id === id) || axes.axes.some((a) => a.id === id);
   list.forEach((c, i) => {
     const at = `claims[${i}]`;
     // a merged ref id counts as the ref it was folded into, before any check (for/against included)
     for (const k of ["sources", "against"]) if (Array.isArray(c[k])) c[k] = [...new Set(c[k].map((s) => resolveRefId(refs, s)))];
+    if (Array.isArray(c.about)) c.about = [...new Set(c.about.map((x) => (/^E\d+$/.test(x) ? findEntity(entities, x)?.id ?? x : x)))]; // merged entity → kept one
     if (c.asOf != null && (!/^\d{4}-\d{2}-\d{2}$/.test(String(c.asOf)) || Number.isNaN(Date.parse(c.asOf)))) errors.push(`${at}: asOf must be a real YYYY-MM-DD date`);
     if (c.about !== undefined && (!Array.isArray(c.about) || c.about.some((x) => !aboutOk(x)))) errors.push(`${at}: about must list known ids (E#, axis id, topic id): ${[].concat(c.about).filter((x) => !aboutOk(x)).join(", ")}`);
     if (c.against !== undefined && (!Array.isArray(c.against) || c.against.some((s) => !refById.has(s)))) errors.push(`${at}: against must list known ref ids (S#)`);

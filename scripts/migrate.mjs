@@ -9,7 +9,7 @@
 import { promises as fs, existsSync } from "node:fs";
 import * as path from "node:path";
 import {
-  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, collectionDir, confidence, findEntity, hostOf, idsFromUrl, isProductRef, listCollections, normName, readEntities, readState, readTopics, sameWork, writeEntities, looksLikeArticle, readClaims, readRefs, recomputeConfidence, saveRefs, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
+  FILES, LIB, ROLES, SCREEN_TYPES, TYPE_CRED, collectionDir, confidence, findEntity, writeReport, hostOf, idsFromUrl, isProductRef, listCollections, normName, readEntities, readState, readTopics, sameWork, writeEntities, looksLikeArticle, readClaims, readRefs, recomputeConfidence, saveRefs, nextId, normUrl, readJsonl, rel, slugify, splitLabel, stamp, writeCollection, writeJsonl,
 } from "./store.mjs";
 import { readAxes, tagUsage } from "./axes.mjs";
 import { orgCandidates, rolesByRef } from "./registry.mjs";
@@ -238,11 +238,14 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
   }
   // product entities: exact normalized names only; fuzzy matches go to the review list
   const groups = new Map();
+  // an entity is backed when a product page points at it; articles join only a backed entity (#23: a leftover article entity stays empty)
+  const backed = new Set(refs.filter((r) => r.entity && isProductRef(r, roles.get(r.id))).map((r) => r.entity));
   for (const r of refs) if (r.product && !r.entity) (groups.get(normName(r.product)) ?? groups.set(normName(r.product), []).get(normName(r.product))).push(r);
   for (const [key, rs] of groups) {
     if (!key) continue;
     let ent = findEntity(entities, rs[0].product, "product");
-    if (!ent && !rs.some((r) => isProductRef(r, roles.get(r.id)))) {
+    const page = rs.some((r) => isProductRef(r, roles.get(r.id)));
+    if (!page && !(ent && backed.has(ent.id))) {
       count.notProduct += rs.length; // an outlet or a title: left for the org candidates below
       continue;
     }
@@ -252,6 +255,7 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
       entities.push(ent);
       count.entityNew++;
     }
+    backed.add(ent.id);
     for (const r of rs) {
       r.entity = ent.id;
       count.entityLinked++;
@@ -328,6 +332,6 @@ export async function migrateV3({ dryRun = false, out = null } = {}) {
     if (changed.size) await recomputeConfidence();
   }
   const text = lines.join("\n");
-  if (out) await fs.writeFile(out, text + "\n");
+  if (out) await writeReport(out, text + "\n");
   return text + (dryRun ? "" : "\n\nCommit the library now; re-run `ref report` per collection to refresh boards.");
 }

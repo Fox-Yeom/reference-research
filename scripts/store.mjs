@@ -80,8 +80,8 @@ export const ENTITY_KINDS = ["product", "org"];
 // #23: a product entity comes only from a product's own page. Articles, papers and reports name their outlet or title in `product`.
 const PRODUCT_TYPES = new Set(["official", "docs", "store", "repo"]);
 const UNTYPED = new Set(["capture", "other", null, undefined]);
-/** roles = the ref's member roles across collections; a direct/indirect member counts only when its type says nothing (capture, other) */
-export const isProductRef = (r, roles = []) => PRODUCT_TYPES.has(r.type) || (UNTYPED.has(r.type) && roles.some((x) => x === "direct" || x === "indirect"));
+/** roles = the ref's member roles across collections; a direct/indirect member counts only when its type says nothing (capture, other) and its URL is no article */
+export const isProductRef = (r, roles = []) => PRODUCT_TYPES.has(r.type) || (UNTYPED.has(r.type) && roles.some((x) => x === "direct" || x === "indirect") && !looksLikeArticle(r.url));
 export const READ_LEVELS = ["full", "snippet"];
 export const ID_KINDS = ["doi", "pmid", "pmcid", "arxiv", "app"];
 
@@ -277,6 +277,11 @@ async function writeJsonFile(f, key, list) {
   await fs.mkdir(path.dirname(f), { recursive: true });
   await fs.writeFile(f, JSON.stringify({ [key]: list, updatedAt: new Date().toISOString() }, null, 2) + "\n");
 }
+/** --out of a read-only report: never a file inside the library (it would overwrite a registry or a record) */
+export async function writeReport(out, text) {
+  if (path.resolve(out).startsWith(path.resolve(LIB) + path.sep)) bad(`--out ${out} is inside the library: write the report somewhere else`);
+  await fs.writeFile(out, text);
+}
 export const readTopics = () => readJsonFile(FILES.topics, "topics");
 export const writeTopics = (list) => writeJsonFile(FILES.topics, "topics", list);
 export const readEntities = () => readJsonFile(FILES.entities, "entities");
@@ -287,7 +292,7 @@ export function findEntity(entities, key, kind) {
   if (/^E\d+$/.test(key)) {
     let e = entities.find((x) => x.id === key);
     for (let i = 0; i < 50 && e?.mergedInto; i++) e = entities.find((x) => x.id === e.mergedInto);
-    return e ?? null;
+    return e && (!kind || e.kind === kind) ? e : null;
   }
   const n = normName(key);
   return entities.find((e) => !e.mergedInto && (!kind || e.kind === kind) && (normName(e.name) === n || (e.aliases ?? []).some((a) => normName(a) === n))) ?? null;

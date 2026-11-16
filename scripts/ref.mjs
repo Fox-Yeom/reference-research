@@ -456,11 +456,15 @@ try {
       const sub = args.shift();
       if (sub === "set") print(await rg.setEntities(await jsonArg(args[0])));
       else if (sub === "show" || !sub) print(await rg.showEntities(args[0]));
-      else if (sub === "merge") {
-        const j = args.find((a) => !a.startsWith("--"));
-        if (!j) fail('usage: ref entity merge \'{"keep":"E#","drop":"E#"}\' [--dry-run]');
-        print(await rg.mergeEntities(await jsonArg(j), { dryRun: bool(args, "--dry-run") }));
-      } else if (sub === "remove") print(await rg.removeEntities(args.filter((a) => !a.startsWith("--")), { dryRun: bool(args, "--dry-run") }));
+      else if (sub === "merge" || sub === "remove") {
+        // a mistyped --dry-run must not run the real thing
+        const dryRun = bool(args, "--dry-run");
+        const unknown = args.filter((a) => a.startsWith("--"));
+        if (unknown.length) fail(`unknown option ${unknown.join(" ")} (only --dry-run)`);
+        if (sub === "remove") print(await rg.removeEntities(args, { dryRun }));
+        else if (!args[0]) fail('usage: ref entity merge \'{"keep":"E#","drop":"E#"}\' [--dry-run]');
+        else print(await rg.mergeEntities(await jsonArg(args[0]), { dryRun }));
+      }
       else if (sub === "review") print(await rg.reviewEntities({ out: flag(args, "--out") }));
       else fail("usage: ref entity set '<json>' | show [query] | merge '{\"keep\":\"E#\",\"drop\":\"E#\"}' [--dry-run] | remove E# … [--dry-run] | review [--out file]");
       break;

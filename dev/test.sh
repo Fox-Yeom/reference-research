@@ -170,6 +170,7 @@ E="$T/ent"; export REF_LIBRARY="$E"
 m="$("$R" migrate v3)"
 grep -q 'product entities: 3 new · 4 refs linked · 2 refs not a product page' <<<"$m"   # Acme, Acme Pro, Beta (capture + direct); the blog links to Acme
 grep -q -- '- Daily News (1): S2' <<<"$m"   # the outlet goes to the org candidates
+fails grep -q 'Journal 2015 (1)' <<<"$m"     # a title (product) is no publisher
 ents="$("$R" entity show)"; fails grep -q 'Journal' <<<"$ents"; fails grep -q 'Daily' <<<"$ents"; grep -q 'E1 \[product\] Acme — 2 refs: S1, S5' <<<"$ents"
 # entities an older rule made: an article title linked to a paper, one nothing points at
 "$R" entity set '{"entities":[{"kind":"product","name":"Journal 2015"},{"kind":"product","name":"Orphan"}],"link":{"S3":"Journal 2015"}}' >/dev/null
@@ -183,6 +184,13 @@ grep -q "ref entity set '{\"link\":{\"S3\":null}}'" "$T/review.md"; grep -q 'ref
 [ "$before" = "$(library_hash)" ]; echo "review and dry runs wrote nothing"
 fails "$R" entity remove E4 E5   # E4 still linked: nothing removed, E5 included
 grep -q '"Orphan"' "$E/entities.json"
+fails "$R" entity remove E5 --dryrun   # mistyped flag: refused, not run
+grep -q '"Orphan"' "$E/entities.json"
+fails "$R" entity review --out "$E/entities.json"   # a report never overwrites the library
+"$R" entity show >/dev/null
+"$R" entity set '{"entities":[{"kind":"org","name":"Acme Inc"},{"kind":"org","name":"Other Corp"},{"id":"E1","org":"Acme Inc"},{"id":"E2","org":"Other Corp"}]}' >/dev/null
+fails "$R" entity set '{"link":{"S5":"E6"}}'   # an org id is no product
+"$R" entity merge '{"keep":"E1","drop":"E2"}' --dry-run | grep -q "E2's org E7 is dropped"
 fails "$R" entity merge '{"keep":"E1","drop":"E1"}'
 "$R" entity merge '{"keep":"E1","drop":"E2"}' | grep -q 'merged E2 Acme Pro → E1 Acme'
 node -e '
@@ -192,9 +200,11 @@ const ok=refs.get("S4").entity==="E1"&&refs.get("S1").entity==="E1"&&claims.get(
 if(!ok)process.exit(1)' "$E"
 fails grep -q '^- E2 ' <<<"$("$R" entity show)"
 fails "$R" entity merge '{"keep":"E1","drop":"E2"}'   # already merged
+fails "$R" entity set '{"entities":[{"id":"E2","name":"Renamed"}]}'   # a merged id is not edited through to E1
 fails "$R" entity remove E1                            # still linked (refs, claim, merged id)
 "$R" entity set '{"link":{"S6":"E2"}}' | grep -q 'S6.entity → E1'   # a merged id lands on the kept entity
 "$R" entity set '{"link":{"S3":null}}' >/dev/null
+"$R" migrate v3 >/dev/null   # a re-run does not link the paper back to the leftover entity
 "$R" entity remove E4 E5 | grep -q 'removed E5'
 fails grep -q '"Journal 2015"' "$E/entities.json"
 echo "entity cleanup ok"

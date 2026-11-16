@@ -12,7 +12,7 @@
  * A merged entity stays in entities.json as a pointer {id, kind, name, mergedInto, mergedAt}: findEntity() follows it, name lookups
  * and listings skip it, nextId() still counts it.
  */
-import { bad, collectionName, ENTITY_KINDS, findEntity, hostOf, isProductRef, listCollections, nextId, normName, readClaims, readCollection, readEntities, readRefs, readTopics, resolveRefId, saveClaims, saveRefs, writeCollection, writeEntities, writeTopics } from "./store.mjs";
+import { bad, collectionName, ENTITY_KINDS, findEntity, hostOf, writeReport, isProductRef, listCollections, nextId, normName, readClaims, readCollection, readEntities, readRefs, readTopics, resolveRefId, saveClaims, saveRefs, writeCollection, writeEntities, writeTopics } from "./store.mjs";
 
 const TOPIC_ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 
@@ -64,6 +64,8 @@ export async function setEntities(params) {
   const out = [];
   for (const e of params.entities ?? []) {
     if (!ENTITY_KINDS.includes(e.kind) && !e.id) bad(`entity kind must be one of ${ENTITY_KINDS.join(", ")}`);
+    const ptr = e.id && entities.find((x) => x.id === e.id && x.mergedInto);
+    if (ptr) bad(`${e.id} was merged into ${ptr.mergedInto}: edit ${ptr.mergedInto}`);
     const old = e.id ? findEntity(entities, e.id) : findEntity(entities, e.name, e.kind);
     if (e.id && !old) bad(`entity ${e.id} not found`);
     if (!old && !e.name?.trim()) bad("a new entity needs a name");
@@ -119,21 +121,21 @@ export function rolesByRef(cols) {
   return m;
 }
 
-/** names on refs that are no product page and carry no entity or org: likely outlets or publishers → org candidates, biggest first */
+/** `publisher` on refs that are no product page and carry no entity or org → org candidates, biggest first (`product` there is a title) */
 export function orgCandidates(refs, entities, roles) {
   const groups = new Map();
   for (const r of refs) {
-    const name = (r.publisher || r.product || "").trim();
+    const name = (r.publisher ?? "").trim();
     if (!name || r.entity || r.org || isProductRef(r, roles.get(r.id))) continue;
     const k = normName(name);
     if (!k) continue;
-    const g = groups.get(k) ?? groups.set(k, { names: {}, refs: [] }).get(k);
-    g.names[name] = (g.names[name] ?? 0) + 1;
+    const g = groups.get(k) ?? groups.set(k, { names: new Map(), refs: [] }).get(k);
+    g.names.set(name, (g.names.get(name) ?? 0) + 1);
     g.refs.push(r.id);
   }
   return [...groups.values()]
     .map((g) => {
-      const name = Object.entries(g.names).sort((a, b) => b[1] - a[1])[0][0];
+      const name = [...g.names].sort((a, b) => b[1] - a[1])[0][0];
       return { name, refs: g.refs, registered: findEntity(entities, name, "org")?.id ?? null };
     })
     .sort((a, b) => b.refs.length - a.refs.length || a.name.localeCompare(b.name));
@@ -159,6 +161,7 @@ function liveEntity(entities, id) {
 
 export async function mergeEntities(params, { dryRun = false } = {}) {
   const { keep: keepId, drop: dropId } = params ?? {};
+  for (const id of [keepId, dropId]) if (typeof id !== "string" || !ENTITY_ID.test(id)) bad('keep and drop must be entity ids like "E12": ref entity merge \'{"keep":"E#","drop":"E#"}\' [--dry-run]');
   if (keepId === dropId) bad("keep and drop are the same entity");
   const [entities, refs, claims] = await Promise.all([readEntities(), readRefs(), readClaims()]);
   const keep = liveEntity(entities, keepId);
@@ -169,6 +172,7 @@ export async function mergeEntities(params, { dryRun = false } = {}) {
   const swap = (v) => (v === dropId ? keepId : v);
   const merged = { ...keep, aliases: uniqBy([...(keep.aliases ?? []), drop.name, ...(drop.aliases ?? [])], normName).filter((a) => normName(a) !== normName(keep.name)) };
   for (const k of ["org", "parent", "access"]) if (merged[k] == null && drop[k] != null) merged[k] = drop[k];
+  const lost = ["org", "parent", "access"].filter((k) => drop[k] != null && merged[k] != null && drop[k] !== merged[k]);
   for (const k of ["org", "parent"]) if (merged[k] != null && [keepId, dropId].includes(merged[k])) merged[k] = null; // never its own parent
   const others = entities.filter((e) => e.id !== keepId && e.id !== dropId && !e.mergedInto && (e.org === dropId || e.parent === dropId));
   const repointed = entities.filter((e) => e.mergedInto === dropId);
@@ -176,6 +180,7 @@ export async function mergeEntities(params, { dryRun = false } = {}) {
   const claimChanges = claims.filter((c) => (c.about ?? []).includes(dropId)).map((c) => ({ ...c, about: [...new Set(c.about.map(swap))], updatedAt: now }));
 
   const out = [`${dryRun ? "would merge" : "merged"} ${dropId} ${drop.name} → ${keepId} ${keep.name} [${keep.kind}]`, `  ${keepId} aliases: ${merged.aliases.join(", ") || "-"}`];
+  if (lost.length) out.push(`  ${keepId} keeps its own ${lost.map((k) => `${k} ${merged[k]}`).join(", ")}; ${dropId}'s ${lost.map((k) => `${k} ${drop[k]}`).join(", ")} is dropped`);
   if (refChanges.length) out.push(`  refs: ${refChanges.map((r) => r.id).join(", ")} now point at ${keepId}`);
   if (others.length) out.push(`  entities: ${others.map((e) => e.id).join(", ")} now name ${keepId} as org/parent`);
   if (claimChanges.length) out.push(`  claims: ${claimChanges.map((c) => c.id).join(", ")} now are about ${keepId}`);
@@ -213,11 +218,12 @@ export async function removeEntities(ids, { dryRun = false } = {}) {
 
 /** Read-only: re-judges existing entities with the product rule (isProductRef), lists merge and org candidates, prints the commands. */
 export async function reviewEntities({ out = null } = {}) {
-  const { promises: fs } = await import("node:fs");
   const [entities, refs, claims, cols] = await Promise.all([readEntities(), readRefs(), readClaims(), listCollections()]);
   const roles = rolesByRef(cols);
   const live = entities.filter((e) => !e.mergedInto);
-  const refsOf = (id) => refs.filter((r) => r.entity === id);
+  const byEntity = new Map();
+  for (const r of refs) if (r.entity) (byEntity.get(r.entity) ?? byEntity.set(r.entity, []).get(r.entity)).push(r);
+  const refsOf = (id) => byEntity.get(id) ?? [];
   const products = live.filter((e) => e.kind === "product");
   const notProduct = products.filter((e) => refsOf(e.id).length && !refsOf(e.id).some((r) => isProductRef(r, roles.get(r.id))));
   const unused = live.filter((e) => !linksOf(e.id, { entities, refs, claims }).length);
@@ -231,8 +237,9 @@ export async function reviewEntities({ out = null } = {}) {
   for (const [host, set] of byHost) {
     const es = [...set].map((id) => live.find((e) => e.id === id)).filter(Boolean);
     for (let i = 0; i < es.length; i++) for (let j = i + 1; j < es.length; j++) {
-      const [a, b] = [normName(es[i].name), normName(es[j].name)];
-      if (!a || !b || !(a.includes(b) || b.includes(a))) continue;
+      // whole leading words only ("Acme" / "Acme Pro"), not any substring ("AI" / "Airbnb")
+      const [a, b] = [es[i].name, es[j].name].map((n) => n.normalize("NFKC").toLowerCase().trim()).sort((x, y) => x.length - y.length);
+      if (!a || !(a === b || b.startsWith(`${a} `))) continue;
       const [keep, drop] = refsOf(es[i].id).length >= refsOf(es[j].id).length ? [es[i], es[j]] : [es[j], es[i]];
       pairs.set(`${keep.id}|${drop.id}`, { keep, drop, host });
     }
@@ -261,17 +268,17 @@ export async function reviewEntities({ out = null } = {}) {
       `## Publisher (org) candidates: ${orgs.length} names`,
       ...cap(orgs, (o) => `- ${o.name} (${o.refs.length})${o.registered ? ` · registered ${o.registered}` : ""}: ${o.refs.slice(0, 8).join(", ")}${o.refs.length > 8 ? " …" : ""}`),
       "",
-      "## Commands (commit the library first; check each list with the user)",
+      "## Commands (show each list to the user and run only what they approve; commit the library first)",
     ];
     const cmds = [];
     if (Object.keys(unlink).length) cmds.push(`- unlink refs from non-product entities: ref entity set '${JSON.stringify({ link: unlink })}'`);
-    if (removable.length) cmds.push(`- remove (after unlinking): ref entity remove ${removable.map((e) => e.id).join(" ")} --dry-run   (then without --dry-run)`);
+    if (removable.length) cmds.push(`- remove${Object.keys(unlink).length ? " (after unlinking)" : ""}: ref entity remove ${removable.map((e) => e.id).join(" ")} --dry-run   (then without --dry-run)`);
     if (pairs.size) cmds.push("- merge each pair above that is one product (the command is on its line); a sub-product gets parent instead");
     if (orgs.length) cmds.push(`- register publishers: ref entity set '{"entities":[{"kind":"org","name":"…"}],"link_org":{"S#":"…"}}'`);
     const big = Object.keys(unlink).length > limit || removable.length > limit;
     lines.push(...(big ? ["(lists too long for the terminal — run with --out <file> for the full commands)"] : cmds.length ? cmds : ["nothing to clean up"]));
     return lines.join("\n");
   };
-  if (out) await fs.writeFile(out, render(Infinity) + "\n");
+  if (out) await writeReport(out, render(Infinity) + "\n");
   return render(60) + (out ? `\n\nfull report: ${out}` : "");
 }

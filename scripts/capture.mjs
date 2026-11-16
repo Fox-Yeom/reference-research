@@ -11,10 +11,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readAxes, tagIndex } from "./axes.mjs";
-import {
-  CHANNELS, FILES, ROLES, announce, looksLikeArticle, SCREEN_TYPES, TYPE_CRED, abs, addMember, bad, daysSince, ensureCollection, findRef, idsFromUrl, latestSnapshot,
-  nextId, normUrl, readRefs, refSlug, rel, saveRefs, splitLabel, stamp, writeCollection,
-} from "./store.mjs";
+import { abs, addMember, announce, bad, CHANNELS, daysSince, ensureCollection, FILES, findRef, idsFromUrl, latestSnapshot, looksLikeArticle, nextId, normUrl, readRefs, refSlug, rel, resolveRefId, ROLES, saveRefs, SCREEN_TYPES, splitLabel, stamp, TYPE_CRED, writeCollection } from "./store.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const IMGTOOLS = path.join(HERE, "imgtools.py");
@@ -587,7 +584,7 @@ export async function capture(params) {
 export async function archiveDates(target, at) {
   if (at && !/^\d{4}-\d{2}(-\d{2})?$/.test(at)) bad("--at must be YYYY-MM or YYYY-MM-DD");
   const refs = await readRefs();
-  const ref = /^S\d+$/.test(target) ? refs.find((r) => r.id === target) : findRef(refs, target);
+  const ref = /^S\d+$/.test(target) ? refs.find((r) => r.id === resolveRefId(refs, target)) : findRef(refs, target);
   if (!ref && !/^https?:\/\//i.test(target)) bad(`unknown reference: ${target}`);
   const url = ref?.url ?? target;
   const q = new URLSearchParams({ url, output: "json", limit: "1", fl: "timestamp", filter: "statuscode:200" });

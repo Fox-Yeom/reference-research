@@ -10,7 +10,7 @@
  */
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { mustCollection } from "./evidence.mjs";
-import { bad, readRefs, saveRefs } from "./store.mjs";
+import { bad, readRefs, resolveRefId, saveRefs } from "./store.mjs";
 
 export const LEVELS = { intro: "입문", beginner: "초급", intermediate: "중급", advanced: "고급" };
 export const FORMATS = { "self-paced": "자율 학습(VOD)", "live-online": "실시간 온라인", cohort: "기수제", offline: "오프라인", hybrid: "혼합" };
@@ -20,7 +20,7 @@ const num = (v) => (v === undefined || v === null || v === "" ? null : Number(v)
 export async function setCourse(params) {
   const col = await mustCollection(params.collection);
   const refs = await readRefs();
-  const r = refs.find((x) => x.id === params.ref);
+  const r = refs.find((x) => x.id === resolveRefId(refs, params.ref));
   if (!r) bad(`ref not found: ${params.ref}`);
   if (!(r.categories ?? []).includes(col.name)) bad(`${r.id} is not in ${col.name} (ref collect first)`);
   const c = { ...(r.course ?? {}), ...(params.course ?? {}) };

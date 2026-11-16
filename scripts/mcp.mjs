@@ -19,7 +19,7 @@ import { z } from "zod";
 import { axisOf, readAxes, tagIndex, tagLabel } from "./axes.mjs";
 import { WHY_BASIS_KO, WHY_RANK, conclusionData, rationaleOf } from "./board.mjs";
 import { BRIEF_FIELDS, briefRows, collectionClaims } from "./evidence.mjs";
-import { LIB, abs, collectionDir, collectionName, freshness, latestSnapshot, listCollections, readClaims, readCollection, readEntities, readRefs, readRuns, readState, readTopics, refDate } from "./store.mjs";
+import { LIB, abs, collectionDir, collectionName, freshness, latestSnapshot, listCollections, readClaims, readCollection, readEntities, readRefs, readRuns, readState, readTopics, refDate, resolveRefId } from "./store.mjs";
 
 const text = (o) => ({ content: [{ type: "text", text: typeof o === "string" ? o : JSON.stringify(o, null, 2) }] });
 const KIND = { pattern: "패턴", benchmark: "기준치", fact: "사실", gap: "빈틈", failure: "실패 사례", opinion: "의견", hypothesis: "가설" };
@@ -138,10 +138,12 @@ server.registerTool(
   },
   async ({ id }) => {
     const [refs, claims, axes, t, ents] = await Promise.all([readRefs(), readClaims(), readAxes(), titles(), readEntities()]);
-    const r = refs.find((x) => x.id === id);
+    // a merged ref answers with the ref it was folded into
+    const r = refs.find((x) => x.id === resolveRefId(refs, id));
     if (!r) return text(`reference not found: ${id}`);
     const idx = tagIndex(axes);
     return text({
+      ...(r.id !== id ? { merged_from: id, note: `${id} was merged into ${r.id}` } : {}),
       ...refBrief(r, axes, idx, t),
       type: r.type,
       credibility: r.credibility,
@@ -356,7 +358,8 @@ server.registerTool(
     const col = collection ? collectionName(collection) : null;
     const ax = axis ? axes.axes.find((a) => a.id === axis || a.label === axis) : null;
     if (axis && !ax) return text(`pattern not found: ${axis}`);
-    const pool = refs.filter((r) => (!ref || r.id === ref) && (!ax || (r.tags ?? []).some((x) => ax.tags.includes(x))));
+    const rid = ref ? resolveRefId(refs, ref) : null; // a merged ref id reads the ref it was folded into
+    const pool = refs.filter((r) => (!rid || r.id === rid) && (!ax || (r.tags ?? []).some((x) => ax.tags.includes(x))));
     let sem = new Map();
     if (query) {
       try {

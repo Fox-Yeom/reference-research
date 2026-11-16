@@ -53,9 +53,10 @@ import { fileURLToPath } from "node:url";
 import { archiveDates, capture, storeScreens } from "./capture.mjs";
 import { connectorList, connectorStatus, fetchCandidates } from "./connectors.mjs";
 import * as ev from "./evidence.mjs";
+import { mergeRefs } from "./merge.mjs";
 import { report, coverage } from "./report.mjs";
 import { migrate, migrateGrades, migrateRoles, migrateV3 } from "./migrate.mjs";
-import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate } from "./store.mjs";
+import { FILES, FRESH_KO, LIB, REF_HOME, RefError, collectionName, compactAll, freshness, latestSnapshot, listCollections, readClaims, readRefs, refDate, resolveRefId } from "./store.mjs";
 import { spawnSync } from "node:child_process";
 
 function fail(msg) {
@@ -258,11 +259,16 @@ try {
     case "source": {
       const sub = args.shift();
       if (sub === "add") print(await ev.addSources(await jsonArg(args[0])));
+      else if (sub === "merge") {
+        const j = args.find((a) => !a.startsWith("--"));
+        if (!j) fail('usage: ref source merge \'{"keep":"S#","drop":"S#"}\' [--dry-run]');
+        print(await mergeRefs(await jsonArg(j), { dryRun: bool(args, "--dry-run") }));
+      }
       else if (sub === "list") {
         const refs = await readRefs();
         const name = args[0] ? collectionName(args[0]) : null;
         print(refs.filter((r) => !name || (r.categories ?? []).includes(name)).map((r) => `- ${r.id} [${r.type}/${r.credibility}] ${r.label ?? r.title ?? ""} — ${r.url} ‹${(r.categories ?? []).join(", ")}›`).join("\n") || "(none)");
-      } else fail("usage: ref source add '<json>' | ref source list [collection]");
+      } else fail("usage: ref source add '<json>' | ref source list [collection] | ref source merge '{\"keep\":\"S#\",\"drop\":\"S#\"}' [--dry-run]");
       break;
     }
     case "collect":
@@ -289,7 +295,8 @@ try {
       const scope = flag(args, "--scope") ?? "all";
       const k = Number(flag(args, "--k") ?? 8);
       const { similar } = await embed();
-      const hits = await similar(args.join(" "), { scope, k });
+      const q = args.join(" ");
+      const hits = await similar(/^S\d+$/.test(q) ? resolveRefId(await readRefs(), q) : q, { scope, k });
       const [refs, claims] = await Promise.all([readRefs(), readClaims()]);
       print(
         hits

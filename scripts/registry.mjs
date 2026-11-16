@@ -6,7 +6,7 @@
  *   ref entity set '<json>'  {entities:[{id?, kind: product|org, name, aliases?, org?, parent?, access?}], link:{"S#": "E#|name"}, link_org:{"S#": "E#|name"}}
  *   ref entity show [query]  entities (name/alias match) with the refs pointing at them
  */
-import { ENTITY_KINDS, bad, collectionName, findEntity, listCollections, nextId, normName, readCollection, readEntities, readRefs, readTopics, saveRefs, writeCollection, writeEntities, writeTopics } from "./store.mjs";
+import { bad, collectionName, ENTITY_KINDS, findEntity, listCollections, nextId, normName, readCollection, readEntities, readRefs, readTopics, resolveRefId, saveRefs, writeCollection, writeEntities, writeTopics } from "./store.mjs";
 
 const TOPIC_ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 
@@ -74,7 +74,7 @@ export async function setEntities(params) {
   const touched = new Map();
   for (const [field, kind, map] of [["entity", "product", params.link], ["org", "org", params.link_org]]) {
     for (const [sid, key] of Object.entries(map ?? {})) {
-      const r = refs.find((x) => x.id === sid) ?? bad(`ref ${sid} not found`);
+      const r = refs.find((x) => x.id === resolveRefId(refs, sid)) ?? bad(`ref ${sid} not found`);
       const ent = key ? findEntity(entities, key, kind) ?? bad(`${field} "${key}" is not in entities.json`) : null;
       r[field] = ent?.id ?? null;
       touched.set(r.id, r);

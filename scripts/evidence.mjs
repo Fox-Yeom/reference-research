@@ -11,11 +11,7 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import { axisOf, readAxes, tagIndex } from "./axes.mjs";
 import { connectorNames } from "./connectors.mjs";
-import {
-  CHANNELS, CHANNEL_KO, CLAIM_KINDS, announce, FILES, POSITIONS, ROLES, SCREEN_TYPES, SOURCE_TYPES, TYPE_CRED, abs, addMember, bad, cites, collectionDir, collectionName,
-  FRESH_KO, ID_KINDS, READ_LEVELS, channelOf, confidence, daysSince, freshness, ensureCollection, findEntity, findRef, idsFromUrl, latestSnapshot, nextId, normUrl, readClaims, readCollection, readEntities, readRefs,
-  readRuns, recomputeConfidence, refSlug, saveClaims, saveRefs, saveRuns, splitLabel, writeCollection, readTopics,
-} from "./store.mjs";
+import { abs, addMember, announce, bad, CHANNEL_KO, channelOf, CHANNELS, cites, CLAIM_KINDS, collectionDir, collectionName, confidence, daysSince, ensureCollection, FILES, findEntity, findRef, FRESH_KO, freshness, ID_KINDS, idsFromUrl, latestSnapshot, nextId, normUrl, POSITIONS, READ_LEVELS, readClaims, readCollection, readEntities, readRefs, readRuns, readTopics, recomputeConfidence, refSlug, resolveRefId, ROLES, saveClaims, saveRefs, saveRuns, SCREEN_TYPES, SOURCE_TYPES, splitLabel, TYPE_CRED, writeCollection } from "./store.mjs";
 
 const STALE_DAYS = 90;
 const CITE_RE = /\[((?:[SC]\d+)(?:\s*,\s*[SC]\d+)*)\]/g;
@@ -284,7 +280,7 @@ export async function collect(params) {
   const out = [];
   const touched = [];
   for (const id of params.refs ?? []) {
-    const r = refs.find((x) => x.id === id);
+    const r = refs.find((x) => x.id === resolveRefId(refs, id));
     if (!r) bad(`ref not found: ${id}`);
     const added = addMember(col, r, params.role, col.currentRun);
     if (params.note) r.notes.push({ at: new Date().toISOString(), collection: col.name, run: col.currentRun ?? null, text: params.note });
@@ -299,13 +295,13 @@ export async function collect(params) {
 export async function uncollect(name, id) {
   const col = await mustCollection(name);
   const refs = await readRefs();
-  const r = refs.find((x) => x.id === id);
+  const r = refs.find((x) => x.id === resolveRefId(refs, id));
   if (!r) bad(`ref not found: ${id}`);
-  col.members = col.members.filter((m) => m.ref !== id);
+  col.members = col.members.filter((m) => m.ref !== r.id);
   r.categories = (r.categories ?? []).filter((c) => c !== col.name);
   await saveRefs([r]);
   await writeCollection(col);
-  return `${id} removed from ${col.name} (ref and its snapshots kept; categories now: ${r.categories.join(", ") || "none"})`;
+  return `${r.id} removed from ${col.name} (ref and its snapshots kept; categories now: ${r.categories.join(", ") || "none"})`;
 }
 
 /** structured note fields (SKILL §5) — stored next to the markdown text, rendered as a definition list in the viewer */
@@ -328,7 +324,7 @@ export async function addNote(params) {
   let target = "collection";
   if (refId) {
     const refs = await readRefs();
-    const r = refs.find((x) => x.id === refId);
+    const r = refs.find((x) => x.id === resolveRefId(refs, refId));
     if (!r) bad(`ref not found: ${refId}`);
     r.notes.push({ at: now, collection: col.name, run: col.currentRun ?? null, text: params.note, tags: params.tags ?? [], ...(fields ? { fields } : {}) });
     if (params.tags) r.tags = [...new Set([...r.tags, ...params.tags])];
@@ -346,12 +342,13 @@ export async function addNote(params) {
 
 export async function showRef(id) {
   const [refs, claims] = await Promise.all([readRefs(), readClaims()]);
-  const r = refs.find((x) => x.id === id) ?? findRef(refs, id);
+  const r = refs.find((x) => x.id === resolveRefId(refs, id)) ?? findRef(refs, id);
   if (!r) bad(`ref not found: ${id}`);
   const snap = latestSnapshot(r);
   const citing = claims.filter((c) => c.sources.includes(r.id));
   return {
     text: [
+      ...(r.id !== id && /^S\d+$/.test(id) ? [`(${id} was merged into ${r.id})`] : []),
       `${r.id} ${r.label ?? ""} — ${r.title ?? ""}`,
       `url: ${r.url}${r.aliases?.length ? ` (aliases: ${r.aliases.join(", ")})` : ""}`,
       `type ${r.type}/${r.credibility} · channel ${channelOf(r) ?? "-"} · publisher ${r.publisher ?? "-"} · categories: ${(r.categories ?? []).join(", ") || "-"}`,
@@ -390,6 +387,8 @@ export async function addClaims(params) {
   const aboutOk = (id) => entities.some((e) => e.id === id) || topics.some((t) => t.id === id) || axes.axes.some((a) => a.id === id);
   list.forEach((c, i) => {
     const at = `claims[${i}]`;
+    // a merged ref id counts as the ref it was folded into, before any check (for/against included)
+    for (const k of ["sources", "against"]) if (Array.isArray(c[k])) c[k] = [...new Set(c[k].map((s) => resolveRefId(refs, s)))];
     if (c.asOf != null && (!/^\d{4}-\d{2}-\d{2}$/.test(String(c.asOf)) || Number.isNaN(Date.parse(c.asOf)))) errors.push(`${at}: asOf must be a real YYYY-MM-DD date`);
     if (c.about !== undefined && (!Array.isArray(c.about) || c.about.some((x) => !aboutOk(x)))) errors.push(`${at}: about must list known ids (E#, axis id, topic id): ${[].concat(c.about).filter((x) => !aboutOk(x)).join(", ")}`);
     if (c.against !== undefined && (!Array.isArray(c.against) || c.against.some((s) => !refById.has(s)))) errors.push(`${at}: against must list known ref ids (S#)`);
@@ -794,7 +793,7 @@ export async function channelReport(name) {
 
 export async function citeCheck(text) {
   const [claims, refs] = await Promise.all([readClaims(), readRefs()]);
-  const known = new Set([...claims.map((c) => c.id), ...refs.map((r) => r.id)]);
+  const known = new Set([...claims.map((c) => c.id), ...refs.map((r) => r.id), ...refs.pointers.keys()]);
   const inactive = new Map(claims.filter((c) => c.status !== "active").map((c) => [c.id, c]));
   const unknown = new Set();
   const outdated = new Set();

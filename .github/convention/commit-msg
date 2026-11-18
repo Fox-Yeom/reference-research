@@ -21,9 +21,11 @@ COMMENT = re.compile(r"^#(\s|$)")
 SCISSORS = "# ------------------------ >8 ------------------------"
 # 도입 저장소에서 Agent가 직접 커밋하지 않는 통합·배포 브랜치(docs/01-work-and-branch.md).
 PROTECTED_BRANCH = re.compile(r"^(main|master|develop|dev|development|production|staging|release/.+)$")
-SENTENCE_ENDING = re.compile(r"(니다|했음|됐음|했다|됐다|한다|된다|(?<!포)함|됨)$")
+# 마침표는 따로 알리므로 마침표 앞의 서술형도 잡는다(`추가했습니다.`, `추가했습니다 ..`).
+SENTENCE_ENDING = re.compile(r"(니다|했음|됐음|했다|됐다|한다|된다|(?<!포)함|됨)[\s.]*$")
+# 트레일러 앞에 공백, 기호, 폭 없는 문자가 붙거나 콜론 앞에 공백이 있어도 찾는다(02 커밋 메시지 검사).
 AI_ATTRIBUTION = re.compile(
-    r"co-authored-by:.*(claude|anthropic)|generated with.*claude|^claude-session:",
+    r"co-authored-by:.*(claude|anthropic)|generated with.*claude|^[^\w\n]*claude-session\s*:",
     re.IGNORECASE | re.MULTILINE,
 )
 
@@ -175,8 +177,11 @@ def is_adopted():
 
 
 def is_enforced():
-    """AI 커밋만 검사한다. 저장소별 해제: git config commitlint.skip true"""
-    if not (os.environ.get("CLAUDECODE") or os.environ.get("COMMIT_LINT_STRICT")):
+    """AI 커밋만 검사한다. 저장소별 해제: git config commitlint.skip true
+
+    Claude Code는 CLAUDECODE, Codex는 실행한 명령에 CODEX_THREAD_ID를 넣는다. 그 밖의 Agent는 COMMIT_LINT_STRICT.
+    """
+    if not (os.environ.get("CLAUDECODE") or os.environ.get("CODEX_THREAD_ID") or os.environ.get("COMMIT_LINT_STRICT")):
         return False
     skip = subprocess.run(
         ["git", "config", "--type=bool", "--get", "commitlint.skip"],

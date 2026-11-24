@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""AI 커밋 메시지 검증기 (git commit-msg 훅). 규칙 설명은 docs/02-commit.md."""
+"""AI 커밋 메시지 검증기 (git commit-msg 훅). 형식 설명은 규칙 원본 저장소의 docs/formats.md."""
 import os
 import re
 import subprocess
@@ -19,11 +19,11 @@ GENERATED = {"merge": re.compile(r"^Merge "), "revert": re.compile(r'^(Revert "|
 # 에디터가 넣는 주석 줄(`# …`, `#\t…`, `#`)만 주석이다. `#18 로그인 수정`은 제목이다.
 COMMENT = re.compile(r"^#(\s|$)")
 SCISSORS = "# ------------------------ >8 ------------------------"
-# 도입 저장소에서 Agent가 직접 커밋하지 않는 통합·배포 브랜치(docs/01-work-and-branch.md).
+# 도입 저장소에서 Agent가 직접 커밋하지 않는 통합·배포 브랜치(양식 문서의 브랜치 이름).
 PROTECTED_BRANCH = re.compile(r"^(main|master|develop|dev|development|production|staging|release/.+)$")
 # 마침표는 따로 알리므로 마침표 앞의 서술형도 잡는다(`추가했습니다.`, `추가했습니다 ..`).
 SENTENCE_ENDING = re.compile(r"(니다|했음|됐음|했다|됐다|한다|된다|(?<!포)함|됨)[\s.]*$")
-# 트레일러 앞에 공백, 기호, 폭 없는 문자가 붙거나 콜론 앞에 공백이 있어도 찾는다(02 커밋 메시지 검사).
+# 트레일러 앞에 공백, 기호, 폭 없는 문자가 붙거나 콜론 앞에 공백이 있어도 찾는다.
 AI_ATTRIBUTION = re.compile(
     r"co-authored-by:.*(claude|anthropic)|generated with.*claude|^[^\w\n]*claude-session\s*:",
     re.IGNORECASE | re.MULTILINE,
@@ -75,7 +75,7 @@ def check(message, branch="", in_progress=()):
     """위반 내용 목록을 돌려준다. 빈 목록이면 통과.
 
     in_progress: 진행 중인 git 작업("merge", "revert"). 그 작업이 만든 메시지는 형식 검사를 건너뛴다.
-    merge는 `Refs`도 건너뛰고, revert는 Task 브랜치의 `Refs`를 검사한다(05 Rework 변경 분리).
+    merge는 `Refs`도 건너뛰고, revert는 Task 브랜치의 `Refs`를 검사한다.
     `>8` 선 아래는 형식을 검사하지 않는다. 커밋에 남을 수 있으므로 AI 작성 표기는 찾는다.
     편집기를 쓴 커밋은 main()이 선 아래를 먼저 잘라 낸다.
     """

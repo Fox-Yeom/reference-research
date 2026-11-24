@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PR 검증기. GitHub Actions의 pull_request_target 이벤트에서 통합 브랜치 판으로 실행한다.
 
-규칙 설명은 docs/03-pull-request.md. 브랜치 이름과 PR 본문은 신뢰할 수 없는 입력이므로
+형식 설명은 규칙 원본 저장소의 docs/formats.md. 브랜치 이름과 PR 본문은 신뢰할 수 없는 입력이므로
 셸을 거치지 않고 이벤트 파일에서 읽는다.
 """
 import importlib.machinery
@@ -32,7 +32,7 @@ PLACEHOLDER = re.compile(r"^<[^<>]*>$")
 PLACEHOLDER_ROW = re.compile(r"^<[^<>]*>(?:\s*:\s*<[^<>]*>)+$")
 HTML_TAG = re.compile(r"^</?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?/?>$")  # `<br>`, `<img …>`, `<details>`는 안내문이 아니다.
 EMPTY_MESSAGE = "(빈 메시지)"
-# Ready PR의 `[ ]` 항목은 `: ` 뒤를 확인 시점 어휘로 시작해야 한다(03 완료 조건 체크리스트).
+# Ready PR의 `[ ]` 항목은 `: ` 뒤를 확인 시점 어휘로 시작해야 한다(양식 문서의 검증 결과).
 PENDING = ("병합 뒤", "승격 뒤", "설정 뒤")
 # 인용문 안의 항목도 GitHub에서 체크박스다.
 UNCHECKED = re.compile(r"^\s*(?:>\s*)*(?:[-*+]|\d+[.)])\s+\[ \](?:\s(.*))?$")
@@ -244,7 +244,7 @@ def check_pending(body):
         if not (colon and PENDING_START.match(rest.lstrip())):
             errors.append(f"Ready PR의 검증 결과에 확인 시점 없는 `[ ]` 항목: {text!r}. "
                           f"근거를 붙여 `[x]`로 바꾸거나, PR에서 판정할 수 없는 조건이면 첫 `: ` 바로 뒤를 "
-                          f"{', '.join(PENDING)} 중 하나로 시작한다(`병합 뒤처리`처럼 붙여 쓰지 않음). 근거를 붙일 수 없으면 Draft로 두고 보고한다(05 Ready 전 멈춤)")
+                          f"{', '.join(PENDING)} 중 하나로 시작한다(`병합 뒤처리`처럼 붙여 쓰지 않음). 근거를 붙일 수 없으면 Draft로 두고 `## Ready 전 멈춤` 코멘트로 보고한다")
     return errors
 
 
@@ -291,12 +291,30 @@ def is_revert(rules, message):
     return bool(rules.GENERATED["revert"].match(message))
 
 
+def child_numbers(number):
+    """(이 저장소에 있는 바로 아래 하위 Issue 번호들, 경고). 조회하지 못하면 번호가 없어 `Refs`는 브랜치 번호만 받는다."""
+    children = fetch_children(number)
+    if children is None:
+        return set(), []
+    if children is False:
+        return set(), [f"Issue #{number}의 하위 Issue를 조회하지 못해 `Refs`를 브랜치 번호로만 판정함. "
+                       "워크플로의 `issues: read` 권한을 확인"]
+    repository = os.environ.get("GITHUB_REPOSITORY", "")
+    # 번호가 정수가 아닌 항목을 받으면 그 이름이 Task 브랜치 형식이 아니라 `Refs` 검사가 꺼진다.
+    return {str(issue["number"]) for issue in children
+            if isinstance(issue, dict) and type(issue.get("number")) is int and issue["number"] > 0
+            and str(issue.get("repository_url") or "").partition("/repos/")[2] in ("", repository)}, []
+
+
 def check_commits(rules, base, head, branch):
     """브랜치를 넣어야만 나오는 위반이 `Refs`이고 나머지는 형식 위반이다.
 
-    부모가 2개 이상일 때만 git이 만든 merge 메시지로 본다. `fixup!` 같은 접두어는 인정하지 않는다(05 Rework).
+    부모가 2개 이상일 때만 git이 만든 merge 메시지로 본다. `fixup!` 같은 접두어는 인정하지 않는다.
+    기능 PR은 브랜치 번호 Issue의 바로 아래 하위 Issue 번호도 받는다(#330). 하위의 하위는 받지 않는다.
+    하위 목록은 `Refs`가 어긋난 커밋이 있을 때 한 번만 조회하므로, 번호가 맞는 PR은 조회 없이 지금처럼 판정한다.
     """
-    errors, warnings = [], []
+    errors, warnings, children = [], [], None
+    task = rules.TASK_BRANCH.match(branch)
     for sha, parents, raw in commits(base, head):
         if is_revert(rules, raw):
             if rules.AI_ATTRIBUTION.search(raw):
@@ -304,7 +322,17 @@ def check_commits(rules, base, head, branch):
             continue
         message, generated = as_recorded(raw), ("merge",) if parents >= 2 else ()
         form = rules.check(message, "", generated)
-        errors += [f"{sha[:7]}: {e}" for e in rules.check(message, branch, generated) if e not in form]
+        refs = [e for e in rules.check(message, branch, generated) if e not in form]
+        if refs and task:
+            if children is None:
+                children, lookup = child_numbers(task.group(2))
+                warnings += lookup
+            if any(rules.check(message, f"{task.group(1)}/{n}-x", generated) == form for n in children):
+                refs = []
+            elif children:
+                listed = ", ".join(f"#{n}" for n in sorted(children, key=int))
+                refs = [f"{e}. 하위 Issue 번호도 받음: {listed}" for e in refs]
+        errors += [f"{sha[:7]}: {e}" for e in refs]
         warnings += [f"{sha[:7]}: {w}" for w in form]
     return errors, warnings
 
@@ -355,7 +383,7 @@ def fetch_issue(number):
 
 
 def check_issue(number, fetch=fetch_issue, hotfix_second=False):
-    """병합되거나 중단한 Task의 번호로 브랜치를 다시 만들었는지 본다(01 B6). 조회 실패는 다른 PR을 막지 않게 경고만 낸다.
+    """병합되거나 중단한 Task의 번호로 브랜치를 다시 만들었는지 본다(뼈대 2번 줄: 끝난 번호는 다시 쓰지 않는다). 조회 실패는 다른 PR을 막지 않게 경고만 낸다.
 
     `hotfix_second`는 hotfix 브랜치에서 통합 브랜치로 가는 PR(hotfix 둘째 PR)이다. 판정은 같고 안내만 더한다(#163).
     """
@@ -371,9 +399,14 @@ def check_issue(number, fetch=fetch_issue, hotfix_second=False):
                    "잘못 닫은 Issue(병합·중단 없이 닫았거나 남은 조건이 채워지기 전에 닫음)만 담당자가 다시 연다")
         if hotfix_second and issue.get("state_reason") != "not_planned":  # 중단한 hotfix는 첫 PR이 병합되지 않았다
             message += (". 첫 PR이 배포 브랜치에 병합되고 둘째 PR이 남은 hotfix를 지운 브랜치에서 다시 만들었으면 "
-                        "담당자가 Issue를 다시 연 뒤 이 검사를 다시 돌린다(01 병합 뒤의 변경)")
+                        "담당자가 Issue를 다시 연 뒤 이 검사를 다시 돌린다")
         return [message], []
     return [], []
+
+
+def fetch_children(number):
+    """Issue의 바로 아래 하위 Issue(Sub-issue) 목록. Actions 밖이면 None, 조회에 실패하면 False."""
+    return fetch_pages(f"issues/{number}/sub_issues")
 
 
 def fetch_blockers(number):
@@ -382,7 +415,7 @@ def fetch_blockers(number):
 
 
 def check_blockers(number, fetch=fetch_blockers):
-    """Task를 막는 Issue(blocked_by) 중 열린 것을 알린다(01 Blocked 기록, #86).
+    """Task를 막는 Issue(blocked_by) 중 열린 것을 알린다(#86).
 
     스택 PR의 상위 Task나 남은 조건 때문에 열어 둔 선행처럼 열린 채 병합하는 것이 맞는 경우가 있고,
     선행 Issue를 닫아도 이 검사가 다시 돌지 않으므로 실패로 두면 다른 PR을 막는다. 그래서 경고만 낸다.
@@ -404,7 +437,7 @@ def check_blockers(number, fetch=fetch_blockers):
             "스택 PR의 상위 Task이거나 남은 조건 때문에 열어 둔 선행이 아니면 선행이 끝난 뒤 병합한다"]
 
 
-# 05 반려 사유와 복귀 단계 표. 도입 저장소에는 문서가 없으므로 값을 옮겨 둔다(test_pr_check가 05 표와 대조).
+# 양식 문서의 반려 표. 도입 저장소에는 문서가 없으므로 값을 옮겨 둔다(test_pr_check가 양식 문서의 표와 대조).
 REJECTIONS = (
     ("수정 요청", "코드 결함", "구현"),
     ("수정 요청", "테스트 누락", "테스트 작성·검증"),
@@ -417,7 +450,7 @@ REJECTION_FIELDS = ("결정", "사유", "근거", "복귀 단계")
 REJECTION_HEADING = re.compile(r"^반려(?:$|[\s:(])")
 # 값은 `(.*)`로 받고 strip한다. `(.*?)\s*$`는 긴 공백 줄에서 역추적이 이차 시간이 된다.
 REJECTION_FIELD = re.compile(r"^\s*(?:[-*+]\s+)?\**(결정|사유|근거|복귀 단계)\s*(?::\**|\**:)(.*)$")
-# 05 반려 사유 표 아래의 단계 순서. 사유가 여럿이면 가장 앞 단계로 간다(K1).
+# 반려 표 아래의 단계 순서. 사유가 여럿이면 가장 앞 단계로 간다.
 STAGES = ("작업 정의·요구사항 분석", "영향 분석·업무 재분해", "재설계", "브랜치 정리·변경 분리", "구현", "테스트 작성·검증")
 
 
@@ -443,7 +476,7 @@ def rejection_record(body):
 
 
 def rejection_values_match(record):
-    """결정·사유·복귀 단계가 05 표와 맞는가. 사유는 쉼표로 여럿 쓸 수 있고 가장 앞 단계의 행과 맞아야 한다(K1)."""
+    """결정·사유·복귀 단계가 반려 표와 맞는가. 사유는 쉼표로 여럿 쓸 수 있고 가장 앞 단계의 행과 맞아야 한다."""
     reasons = [reason.strip() for reason in record["사유"].split(",")]
     rows = [row for reason in reasons for row in REJECTIONS if row[1] == reason]
     if len(rows) != len(reasons):
@@ -453,10 +486,10 @@ def rejection_values_match(record):
 
 
 def check_rejection(number, fetch=fetch_timeline):
-    """Ready 뒤 Draft로 되돌린 차례마다 `## 반려` 코멘트가 하나씩 있는지 본다(05 반려 기록, #120).
+    """Ready 뒤 Draft로 되돌린 차례마다 `## 반려` 코멘트가 하나씩 있는지 본다(양식 문서의 반려, #120).
 
     차례 k는 그 Draft 전환 앞의 마지막 Ready 전환 뒤에 남긴 기록 중 앞 차례가 쓰지 않은 가장 이른 것으로 채운다.
-    기록 하나는 한 차례만 채우고, 끝을 닫지 않으므로 빠진 기록은 나중에 더하면 채워진다. 빠진 칸과 05 표에 없는 값은 경고다.
+    기록 하나는 한 차례만 채우고, 끝을 닫지 않으므로 빠진 기록은 나중에 더하면 채워진다. 빠진 칸과 반려 표에 없는 값은 경고다.
     """
     timeline = fetch(number)
     if timeline is None:
@@ -478,7 +511,7 @@ def check_rejection(number, fetch=fetch_timeline):
         while position < len(records) and records[position][0] <= start:
             position += 1
         if position == len(records):
-            errors.append(f"{when}에 Draft로 되돌렸는데 그 차례의 `## 반려` 코멘트가 없음. 05 반려 기록 양식"
+            errors.append(f"{when}에 Draft로 되돌렸는데 그 차례의 `## 반려` 코멘트가 없음. 반려 기록 양식"
                           f"({', '.join(REJECTION_FIELDS)})으로 PR 코멘트를 남긴 뒤 실패한 이 검사 실행을 다시 돌린다."
                           " 기록은 앞 차례부터 채우므로 빠진 기록 수만큼 더하면 된다."
                           " 반려가 아닌 이유로 되돌렸어도 그 이유를 같은 양식으로 남긴다")
@@ -490,12 +523,12 @@ def check_rejection(number, fetch=fetch_timeline):
             warnings.append(f"{when} 반려 기록에 빠진 칸: {', '.join(missing)}")
         if all(field in record for field in ("결정", "사유", "복귀 단계")) and not rejection_values_match(record):
             values = " / ".join(record[field] for field in ("결정", "사유", "복귀 단계"))
-            warnings.append(f"{when} 반려 기록의 결정·사유·복귀 단계가 05 표와 맞지 않음: {values}")
+            warnings.append(f"{when} 반려 기록의 결정·사유·복귀 단계가 반려 표와 맞지 않음: {values}")
     return errors, warnings
 
 
 def check_title(rules, title, promotion, deploy, integration):
-    """PR 제목은 커밋 제목과 다른 PR 고유 형식이다(03 PR 제목). 판정은 커밋 형식처럼 경고만 낸다."""
+    """PR 제목은 커밋 제목과 다른 PR 고유 형식이다(양식 문서의 PR 제목). 판정은 커밋 형식처럼 경고만 낸다."""
     title = unicodedata.normalize("NFC", title or "").strip()
     if promotion:
         if re.fullmatch(rf"{re.escape(integration)} → {re.escape(deploy)} 승격 \(#[0-9]+(?:, #[0-9]+)*\)", title):
